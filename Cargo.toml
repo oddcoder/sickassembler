@@ -3,7 +3,8 @@ name = "sickassembler"
 version = "0.1.0"
 authors = [
 	"oddcoder <ahmedsoliman@oddcoder.com>",
-	"shakram02 <ahmedhamdyau@gmail.com>"
+	"shakram02 <ahmedhamdyau@gmail.com>",
+	"Youssefares <Youssefares@ymail.com>"
 ]
 
 [dependencies]
