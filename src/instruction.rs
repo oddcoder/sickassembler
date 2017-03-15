@@ -55,8 +55,16 @@ impl Instruction {
 *  Instruction operand
 */
 pub enum Operand {
-    Register(u8),
+    Register(Register), // Register number
     Immediate(i32),
     Label(String), // Load the memory address for the lable
     None,
+}
+
+pub enum Register {
+    A,
+    X,
+    R,
+    T,
+    S,
 }
