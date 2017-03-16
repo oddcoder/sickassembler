@@ -17,5 +17,6 @@ name = "sick_assembler"
 path = "src/bin/main.rs"
 
 [dependencies]
+getopts = "*"
 regex = "*"
 log = "*"
