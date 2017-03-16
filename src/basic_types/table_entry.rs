@@ -5,7 +5,7 @@
  *
  * An entry will simply have the label, value, address
  */
-struct TableEntry {
+pub struct TableEntry {
     address: u32,
     lebel: String,
     value: i32,

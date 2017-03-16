@@ -43,7 +43,7 @@ impl Instruction {
 
     /**
      *  get_flags_value returns the numeric value of the flags
-     * declared on this instruction
+     *  declared on this instruction
      */
     fn get_flags_value() -> u32 {
         // Create an extra check to see if conflicting flags exist
