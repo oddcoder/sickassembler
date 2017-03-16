@@ -1,6 +1,6 @@
 # Tests
 
--   Each module should have its tests in the same files
+-   Each module should have its tests in the same folder
 
 -   Integration tests will be included in this folder
 
