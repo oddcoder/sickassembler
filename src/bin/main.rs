@@ -5,7 +5,7 @@ use getopts::Options;
 //use sick_lib::basic_types::*;
 //use instruction::Instruction;
 //use operands::Operand;
-//use sick_lib::filehandler::FileHandler;
+use sick_lib::filehandler::FileHandler;
 use std::env;
 
 fn print_usage(program: &str, opts: Options) {
@@ -39,5 +39,5 @@ fn main() {
     } else {
         panic!("Error No input File selected");
     };
-    println!("Input is {}\n output is {}", input, output);
+    let asm_file = FileHandler::new(input);
 }
