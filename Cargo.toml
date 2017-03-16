@@ -7,6 +7,15 @@ authors = [
 	"Youssefares <Youssefares@ymail.com>"
 ]
 
+
+[lib]
+name = "sick_lib"
+path = "src/lib/lib.rs"
+
+[[bin]]
+name = "sick_assembler"
+path = "src/bin/main.rs"
+
 [dependencies]
 regex = "*"
 log = "*"
