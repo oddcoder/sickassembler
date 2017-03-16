@@ -3,4 +3,6 @@ Cargo.lock
 target
 *.swp
 *.swo
+*.bk
 tags
+.idea
