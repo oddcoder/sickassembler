@@ -15,6 +15,7 @@ const BYTE_SIZE_TO_BITS: u8 = 8; // In the SIC machine, a byte is 3 bits
  */
 
 pub struct Instruction {
+    label: String,
     format: Formats,
     instruction: String,
     flags: Vec<Flags>,
@@ -28,8 +29,9 @@ impl Instruction {
     /**
      * new A plain new instruction
      */
-    pub fn new(instruction: String, op1: Operand, op2: Operand) -> Instruction {
+    pub fn new(label: String, instruction: String, op1: Operand, op2: Operand) -> Instruction {
         Instruction {
+            label: label,
             format: Formats::None,
             instruction: instruction,
             flags: Vec::new(),
