@@ -24,7 +24,8 @@ pub enum Flags {
     Extended = OP_CODE_LEN_F3_F4+6,
 }
 
-
+// TODO I'd like to use the bitflags! macro, but it's not currently
+// possible as the instruction length is required
 
 impl fmt::Display for Flags {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
