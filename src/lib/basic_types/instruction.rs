@@ -12,6 +12,7 @@ use basic_types::register::Register;
  * Each method that mutates the state should return a new object
  */
 pub struct Instruction {
+    label: String,
     format: Formats,
     instruction: String,
     flags: Vec<Flags>,
@@ -23,8 +24,9 @@ impl Instruction {
     /**
      * new A plain new instruction
      */
-    pub fn new(instruction: String, op1: Operand, op2: Operand) -> Instruction {
+    pub fn new(label: String, instruction: String, op1: Operand, op2: Operand) -> Instruction {
         Instruction {
+            label: label,
             format: Formats::None,
             instruction: instruction,
             flags: Vec::new(),
