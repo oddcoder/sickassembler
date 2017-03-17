@@ -11,7 +11,8 @@ mod instuction_tests {
     #[should_panic]
     fn double_flags() {
 
-        let mut instr: Instruction = Instruction::new("load".to_owned(),
+        let mut instr: Instruction = Instruction::new(String::new(),
+                                                      "load".to_owned(),
                                                       Operand::Immediate(5),
                                                       Operand::Immediate(1));
         instr.set_flag(Flags::BaseRelative);
@@ -20,7 +21,8 @@ mod instuction_tests {
 
     #[test]
     fn format_3_base_relative() {
-        let mut instr: Instruction = Instruction::new("load".to_owned(),
+        let mut instr: Instruction = Instruction::new(String::new(),
+                                                      "load".to_owned(),
                                                       Operand::Immediate(5),
                                                       Operand::Immediate(1));
 
@@ -36,7 +38,8 @@ mod instuction_tests {
     #[test]
     #[should_panic]
     fn format_3_base_pc_relative() {
-        let mut instr: Instruction = Instruction::new("load".to_owned(),
+        let mut instr: Instruction = Instruction::new(String::new(),
+                                                      "load".to_owned(),
                                                       Operand::Immediate(5),
                                                       Operand::Immediate(1));
 
@@ -53,7 +56,8 @@ mod instuction_tests {
     #[test]
     #[should_panic]
     fn format_4_no_e_flag4() {
-        let mut instr: Instruction = Instruction::new("load".to_owned(),
+        let mut instr: Instruction = Instruction::new(String::new(),
+                                                      "load".to_owned(),
                                                       Operand::Immediate(5),
                                                       Operand::Immediate(1));
 
@@ -67,7 +71,8 @@ mod instuction_tests {
     #[test]
     #[should_panic]
     fn format_4_base_relative() {
-        let mut instr: Instruction = Instruction::new("load".to_owned(),
+        let mut instr: Instruction = Instruction::new(String::new(),
+                                                      "load".to_owned(),
                                                       Operand::Immediate(5),
                                                       Operand::Immediate(1));
 
@@ -84,7 +89,8 @@ mod instuction_tests {
     #[test]
     #[should_panic]
     fn format_4_pc_relative() {
-        let mut instr: Instruction = Instruction::new("load".to_owned(),
+        let mut instr: Instruction = Instruction::new(String::new(),
+                                                      "load".to_owned(),
                                                       Operand::Immediate(5),
                                                       Operand::Immediate(1));
 
