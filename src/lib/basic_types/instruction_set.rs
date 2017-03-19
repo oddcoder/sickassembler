@@ -195,4 +195,3 @@ fn enum_variant_matching() {
     }
 
     assert!(check_operand(&Operand::Immediate(None), &Operand::Immediate(Some(7))));
-}
