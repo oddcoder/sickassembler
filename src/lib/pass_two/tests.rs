@@ -6,16 +6,18 @@ mod pass_two_tests {
     use basic_types::operands::Operand;
     use basic_types::formats::Format;
     use basic_types::flags::Flags;
+    use basic_types::unit_or_pair::UnitOrPair;
 
     #[test]
     fn flag_resolution() {
         Operand::Immediate(Some(6));
         //pass_two::object_code_generator::object_code_gen::generate_object_code
 
-        let mut instr = Instruction::new(String::new(),
-                                         "load".to_owned(),
-                                         Operand::Immediate(Some(5)),
-                                         Operand::Immediate(Some(1)));
+         let mut instr: Instruction = Instruction::new(String::new(),
+                                                      "load".to_owned(),
+                                                 UnitOrPair::Pair(
+                                                          Operand::Immediate(Some(5)),
+                                                          Operand::Immediate(Some(1))));
 
         instr.set_format(Format::Four);
         instr.set_flag(Flags::Immediate);
