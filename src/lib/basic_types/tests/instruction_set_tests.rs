@@ -5,6 +5,7 @@ mod instuction_set_tests {
 
     #[test]
     fn test_existing_instruction() {
+        
         assert!(instruction_set::exists("ADD"));
     }
 

@@ -112,6 +112,14 @@ impl Instruction {
         Ok(total_value)
     }
 
+    // macro_rules! flag_error(){
+    //     ($flag:expr,$flag_name:expr,$format:expr)=>{
+
+    //         if self.has_flag($flag) && self.format
+    //         println!("{} bit can't be set in format {:?} instruction",$flag_name,$format);
+    //     }
+    // }
+
     fn check_invalid_flags(&self) -> Result<(), &str> {
 
         // TODO Extract all the errors in the instruction,
@@ -154,6 +162,7 @@ impl Instruction {
 
         Ok(())
     }
+
 
     fn has_flag(&self, flag: Flags) -> bool {
         self.flags.iter().position(|&f| f == flag) != None
