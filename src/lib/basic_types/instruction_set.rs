@@ -173,7 +173,6 @@ lazy_static!{
                 ("WD".to_owned(),       AssemblyDef::new("WD".to_owned(),       UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(Operand::Immediate(None)),                         0xDC))
                     ].iter().cloned().collect();
             return isa;
-        };
     }
 
 
@@ -195,3 +194,4 @@ fn enum_variant_matching() {
     }
 
     assert!(check_operand(&Operand::Immediate(None), &Operand::Immediate(Some(7))));
+}

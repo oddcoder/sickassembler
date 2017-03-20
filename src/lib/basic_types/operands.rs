@@ -5,7 +5,11 @@ use basic_types::register::Register;
 /**
 *  Instruction operand
 */
+<<<<<<< a4e007a4506e0f770ef11b17c9d529aa07e7b0d1
 #[derive(Debug,PartialEq,Clone)]
+=======
+#[derive(Debug,PartialEq)]
+>>>>>>> Pass 2 preparation
 pub enum Operand {
     Register(Option<Register>), // Register number
     Immediate(Option<i32>),
