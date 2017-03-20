@@ -5,4 +5,4 @@
 /// This module is declared here so the compiler
 /// konws that it exists and runs the tests, it's a private module
 pub mod tests;
-pub mod object_code_generator;
+pub mod translator;
