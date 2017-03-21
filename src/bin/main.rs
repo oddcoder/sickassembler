@@ -23,14 +23,14 @@ fn main() {
     opts.optopt("o", "output", "set output file name", "name");
     opts.optflag("h", "help", "print this help menu");
     let matches = match opts.parse(&args[1..]) {
-        Ok(m) => { m }
-        Err(f) => { panic!(f.to_string()) }
+        Ok(m) => m,
+        Err(f) => panic!(f.to_string()),
     };
     if matches.opt_present("h") {
         print_usage(&program, opts);
         return;
     }
-    let mut output ="a.out".to_string();
+    let mut output = "a.out".to_string();
     if matches.opt_present("o") {
         output = matches.opt_str("o").expect("missing file name after -o");
     }
