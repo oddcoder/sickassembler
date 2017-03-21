@@ -62,6 +62,7 @@ impl AssemblyDef {
     /// the instruction set format(s)
     pub fn match_format(&self, format: &Format) -> bool {
 
+
         match (&self.format, format) {
             (&UnitOrPair::Unit(Format::One), &Format::One) => true,
             (&UnitOrPair::Unit(Format::Two), &Format::Two) => true,
@@ -75,6 +76,7 @@ impl AssemblyDef {
 
 
 /// Checks if a provided instruction exists in the Instruction set and returns it or an error
+
 pub fn fetch_instruction(instr_mnemonic: &String) -> Result<AssemblyDef, &str> {
 
     let mnemonic = &instr_mnemonic.to_uppercase().to_owned();
