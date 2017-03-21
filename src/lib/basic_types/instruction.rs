@@ -2,10 +2,10 @@
 #![allow(dead_code)]
 
 
-use basic_types::formats::Formats;
+use basic_types::formats::Format;
 use basic_types::flags::Flags;
 use basic_types::operands::Operand;
-
+use basic_types::unit_or_pair::UnitOrPair;
 
 const BYTE_SIZE_TO_BITS: u8 = 8; // In the SIC machine, a byte is 3 bits
 
@@ -15,28 +15,26 @@ const BYTE_SIZE_TO_BITS: u8 = 8; // In the SIC machine, a byte is 3 bits
  */
 
 pub struct Instruction {
-    label: String,
-    format: Formats,
-    instruction: String,
-    flags: Vec<Flags>,
+    flags: Vec<Flags>, // Set and Get through functoins
 
-    // Operands are used in pass2, thus those fields are made public
-    pub op1: Operand,
-    pub op2: Operand,
+    pub label: String,
+    pub mnemonic: String,
+    pub format: Format,
+    pub operands: UnitOrPair<Operand>, // Group oerands in one field
 }
 
 impl Instruction {
     /**
      * new A plain new instruction
+     * use builder pattern? ( as it's transromed in phases and to make testing less verbose)
      */
-    pub fn new(label: String, instruction: String, op1: Operand, op2: Operand) -> Instruction {
+    pub fn new(label: String, mnemonic: String, operands: UnitOrPair<Operand>) -> Instruction {
         Instruction {
             label: label,
-            format: Formats::None,
-            instruction: instruction,
+            format: Format::None,
+            mnemonic: mnemonic,
             flags: Vec::new(),
-            op1: op1,
-            op2: op2,
+            operands: operands,
         }
     }
 
@@ -46,7 +44,7 @@ impl Instruction {
     */
     pub fn set_flag(&mut self, flag: Flags) {
 
-        if (*self).format != Formats::Four && (*self).format != Formats::Three {
+        if (*self).format != Format::Four && (*self).format != Format::Three {
             panic!("Format 1 or 2 can't have flags set");
         }
 
@@ -63,9 +61,9 @@ impl Instruction {
     ///
     /// set_format set the formats of the instruction
     ///
-    pub fn set_format(&mut self, instruction_format: Formats) {
+    pub fn set_format(&mut self, instruction_format: Format) {
 
-        if self.format != Formats::None {
+        if self.format != Format::None {
             panic!("Format was already set");
         }
 
@@ -81,7 +79,7 @@ impl Instruction {
         // Set the flags if the instuction is not any of the special cases
         // i.e set the Indirect and Immediate flags to 1
 
-        if self.format == Formats::None {
+        if self.format == Format::None {
             panic!("Instruction format isnt specified");
         }
 
@@ -121,39 +119,40 @@ impl Instruction {
             return Err("PC relative and Base relative flags are set together");
         }
 
-        if self.format == Formats::Three && self.has_flag(Flags::Extended) {
+        if self.format == Format::Three && self.has_flag(Flags::Extended) {
             return Err("Extended bit is set in a Format 3 instruction");
         }
 
         // Check if a format 4 instruction has any invalid flags
-        if self.format == Formats::Four && !self.has_flag(Flags::Extended) {
+        if self.format == Format::Four && !self.has_flag(Flags::Extended) {
             return Err("E flag isn't set in a format 4 instruction");
         }
 
-        if self.format == Formats::Four &&
+        if self.format == Format::Four &&
            (self.has_flag(Flags::Indirect) || self.has_flag(Flags::Indexed)) {
             return Err("Indirect/Indexed addressing used in a format 4 instruction");
         }
 
-        if self.format == Formats::Four && (self.has_flag(Flags::BaseRelative)) {
+        if self.format == Format::Four && (self.has_flag(Flags::BaseRelative)) {
             return Err("Base relative addressing used in a format 4 instruction");
         }
 
         // TODO confirm correctness
-        if self.format == Formats::Four && self.has_flag(Flags::PcRelative) {
+        if self.format == Format::Four && self.has_flag(Flags::PcRelative) {
             return Err("PC relative addressing used in a format 4 instruction");
         }
 
-        if self.format == Formats::Four && self.has_flag(Flags::Indexed) {
+        if self.format == Format::Four && self.has_flag(Flags::Indexed) {
             return Err("Indexed addressing used in a format 4 instruction");
         }
 
-        if self.format == Formats::Four && self.has_flag(Flags::Indirect) {
+        if self.format == Format::Four && self.has_flag(Flags::Indirect) {
             return Err("Indirect addressing used in a format 4 instruction");
         }
 
         Ok(())
     }
+
 
     fn has_flag(&self, flag: Flags) -> bool {
         self.flags.iter().position(|&f| f == flag) != None

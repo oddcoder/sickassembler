@@ -1,7 +1,7 @@
 #[allow(dead_code)]
-#[derive(PartialEq,Copy,Clone)]
+#[derive(Debug,PartialEq,Copy,Clone)]
 #[repr(u8)]
-pub enum Formats {
+pub enum Format {
     One = 1,
     Two = 2,
     Three = 3,
