@@ -3,7 +3,7 @@
 /**
  * SIC/XE registers
  */
-#[derive(Debug,PartialEq)]
+#[derive(Debug,PartialEq,Clone)]
 pub enum Register {
     A = 0,
     X = 1,
