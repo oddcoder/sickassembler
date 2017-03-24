@@ -42,6 +42,7 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<Vec<u32>
 fn resolve_opcode(instr: &Instruction, code_val: u32) -> Result<u32, &str> {
     // Get the opcode value from the instruction set table
     // Check format correctness
+    instruction_set::fetch_instruction(instr);
     unimplemented!();
 }
 
