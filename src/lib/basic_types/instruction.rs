@@ -18,7 +18,7 @@ pub struct AsmOperand {
  * Resembles a SIC/XE instruction, this object is immutable,
  * Each method that mutates the state should return a new object
  */
-
+#[derive(Debug)]
 pub struct Instruction {
     flags: Vec<Flags>, // Set and Get through functoins
 
@@ -47,45 +47,55 @@ impl Instruction {
     * to_pc_relative returns a new instructions object with PC
     * relative flag set to 1
     */
-    pub fn set_flag(&mut self, flag: Flags) {
+    pub fn set_flag(&mut self, flag: Flags) -> Result<(), &str> {
 
         if (*self).format != Format::Four && (*self).format != Format::Three {
-            panic!("Format 1 or 2 can't have flags set");
+            warn!("Format 1 or 2 can't have flags set");
+            return Err("Format 1 or 2 can't have flags set");
         }
 
         // Check for flag duplication, this is will be an error of a previous function/module
         for flag_iter in &self.flags {
             if flag == *flag_iter {
-                panic!("Flag {:?} already exists for this instuction", flag_iter);
+                warn!("Flag {:?} already exists for this instuction", flag_iter);
+                return Err("Duplicate flag on instruction");
             }
         }
 
         self.flags.push(flag);
+
+        info!("Added flag {:?} to instruction {:?}", flag, self);
+        Ok(())
     }
 
     ///
     /// set_format set the formats of the instruction
     ///
-    pub fn set_format(&mut self, instruction_format: Format) {
+    pub fn set_format(&mut self, instruction_format: Format) -> Result<(), &str> {
 
         if self.format != Format::None {
-            panic!("Format was already set");
+            warn!("Format was already set for {:?}", self);
+            return Err("Format was already set");
         }
 
         self.format = instruction_format;
+
+        info!("Set format of {:?} as {:?}", self, instruction_format);
+        Ok(())
     }
 
     /**
      *  get_flags_value returns the numeric value of the flags
      *  declared on this instruction
      */
-    pub fn get_flags_value(&self) -> Result<u32, &str> {
+    pub fn get_flags_value(&self) -> Result<u32, String> {
         // TODO Create an extra check to see if conflicting flags exist
         // Set the flags if the instuction is not any of the special cases
         // i.e set the Indirect and Immediate flags to 1
 
         if self.format == Format::None {
-            panic!("Instruction format isnt specified");
+            warn!("Instruction {:?} format isnt specified", self);
+            return Err("Instruction format wasn't specified".to_owned());
         }
 
         // Decimal value resulting from decoding the flags
@@ -97,7 +107,10 @@ impl Instruction {
 
         // check if BaseRelative and PcRelative flags are set, indicate errors
         match self.check_invalid_flags() {
-            Err(st) => return Err(st),
+            Err(st) => {
+                warn!("Error when checking flags of {:?};", self);
+                return Err(st);
+            }
             _ => (), // Continue execution on success
         };
 
@@ -112,47 +125,55 @@ impl Instruction {
 
         }
 
+        info!("Value of flags in {:?} is {:?}", self, total_value);
         Ok(total_value)
     }
 
-    fn check_invalid_flags(&self) -> Result<(), &str> {
+    fn check_invalid_flags<'a>(&'a self) -> Result<(), String> {
 
-        // TODO Extract all the errors in the instruction,
+        // TODO Extract all the errors in the instruction flags,
         // don't return just a sinle string and use Vec<string>
+        let mut errors: Vec<&str> = Vec::new();
 
         if self.has_flag(Flags::BaseRelative) && self.has_flag(Flags::PcRelative) {
-            return Err("PC relative and Base relative flags are set together");
+            errors.push("PC relative and Base relative flags are set together");
         }
 
         if self.format == Format::Three && self.has_flag(Flags::Extended) {
-            return Err("Extended bit is set in a Format 3 instruction");
+            errors.push("Extended bit is set in a Format 3 instruction");
         }
 
         // Check if a format 4 instruction has any invalid flags
         if self.format == Format::Four && !self.has_flag(Flags::Extended) {
-            return Err("E flag isn't set in a format 4 instruction");
+            errors.push("E flag isn't set in a format 4 instruction");
         }
 
         if self.format == Format::Four &&
            (self.has_flag(Flags::Indirect) || self.has_flag(Flags::Indexed)) {
-            return Err("Indirect/Indexed addressing used in a format 4 instruction");
+            errors.push("Indirect/Indexed addressing used in a format 4 instruction");
         }
 
         if self.format == Format::Four && (self.has_flag(Flags::BaseRelative)) {
-            return Err("Base relative addressing used in a format 4 instruction");
+            errors.push("Base relative addressing used in a format 4 instruction");
         }
 
         // TODO confirm correctness
         if self.format == Format::Four && self.has_flag(Flags::PcRelative) {
-            return Err("PC relative addressing used in a format 4 instruction");
+            errors.push("PC relative addressing used in a format 4 instruction");
         }
 
         if self.format == Format::Four && self.has_flag(Flags::Indexed) {
-            return Err("Indexed addressing used in a format 4 instruction");
+            errors.push("Indexed addressing used in a format 4 instruction");
         }
 
         if self.format == Format::Four && self.has_flag(Flags::Indirect) {
-            return Err("Indirect addressing used in a format 4 instruction");
+            errors.push("Indirect addressing used in a format 4 instruction");
+        }
+
+        if errors.len() > 0 {
+            let errs: String = errors.join(", ");
+            warn!("Found errors in {:?} flags: {:?}", self, errs);
+            return Err(errs);
         }
 
         Ok(())
@@ -166,13 +187,16 @@ impl Instruction {
     // FIXME This function simply checks that
     // the Enum Variant of the operands and instruction match
     pub fn unwrap_operands(&self) -> Vec<AsmOperand> {
-        match (&self.operands) {
+        let operands = match (&self.operands) {
             // Possible register cases ( from the IS )
             // For clear
             // Unit <> Unit
             &UnitOrPair::None => vec![],
             &UnitOrPair::Unit(ref o1) => vec![o1.clone()],
             &UnitOrPair::Pair(ref o1, ref o2) => vec![o1.clone(), o2.clone()],
-        }
+        };
+
+        info!("Operands of {:?} are {:?}", self, operands);
+        operands
     }
 }
