@@ -79,28 +79,17 @@ impl AssemblyDef {
 
 
 /// Checks if a provided instruction exists in the Instruction set and returns it or an error
-pub fn fetch_instruction(instr: Instruction) -> Result<&'static AssemblyDef, &'static str> {
+pub fn fetch_instruction(instr: &Instruction) -> Result<&'static AssemblyDef, &'static str> {
 
-    if INSTRUCTION_SET.contains_key(&instr.mnemonic.to_uppercase()) == false {
+    let mnemonic = &instr.mnemonic.to_uppercase().to_owned();
+    if INSTRUCTION_SET.contains_key(mnemonic) == false {
+        warn!("Failed to find mnemonic {:?}", instr.mnemonic.as_str());
         return Err("Mnemonic isn't defined in the instruction set");
     }
 
-    match INSTRUCTION_SET.get(&instr.mnemonic.to_uppercase()) {
-        Some(asm_def) => Ok(asm_def),
-        _ => Err("Instruction not found"),
-    }
-}
+    Ok(INSTRUCTION_SET.get(mnemonic).unwrap()) // This call can't fail
 
-// Dead code, will be used later
-// TODO Create a Vec<(Fn->bool, &str) to store the checks and get the error
-// message if a check fails
-// if !asm_def.match_format(instr.format) {
-//     return Err("Instruction format is invalid for this mnemonic");
-// }
-// if !asm_def.has_valid_operands(instr.operands) {
-//     return Err("Operands field is invalid");
-// }
-// Ok(asm_def.op_code)
+}
 
 lazy_static!{
     static ref INSTRUCTION_SET: HashMap<String,AssemblyDef > = {
@@ -168,24 +157,3 @@ lazy_static!{
             return isa;
         };
     }
-
-
-// Quick test for enum type equality
-#[test]
-fn enum_variant_matching() {
-    let a = OperandType::Immediate;
-    let b = OperandType::Immediate(Some(6));
-
-    // Taken by reference to avoid borrowing, TODO create a AssemblyDef struct and use its function
-    fn check_operand(a: &Operand, b: &Operand) -> bool {
-        match (a, b) {
-            (&OperandType::Register, &OperandType::Register) => true,
-            (&OperandType::Immediate, &OperandType::Immediate) => true,
-            (&OperandType::Label, &OperandType::Label) => true,
-            (&OperandType::None, &OperandType::None) => true,
-            _ => false,
-        }
-    }
-
-    assert!(check_operand(&OperandType::Immediate, &OperandType::Immediate(Some(7))));
-}
