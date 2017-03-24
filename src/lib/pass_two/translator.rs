@@ -50,7 +50,7 @@ fn resolve_incomplete_operands(instruction: &Instruction) -> Result<Vec<u32>, St
 fn resolve_opcode(instr: &Instruction) -> Result<u32, &str> {
     // Get the opcode value from the instruction set table
     // Check format correctness
-    match instruction_set::fetch_instruction(instr) {
+    match instruction_set::fetch_instruction(&instr.mnemonic) {
         Ok(inst) => Ok(inst.op_code),
         Err(err) => Err(err),
     }
@@ -61,3 +61,6 @@ fn resolve_label(label: &str) -> Result<u32, &str> {
     // Check the range of addresses with the instruction format
     unimplemented!();
 }
+
+#[test]
+fn check_op_code() {}

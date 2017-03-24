@@ -79,11 +79,11 @@ impl AssemblyDef {
 
 
 /// Checks if a provided instruction exists in the Instruction set and returns it or an error
-pub fn fetch_instruction(instr: &Instruction) -> Result<&'static AssemblyDef, &'static str> {
+pub fn fetch_instruction(instr_mnemonic: &String) -> Result<&'static AssemblyDef, &'static str> {
 
-    let mnemonic = &instr.mnemonic.to_uppercase().to_owned();
+    let mnemonic = &instr_mnemonic.to_uppercase().to_owned();
     if INSTRUCTION_SET.contains_key(mnemonic) == false {
-        warn!("Failed to find mnemonic {:?}", instr.mnemonic.as_str());
+        warn!("Failed to find mnemonic {:?}", instr_mnemonic.as_str());
         return Err("Mnemonic isn't defined in the instruction set");
     }
 
