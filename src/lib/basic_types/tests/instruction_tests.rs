@@ -5,30 +5,30 @@ mod instuction_tests {
     use basic_types::instruction::Instruction;
     use basic_types::flags::Flags;
     use basic_types::formats::Format;
-    use basic_types::operands::Operand;
+    use basic_types::operands::OperandType;
     use basic_types::unit_or_pair::UnitOrPair;
 
     #[test]
     #[should_panic]
     fn double_flags() {
 
-        let mut instr: Instruction = Instruction::new(String::new(),
-                                                      "load".to_owned(),
-                                                      UnitOrPair::Pair(
-                                                          Operand::Immediate(Some(5)),
-                                                          Operand::Immediate(Some(1))));
-                                                      
+        let mut instr: Instruction =
+            Instruction::new(String::new(),
+                             "load".to_owned(),
+                             UnitOrPair::Pair(OperandType::Immediate(Some(5)),
+                                              OperandType::Immediate(Some(1))));
+
         instr.set_flag(Flags::BaseRelative);
         instr.set_flag(Flags::BaseRelative);
     }
 
     #[test]
     fn format_3_base_relative() {
-        let mut instr: Instruction = Instruction::new(String::new(),
-                                                      "load".to_owned(),
-                                                      UnitOrPair::Pair(
-                                                          Operand::Immediate(Some(5)),
-                                                          Operand::Immediate(Some(1))));
+        let mut instr: Instruction =
+            Instruction::new(String::new(),
+                             "load".to_owned(),
+                             UnitOrPair::Pair(OperandType::Immediate(Some(5)),
+                                              OperandType::Immediate(Some(1))));
 
 
 
@@ -43,11 +43,11 @@ mod instuction_tests {
     #[test]
     #[should_panic]
     fn format_3_base_pc_relative() {
-        let mut instr: Instruction = Instruction::new(String::new(),
-                                                      "load".to_owned(),
-                                                     UnitOrPair::Pair(
-                                                          Operand::Immediate(Some(5)),
-                                                          Operand::Immediate(Some(1))));
+        let mut instr: Instruction =
+            Instruction::new(String::new(),
+                             "load".to_owned(),
+                             UnitOrPair::Pair(OperandType::Immediate(Some(5)),
+                                              OperandType::Immediate(Some(1))));
 
 
         // Setting Base and Pc Relative flags is an error
@@ -62,11 +62,11 @@ mod instuction_tests {
     #[test]
     #[should_panic]
     fn format_4_no_e_flag4() {
-        let mut instr: Instruction = Instruction::new(String::new(),
-                                                      "load".to_owned(),
-                                                     UnitOrPair::Pair(
-                                                          Operand::Immediate(Some(5)),
-                                                          Operand::Immediate(Some(1))));
+        let mut instr: Instruction =
+            Instruction::new(String::new(),
+                             "load".to_owned(),
+                             UnitOrPair::Pair(OperandType::Immediate(Some(5)),
+                                              OperandType::Immediate(Some(1))));
 
         // Not setting the E flag on a format four instruction is an error
         instr.set_format(Format::Four);
@@ -78,11 +78,11 @@ mod instuction_tests {
     #[test]
     #[should_panic]
     fn format_4_base_relative() {
-        let mut instr: Instruction = Instruction::new(String::new(),
-                                                      "load".to_owned(),
-                                               UnitOrPair::Pair(
-                                                          Operand::Immediate(Some(5)),
-                                                          Operand::Immediate(Some(1))));
+        let mut instr: Instruction =
+            Instruction::new(String::new(),
+                             "load".to_owned(),
+                             UnitOrPair::Pair(OperandType::Immediate(Some(5)),
+                                              OperandType::Immediate(Some(1))));
         // Instruction 4 doesn't use any type of relative addressing
         instr.set_format(Format::Four);
         instr.set_flag(Flags::Extended);
@@ -95,11 +95,11 @@ mod instuction_tests {
     #[test]
     #[should_panic]
     fn format_4_pc_relative() {
-        let mut instr: Instruction = Instruction::new(String::new(),
-                                                      "load".to_owned(),
-                                                 UnitOrPair::Pair(
-                                                          Operand::Immediate(Some(5)),
-                                                          Operand::Immediate(Some(1))));
+        let mut instr: Instruction =
+            Instruction::new(String::new(),
+                             "load".to_owned(),
+                             UnitOrPair::Pair(OperandType::Immediate(Some(5)),
+                                              OperandType::Immediate(Some(1))));
 
 
         // Instruction 4 doesn't use any type of relative addressing

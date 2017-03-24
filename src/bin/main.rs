@@ -4,7 +4,7 @@ extern crate getopts;
 use getopts::Options;
 //use sick_lib::basic_types::*;
 //use instruction::Instruction;
-//use operands::Operand;
+//use operands::OperandType;
 use sick_lib::filehandler::FileHandler;
 use std::env;
 
