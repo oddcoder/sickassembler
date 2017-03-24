@@ -6,10 +6,10 @@ use basic_types::instruction_set;
 use basic_types::unit_or_pair::UnitOrPair;
 use std::num;
 
+
 pub fn translate(instruction: &Instruction) -> Result<u32, &str> {
     //let f_vals = instruction.check_invalid_flags();   // TODO Report to RLS
     //resolve_instruction_code(instruction, 0).and_then(resolve_operands)
-
     // Check the flags for options
     // Check for memory out of range error
     // Assemble the instruciton
@@ -54,6 +54,7 @@ fn resolve_opcode(instr: &Instruction) -> Result<u32, &str> {
         Ok(inst) => Ok(inst.op_code),
         Err(err) => Err(err),
     }
+
 }
 
 fn resolve_label(label: &str) -> Result<u32, &str> {

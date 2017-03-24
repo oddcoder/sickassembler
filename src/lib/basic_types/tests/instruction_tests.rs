@@ -11,7 +11,6 @@ mod instuction_tests {
     #[test]
     #[should_panic]
     fn double_flags() {
-
         let mut instr: Instruction = Instruction::new_simple("load".to_owned());
 
         // Repeated flags, should panic
@@ -21,6 +20,7 @@ mod instuction_tests {
 
     #[test]
     fn format_3_base_relative() {
+
         let mut instr: Instruction = Instruction::new_simple("load".to_owned());
 
         instr.set_format(Format::Three);
@@ -45,7 +45,7 @@ mod instuction_tests {
         // n i x b p e | 12-addr - 0-indexed
         assert_eq!(instr.get_flags_value().unwrap(),
                    (1 << 12 + 2) + (1 << 12 + 3));
-    }
+  }
 
     #[test]
     #[should_panic]
@@ -63,6 +63,7 @@ mod instuction_tests {
     #[test]
     #[should_panic]
     fn format_4_base_relative() {
+
         let mut instr: Instruction = Instruction::new_simple("format 4 rel - B".to_owned());
 
         // Instruction 4 doesn't use any type of relative addressing
@@ -72,6 +73,7 @@ mod instuction_tests {
         instr.set_flag(Flags::BaseRelative);
 
         // push all along the addresses and the two flags e,p
+
         // n i x b p e | 20-addr - 0-indexed
         assert_eq!(instr.get_flags_value().unwrap(),
                    (1 << 20 + 1) + (1 << 20 + 3));
@@ -88,6 +90,7 @@ mod instuction_tests {
         instr.set_flag(Flags::PcRelative);
 
         // push all along the addresses and the two flags e,p
+
         // n i x b p e | 20-addr - 0-indexed
         assert_eq!(instr.get_flags_value().unwrap(),
                    (1 << 20 + 1) + (1 << 20 + 2));

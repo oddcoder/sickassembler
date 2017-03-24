@@ -7,7 +7,6 @@ use basic_types::unit_or_pair::UnitOrPair;
 use std::clone::Clone;
 const BYTE_SIZE_TO_BITS: u8 = 8; // In the SIC machine, a byte is 3 bits
 
-
 #[derive(Debug,Clone)]
 pub struct AsmOperand {
     pub opr_type: OperandType,
@@ -63,6 +62,7 @@ impl Instruction {
     pub fn set_flag(&mut self, flag: Flags) -> Result<(), &str> {
 
         if (*self).format != Format::Four && (*self).format != Format::Three {
+
             warn!("Format 1 or 2 can't have flags set");
             return Err("Format 1 or 2 can't have flags set");
         }
@@ -143,6 +143,7 @@ impl Instruction {
         if self.format == Format::None {
             warn!("Instruction {:?} format isnt specified", self);
             return Err("Instruction format wasn't specified".to_owned());
+
         }
 
         // Decimal value resulting from decoding the flags
