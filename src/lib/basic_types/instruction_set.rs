@@ -13,7 +13,7 @@ use basic_types::unit_or_pair::UnitOrPair;
 // be suffecient
 
 /// Definition of an assembly instruction in the instruction set
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct AssemblyDef {
     pub mnemonic: String,
     pub format: UnitOrPair<Format>,
@@ -104,18 +104,6 @@ pub fn fetch_instruction(instr: Instruction) -> Result<&'static AssemblyDef, &'s
 
 lazy_static!{
     static ref INSTRUCTION_SET: HashMap<String,AssemblyDef > = {
-<<<<<<< Updated upstream
-            let mut m = HashMap::new();
-            
-            let add_def=AssemblyDef::new(
-                "ADD".to_owned(),
-                 UnitOrPair::Unit(Format::Two),
-                UnitOrPair::Unit(Operand::Label(None)),
-                0x18);
-            
-            m.insert(add_def.mnemonic.to_owned(),add_def);
-            m
-=======
             let isa :HashMap <String, AssemblyDef> = [
                 ("ADD".to_owned(),      AssemblyDef::new("ADD".to_owned(),      UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                         0x18)),
                 ("ADDF".to_owned(),     AssemblyDef::new("ADDF".to_owned(),     UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                         0x58)),
@@ -178,7 +166,6 @@ lazy_static!{
                 ("WD".to_owned(),       AssemblyDef::new("WD".to_owned(),       UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                         0xDC))
                     ].iter().cloned().collect();
             return isa;
->>>>>>> Stashed changes
         };
     }
 
