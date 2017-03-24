@@ -81,11 +81,11 @@ impl AssemblyDef {
 /// Checks if a provided instruction exists in the Instruction set and returns it or an error
 pub fn fetch_instruction(instr: Instruction) -> Result<&'static AssemblyDef, &'static str> {
 
-    if INSTRUCTION_SET.contains_key(&instr.mnemonic) == false {
+    if INSTRUCTION_SET.contains_key(&instr.mnemonic.to_uppercase()) == false {
         return Err("Mnemonic isn't defined in the instruction set");
     }
 
-    match INSTRUCTION_SET.get(&instr.mnemonic) {
+    match INSTRUCTION_SET.get(&instr.mnemonic.to_uppercase()) {
         Some(asm_def) => Ok(asm_def),
         _ => Err("Instruction not found"),
     }
