@@ -1,13 +1,18 @@
 // Make the linter silent
 #![allow(dead_code)]
-
-
 use basic_types::formats::Format;
 use basic_types::flags::Flags;
-use basic_types::operands::Operand;
+use basic_types::operands::{OperandType, Value};
 use basic_types::unit_or_pair::UnitOrPair;
-
+use std::clone::Clone;
 const BYTE_SIZE_TO_BITS: u8 = 8; // In the SIC machine, a byte is 3 bits
+
+
+#[derive(Debug,Clone)]
+pub struct AsmOperand {
+    pub opr_type: OperandType,
+    pub val: Value,
+}
 
 /**
  * Resembles a SIC/XE instruction, this object is immutable,
@@ -20,7 +25,7 @@ pub struct Instruction {
     pub label: String,
     pub mnemonic: String,
     pub format: Format,
-    pub operands: UnitOrPair<Operand>, // Group oerands in one field
+    pub operands: UnitOrPair<AsmOperand>, // Group oerands in one field
 }
 
 impl Instruction {
@@ -28,7 +33,7 @@ impl Instruction {
      * new A plain new instruction
      * use builder pattern? ( as it's transromed in phases and to make testing less verbose)
      */
-    pub fn new(label: String, mnemonic: String, operands: UnitOrPair<Operand>) -> Instruction {
+    pub fn new(label: String, mnemonic: String, operands: UnitOrPair<AsmOperand>) -> Instruction {
         Instruction {
             label: label,
             format: Format::None,
@@ -156,5 +161,18 @@ impl Instruction {
 
     fn has_flag(&self, flag: Flags) -> bool {
         self.flags.iter().position(|&f| f == flag) != None
+    }
+
+    // FIXME This function simply checks that
+    // the Enum Variant of the operands and instruction match
+    pub fn unwrap_operands(&self) -> Vec<AsmOperand> {
+        match (&self.operands) {
+            // Possible register cases ( from the IS )
+            // For clear
+            // Unit <> Unit
+            &UnitOrPair::None => vec![],
+            &UnitOrPair::Unit(ref o1) => vec![o1.clone()],
+            &UnitOrPair::Pair(ref o1, ref o2) => vec![o1.clone(), o2.clone()],
+        }
     }
 }

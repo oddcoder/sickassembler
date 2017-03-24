@@ -1,15 +1,10 @@
 #![allow(dead_code)]
 
 use basic_types::register::Register;
-
 /**
 *  Instruction operand
 */
-<<<<<<< a4e007a4506e0f770ef11b17c9d529aa07e7b0d1
-#[derive(Debug,PartialEq,Clone)]
-=======
 #[derive(Debug,PartialEq)]
->>>>>>> Pass 2 preparation
 pub enum Operand {
     Register(Option<Register>), // Register number
     Immediate(Option<i32>),
@@ -21,5 +16,13 @@ pub enum Operand {
     // This is also supported if the source code contains a direct memory address
     // This can also be the n operand from the instruction set, ex. shift r1,n TODO check range value
     // Raw is used for raw hex output, i.e Unsigned values, unlike immediate
-    Raw(Option<u32>),
+    Raw,
+}
+
+#[derive(Debug,PartialEq,Clone)]
+pub enum Value {
+    Register(Register),
+    SignedInt(i32),
+    Raw(u32),
+    Label(String),
 }
