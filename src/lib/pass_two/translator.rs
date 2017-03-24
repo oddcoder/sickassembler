@@ -13,11 +13,19 @@ pub fn translate(instruction: &Instruction) -> Result<u32, &str> {
     // Check the flags for options
     // Check for memory out of range error
     // Assemble the instruciton
+    let raw_operans = resolve_incomplete_operands(instruction);
+    let raw_opcode = resolve_opcode(instruction);
+    let raw_flags = instruction.get_flags_value(); // TODO propagate the error from getting flag values
+
+    debug!("Tranlating instruction {:?}", instruction);
+    debug!("Raw instruction operands {:?}", raw_operans);
+    debug!("Raw flag value {:?}", raw_flags);
+    debug!("Instruction opcode {:?}", raw_opcode);
 
     unimplemented!();
 }
 
-fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<Vec<u32>, String> {
+fn resolve_incomplete_operands(instruction: &Instruction) -> Result<Vec<u32>, String> {
     // Convert immediate and indirect operands to a basic forms -> Raw
     let mut raws: Vec<u32> = Vec::new();
     let opVec = instruction.unwrap_operands();
@@ -39,11 +47,13 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<Vec<u32>
     Ok(raws)
 }
 
-fn resolve_opcode(instr: &Instruction, code_val: u32) -> Result<u32, &str> {
+fn resolve_opcode(instr: &Instruction) -> Result<u32, &str> {
     // Get the opcode value from the instruction set table
     // Check format correctness
-    instruction_set::fetch_instruction(instr);
-    unimplemented!();
+    match instruction_set::fetch_instruction(instr) {
+        Ok(inst) => Ok(inst.op_code),
+        Err(err) => Err(err),
+    }
 }
 
 fn resolve_label(label: &str) -> Result<u32, &str> {
