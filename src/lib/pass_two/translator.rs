@@ -1,7 +1,7 @@
 use basic_types::flags::*;
 use basic_types::instruction::{Instruction, AsmOperand};
 use basic_types::operands::{OperandType, Value};
-use basic_types::formats::Format;
+use basic_types::formats::*;
 use basic_types::instruction_set;
 use basic_types::unit_or_pair::UnitOrPair;
 use std::num;

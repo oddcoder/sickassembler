@@ -4,12 +4,12 @@ use basic_types::register::Register;
 /**
 *  Instruction operand
 */
-#[derive(Debug,PartialEq)]
-pub enum Operand {
-    Register(Option<Register>), // Register number
-    Immediate(Option<i32>),
-    Indirect(Option<u32>), // memory location/label -> memory location
-    Label(Option<String>), // Load the memory address for the lable
+#[derive(Debug,PartialEq,Clone)]
+pub enum OperandType {
+    Register, // Register number
+    Immediate,
+    Indirect, // memory location/label -> memory location
+    Label, // Load the memory address for the lable
     None,
 
     // Pass2 will convert any of the provided operands above to a raw nueric value
