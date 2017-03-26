@@ -5,7 +5,7 @@ mod raw_program_tests{
     use basic_types::formats::Format;
 
     #[test]
-    fn test_end_record_from_raw_program(){
+    fn test_records_from_raw_program(){
         let valid_program = vec![(0x1000,0xC4, Format::One), (0x1002, 0xF3, Format::Two), (0x1006, 0x3F4D3, Format::Four)];
 
         let raw_program: RawProgram = RawProgram{
@@ -20,6 +20,12 @@ mod raw_program_tests{
             Ok(s) => s,
             Err(e) => panic!("Error: {}", e)
         };
-        assert_eq!(end_record,String::from("E001000"))
+        assert_eq!(end_record,String::from("E001000"));
+
+        let header_record = match raw_program.header_record(){
+            Ok(s) => s,
+            Err(e) => panic!("Error: {}", e)
+        };
+        assert_eq!(header_record,String::from("H00100000102A"));
     }
 }

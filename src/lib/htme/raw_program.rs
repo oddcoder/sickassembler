@@ -25,7 +25,20 @@ impl RawProgram {
     }
 
 
-    pub fn header_record() {
-        unimplemented!()
+    pub fn header_record(&self)->Result<String, &'static str>{
+        let record_type = String::from("H");
+        let mut header = record_type;
+
+        let record_width_in_bytes: u8 = 3;
+        match string_from_object_code((*self).starting_address, record_width_in_bytes){
+            Ok(record) => header = header+ &record,
+            Err(e) => return Err(e)
+        }
+
+        match string_from_object_code((*self).program_length, record_width_in_bytes){
+            Ok(record) => header = header+ &record,
+            Err(e) => return Err(e)
+        }
+        return Ok(header);
     }
 }
