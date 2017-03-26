@@ -13,7 +13,8 @@ pub struct RawProgram {
 impl RawProgram {
     pub fn end_record(& self)->Result<String, &'static str>{
         let record_type = String::from("E");
-        return match string_from_object_code((*self).first_instruction_address, Format::Three){
+        let record_width_in_bytes: u8 = 3;
+        return match string_from_object_code((*self).first_instruction_address, record_width_in_bytes){
             Ok(record) => Ok(record_type + &record),
             Err(e) => Err(e)
         };

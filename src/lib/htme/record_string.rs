@@ -18,8 +18,12 @@ pub fn text_record_from_program(program: &Vec<(u32, u32, Format)>)->Result<Strin
 
     //iterate on program (code-format tuple)
     for &(address, code, format) in program.iter(){
+        //error checking
+        if format == Format::None{
+            return Err(("argument format equals None. Init your sick instruction well!",i))
+        }
         //if string push it, if error, return (error, index)
-        match string_from_object_code(code,format) {
+        match string_from_object_code(code,format as u8) {
             Ok(s) => record.push_str(&s),
             Err(s) => return Err((s,i))
         }
@@ -36,13 +40,8 @@ pub fn text_record_from_program(program: &Vec<(u32, u32, Format)>)->Result<Strin
  * returns string from a format-valid object-code.
  * returns error-string if the object-code and format don't add up.
  */
-pub fn string_from_object_code(code: u32, format: Format)-> Result<String, &'static str> {
-    let string_width_in_bytes = format as u8;
+pub fn string_from_object_code(code: u32, string_width_in_bytes: u8)-> Result<String, &'static str> {
 
-    //error checking
-    if format == Format::None{
-        return Err("argument format equals None. Init your sick instruction well!")
-    }
     let hex_digits = (string_width_in_bytes*2) as u32;
     if hex_digits < min_hexa_digits_required(code){
         return Err("object code value is too big for format size. What the heck are you doing?")
