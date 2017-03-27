@@ -2,12 +2,11 @@ use basic_types::formats::Format;
 
 //TODO: decide if I need to move these?
 
+
 /*
  * returns string containing all records from program if all code and format pair make sense.
  * returns error message and its index for an invalid code and format.
- * TODO: format record well
  */
-
 pub fn text_record_from_program(program: &Vec<(u32, u32, Format)>)->Result<String, (&'static str, i32)>{
 
     //counter to know where error happened
@@ -15,13 +14,13 @@ pub fn text_record_from_program(program: &Vec<(u32, u32, Format)>)->Result<Strin
     let record_type = String::from("T");
     //empty record we keep appending to
     let mut record = String::from("");
-
     //iterate on program (code-format tuple)
     for &(address, code, format) in program.iter(){
         //error checking
         if format == Format::None{
             return Err(("argument format equals None. Init your sick instruction well!",i))
         }
+
         //if string push it, if error, return (error, index)
         match string_from_object_code(code,format as u8) {
             Ok(s) => record.push_str(&s),
@@ -34,6 +33,7 @@ pub fn text_record_from_program(program: &Vec<(u32, u32, Format)>)->Result<Strin
     //if we're here, everything went well and record is returned
     return Ok(record_type + &record);
 }
+
 
 
 /*

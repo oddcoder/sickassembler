@@ -6,7 +6,7 @@ mod raw_program_tests{
 
     #[test]
     fn test_records_from_raw_program(){
-        let valid_program = vec![(0x1000,0xC4, Format::One), (0x1002, 0xF3, Format::Two), (0x1006, 0x3F4D3, Format::Four)];
+        let valid_program = vec![(0x1000,0xC4, Format::One), (0x1001, 0xF3, Format::Two), (0x1007, 0x3F4D3, Format::Four), (0x100C, 0x43, Format::Two), (0x100E, 0x43, Format::Two)];
 
         let raw_program: RawProgram = RawProgram{
             program_name: String::from("COPY"),
@@ -27,5 +27,11 @@ mod raw_program_tests{
             Err(e) => panic!("Error: {}", e)
         };
         assert_eq!(header_record,String::from("H00100000102A"));
+
+        let text_records = match raw_program.text_records(){
+            Ok(s) => s,
+            Err((e,i)) => panic!("Error: {:} at code with index {}", e,i)
+        };
+        assert_eq!(text_records, "TC400F3\nT0003F4D3\nT00430043");
     }
 }

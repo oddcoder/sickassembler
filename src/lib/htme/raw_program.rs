@@ -20,8 +20,57 @@ impl RawProgram {
         };
     }
 
-    pub fn text_record(& self)->Result<String, &'static str>{
-        unimplemented!()
+
+    //TODO:make this a lot less ugly
+    pub fn text_records(& self)->Result<String, (&'static str, i32)>{
+        //intializing prev_address and prev_format
+        let ref program = (*self).program;
+        let (first_address, first_code, first_format) = program[0];
+        let mut prev_address = first_address;
+        let mut prev_format = first_format;
+        let mut records = String::from("");
+
+        //number of instructions
+        let n = program.capacity();
+        //counters
+        let mut i = 0;
+        let mut begin = 0;
+        let mut bytes_left = 30;
+
+        //iterating
+        for &(address, code, format) in program.iter(){
+            if address - prev_address > (prev_format as u32) || bytes_left < (format as u32){
+                let mut vec = vec![];
+                vec.extend_from_slice(&program[begin .. i]);
+                match text_record_from_program(&vec) {
+                    Ok(record) => {
+                        if begin != 0{
+                            records.push_str("\n");
+                        }
+                        records.push_str(&record);
+                    },
+                    Err(t) => return Err(t)
+                }
+                begin = i;
+                bytes_left = 30;
+            }
+            bytes_left = bytes_left - format as u32;
+            i = i+1;
+            prev_address = address;
+            prev_format = format;
+
+        }
+
+        let mut vec = vec![];
+        vec.extend_from_slice(&program[begin .. i]);
+        match text_record_from_program(&vec) {
+            Ok(record) => {
+                records.push_str("\n");
+                records.push_str(&record);
+            },
+            Err(t) => return Err(t)
+        }
+        return Ok(records);
     }
 
 
