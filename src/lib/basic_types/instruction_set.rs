@@ -1,9 +1,9 @@
 
 use std::collections::HashMap;
-use basic_types::instruction::Instruction;
+use basic_types::instruction::{Instruction, AsmOperand};
 use basic_types::formats::Format;
-use basic_types::operands::OperandType;
-use basic_types::unit_or_pair::UnitOrPair;
+use basic_types::operands::{self, OperandType};
+use basic_types::unit_or_pair::{self, UnitOrPair};
 
 // The operands of the instruction will be indicated as a bit vector
 // as inferred from the instruction set operands can be classified to
@@ -36,35 +36,31 @@ impl AssemblyDef {
         }
     }
 
-    fn has_valid_operands(&self, operands: UnitOrPair<OperandType>) -> bool {
+    /// Validates the operands of a given instruction
+    pub fn has_valid_operands(&self, operands: &UnitOrPair<AsmOperand>) -> bool {
 
-        // FIXME This function simply checks that
-        // the Enum Variant of the operands and instruction match
-        fn check_operands(a: &UnitOrPair<OperandType>, b: &UnitOrPair<OperandType>) -> bool {
-            match (a, b) {
-                // Possible register cases ( from the IS )
+        let others_ops: Vec<AsmOperand> = unit_or_pair::unwrap_to_vec(operands);
+        let inst_ops: Vec<OperandType> = unit_or_pair::unwrap_to_vec(&self.operands);
 
-                // For clear
-                (&UnitOrPair::Unit(OperandType::Register), 
-                    &UnitOrPair::Unit(OperandType::Register))  // Unit <> Unit
-                =>true,
-                
-                (&UnitOrPair::Pair(OperandType::Register,OperandType::Register),
-                    &UnitOrPair::Pair(OperandType::Register,OperandType::Register))    // Pair <> Pair
-                =>true,
-                
-                // For shifts
-                (&UnitOrPair::Pair(OperandType::Register,OperandType::Raw),
-                    &UnitOrPair::Pair(OperandType::Register,OperandType::Raw))
-                =>true,
-                _ => false,
+        if others_ops.len() != inst_ops.len() {
+            return false;
+        }
+
+        // Merge the 2 collections
+        let zipped = others_ops.iter().zip(inst_ops);
+
+        for (others_op, inst_op) in zipped {
+            if operands::match_variant(&others_op.opr_type, &inst_op) == false {
+                return false;
             }
         }
 
-        check_operands(&self.operands, &operands)
+        true
     }
 
-    fn match_format(&self, format: &Format) -> bool {
+    /// Checks if a given format of input instruction matches
+    /// the instruction set format(s)
+    pub fn match_format(&self, format: &Format) -> bool {
 
         match (&self.format, format) {
             (&UnitOrPair::Unit(Format::One), &Format::One) => true,
@@ -79,7 +75,7 @@ impl AssemblyDef {
 
 
 /// Checks if a provided instruction exists in the Instruction set and returns it or an error
-pub fn fetch_instruction(instr_mnemonic: &String) -> Result<&'static AssemblyDef, &'static str> {
+pub fn fetch_instruction(instr_mnemonic: &String) -> Result<AssemblyDef, &str> {
 
     let mnemonic = &instr_mnemonic.to_uppercase().to_owned();
     if INSTRUCTION_SET.contains_key(mnemonic) == false {
@@ -87,8 +83,7 @@ pub fn fetch_instruction(instr_mnemonic: &String) -> Result<&'static AssemblyDef
         return Err("Mnemonic isn't defined in the instruction set");
     }
 
-    Ok(INSTRUCTION_SET.get(mnemonic).unwrap()) // This call can't fail
-
+    Ok(INSTRUCTION_SET.get(mnemonic).unwrap().clone())
 }
 
 lazy_static!{
