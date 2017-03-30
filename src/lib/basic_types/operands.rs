@@ -19,6 +19,18 @@ pub enum OperandType {
     Raw,
 }
 
+pub fn match_variant(first: &OperandType, second: &OperandType) -> bool {
+    match (first.clone(), second.clone()) {
+        (OperandType::Immediate, OperandType::Immediate) |
+        (OperandType::Indirect, OperandType::Indirect) |
+        (OperandType::Label, OperandType::Label) |
+        (OperandType::None, OperandType::None) |
+        (OperandType::Raw, OperandType::Raw) |
+        (OperandType::Register, OperandType::Register) => true,
+        _ => false,
+    }
+}
+
 #[derive(Debug,PartialEq,Clone)]
 pub enum Value {
     Register(Register),
