@@ -24,10 +24,38 @@ fn resolve_opcode(instr: &Instruction, code_val: u32) -> Result<u32, &str> {
     unimplemented!();
 }
 
-fn resolve_operands(instruction: &Instruction, code_val: u32) -> Result<u32, &str> {
-    // Based on the given label, match a function
-    unimplemented!();
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use basic_types::formats;
+    use basic_types::operands::Value;
+    use basic_types::register::Register;
+
+    #[test]
+    fn test_resolve_op_code() {
+        let mut inst = Instruction::new_simple("add".to_owned());
+        inst.format = formats::Format::Four;
+        assert_eq!(resolve_opcode(&inst).unwrap(), 0x18);
+
+        inst.format = formats::Format::Three;
+        assert!(resolve_opcode(&inst).unwrap() == 0x18);
+    }
+
+    #[test]
+    fn add_format_one() {
+        let mut inst = Instruction::new_simple("add".to_owned());
+        assert_eq!(resolve_opcode(&inst).unwrap(), 0x18);
+    }
+
+    #[test]
+    fn test_resolve_regs() {
+        let mut inst = Instruction::new_simple("add".to_owned());
+        inst.add_operand(OperandType::Register, Value::Register(Register::A));
+        let oprs: Vec<u32> = resolve_incomplete_operands(&inst).unwrap();
+
+        assert_eq!(oprs.len(), 1);
+        assert_eq!(oprs[0], 0);
+    }
 
 fn resolve_label(label: &str) -> Result<u32, &str> {
     // Check the symtab
