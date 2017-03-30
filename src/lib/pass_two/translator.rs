@@ -156,11 +156,8 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn add_format_one() {
         let mut inst = Instruction::new_simple("add".to_owned());
-
-        inst.format = formats::Format::One;
         assert_eq!(resolve_opcode(&inst).unwrap(), 0x18);
     }
 
