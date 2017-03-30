@@ -14,6 +14,32 @@ pub struct AsmOperand {
     pub val: Value,
 }
 
+impl AsmOperand {
+    pub fn new(op_t: OperandType, value: Value) -> Result<AsmOperand, &'static str> {
+
+        // validate operand type with value
+        let type_match = match (op_t.clone(), value.clone()) {
+            (OperandType::Immediate,Value::Raw(_)) |
+            (OperandType::Immediate,Value::SignedInt(_)) |
+            (OperandType::Indirect,Value::Raw(_)) |    // Memory address is raw
+            (OperandType::Label,Value::Label(_)) |
+            (OperandType::None,Value::Raw(_)) |
+            (OperandType::Register,Value::Register(_)) 
+            => true,
+            _=>false ,
+        };
+
+        if !type_match {
+            return Err("Operand type and value mismatch");
+        }
+
+        Ok(AsmOperand {
+            opr_type: op_t,
+            val: value,
+        })
+    }
+}
+
 /**
  * Resembles a SIC/XE instruction, this object is immutable,
  * Each method that mutates the state should return a new object
@@ -178,12 +204,22 @@ impl Instruction {
 
     fn check_invalid_flags<'a>(&'a self) -> Result<(), String> {
 
-        // TODO Extract all the errors in the instruction flags,
+        // TODO: Extract all the errors in the instruction flags,
+        // as an array of (bool , fn)
         // don't return just a sinle string and use Vec<string>
         let mut errors: Vec<&str> = Vec::new();
 
         if self.has_flag(Flags::BaseRelative) && self.has_flag(Flags::PcRelative) {
             errors.push("PC relative and Base relative flags are set together");
+        }
+
+        if self.has_flag(Flags::Indexed) && self.has_flag(Flags::Immediate) {
+            errors.push("Indexed and immediate flags are set together");
+        }
+
+
+        if self.has_flag(Flags::Indexed) && self.has_flag(Flags::Indirect) {
+            errors.push("Indexed and extended flags are set together");
         }
 
         if self.format == Format::Three && self.has_flag(Flags::Extended) {
@@ -231,8 +267,7 @@ impl Instruction {
         self.flags.iter().position(|&f| f == flag) != None
     }
 
-    // FIXME This function simply checks that
-    // the Enum Variant of the operands and instruction match
+
     pub fn unwrap_operands(&self) -> Vec<AsmOperand> {
         let operands = match &self.operands {
             // Possible register cases ( from the IS )
