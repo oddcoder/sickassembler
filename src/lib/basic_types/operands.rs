@@ -4,32 +4,19 @@ use basic_types::register::Register;
 /**
 *  Instruction operand
 */
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
 #[derive(Debug,PartialEq,Clone)]
 pub enum OperandType {
     Register, // Register number
     Immediate,
     Indirect, // memory location/label -> memory location
     Label, // Load the memory address for the lable
-=======
-#[derive(Debug,PartialEq)]
-pub enum Operand {
-    Register(Option<Register>), // Register number
-    Immediate(Option<i32>),
-    Indirect(Option<u32>), // memory location/label -> memory location
-    Label(Option<String>), // Load the memory address for the lable
->>>>>>> Pass2 instruction translation (#4)
+    Raw,
     None,
 
     // Pass2 will convert any of the provided operands above to a raw nueric value
     // This is also supported if the source code contains a direct memory address
     // This can also be the n operand from the instruction set, ex. shift r1,n TODO check range value
     // Raw is used for raw hex output, i.e Unsigned values, unlike immediate
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
-    Raw,
-=======
-    Raw(Option<u32>),
->>>>>>> Pass2 instruction translation (#4)
 }
 
 pub fn match_variant(first: &OperandType, second: &OperandType) -> bool {
