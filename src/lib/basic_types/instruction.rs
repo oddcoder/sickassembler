@@ -8,7 +8,6 @@ use std::clone::Clone;
 const BYTE_SIZE_TO_BITS: u8 = 8; // In the SIC machine, a byte is 3 bits
 
 
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
 #[derive(Debug,Clone)]
 pub struct AsmOperand {
     pub opr_type: OperandType,
@@ -29,12 +28,6 @@ impl AsmOperand {
             => true,
             _=>false ,
         };
-=======
-use basic_types::formats::Format;
-use basic_types::flags::Flags;
-use basic_types::operands::Operand;
-use basic_types::unit_or_pair::UnitOrPair;
->>>>>>> Pass2 instruction translation (#4)
 
         if !type_match {
             return Err("Operand type and value mismatch");
@@ -58,11 +51,7 @@ pub struct Instruction {
     pub label: String,
     pub mnemonic: String,
     pub format: Format,
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
     pub operands: UnitOrPair<AsmOperand>, // Group oerands in one field
-=======
-    pub operands: UnitOrPair<Operand>, // Group oerands in one field
->>>>>>> Pass2 instruction translation (#4)
 }
 
 impl Instruction {
@@ -70,18 +59,14 @@ impl Instruction {
      * new A plain new instruction
      * use builder pattern? ( as it's transromed in phases and to make testing less verbose)
      */
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
+
     pub fn new(label: String, mnemonic: String, operands: UnitOrPair<AsmOperand>) -> Instruction {
-=======
-    pub fn new(label: String, mnemonic: String, operands: UnitOrPair<Operand>) -> Instruction {
->>>>>>> Pass2 instruction translation (#4)
         Instruction {
             label: label,
             format: Format::None,
             mnemonic: mnemonic,
             flags: Vec::new(),
             operands: operands,
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
         }
     }
 
@@ -95,8 +80,6 @@ impl Instruction {
             mnemonic: mnemonic,
             flags: Vec::new(),
             operands: UnitOrPair::None,
-=======
->>>>>>> Pass2 instruction translation (#4)
         }
     }
 
@@ -107,12 +90,8 @@ impl Instruction {
     pub fn set_flag(&mut self, flag: Flags) -> Result<(), &str> {
 
         if (*self).format != Format::Four && (*self).format != Format::Three {
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
             warn!("Format 1 or 2 can't have flags set");
             return Err("Format 1 or 2 can't have flags set");
-=======
-            panic!("Format 1 or 2 can't have flags set");
->>>>>>> Pass2 instruction translation (#4)
         }
 
         // Check for flag duplication, this is will be an error of a previous function/module
@@ -132,18 +111,11 @@ impl Instruction {
     ///
     /// set_format set the formats of the instruction
     ///
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
     pub fn set_format(&mut self, instruction_format: Format) -> Result<(), &str> {
 
         if self.format != Format::None {
             warn!("Format was already set for {:?}", self);
             return Err("Format was already set");
-=======
-    pub fn set_format(&mut self, instruction_format: Format) {
-
-        if self.format != Format::None {
-            panic!("Format was already set");
->>>>>>> Pass2 instruction translation (#4)
         }
 
         self.format = instruction_format;
@@ -193,16 +165,11 @@ impl Instruction {
         // Set the flags if the instuction is not any of the special cases
         // i.e set the Indirect and Immediate flags to 1
 
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
         //Format4: n i x b p e | 20-addr - 0-indexed
         //Format3: n i x b p e | 12-addr - 0-indexed
         if self.format == Format::None {
             warn!("Instruction {:?} format isnt specified", self);
             return Err("Instruction format wasn't specified".to_owned());
-=======
-        if self.format == Format::None {
-            panic!("Instruction format isnt specified");
->>>>>>> Pass2 instruction translation (#4)
         }
 
         // Decimal value resulting from decoding the flags
@@ -247,7 +214,6 @@ impl Instruction {
             errors.push("PC relative and Base relative flags are set together");
         }
 
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
         if self.has_flag(Flags::Indexed) && self.has_flag(Flags::Immediate) {
             errors.push("Indexed and immediate flags are set together");
         }
@@ -259,19 +225,12 @@ impl Instruction {
 
         if self.format == Format::Three && self.has_flag(Flags::Extended) {
             errors.push("Extended bit is set in a Format 3 instruction");
-=======
-        if self.format == Format::Three && self.has_flag(Flags::Extended) {
-            return Err("Extended bit is set in a Format 3 instruction");
->>>>>>> Pass2 instruction translation (#4)
         }
 
         // Check if a format 4 instruction has any invalid flags
         if self.format == Format::Four && !self.has_flag(Flags::Extended) {
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
             errors.push("E flag isn't set in a format 4 instruction");
-=======
-            return Err("E flag isn't set in a format 4 instruction");
->>>>>>> Pass2 instruction translation (#4)
+            return Err("E flag isn't set in a format 4 instruction".to_owned());
         }
 
         if self.format == Format::Four &&
@@ -280,16 +239,11 @@ impl Instruction {
         }
 
         if self.format == Format::Four && (self.has_flag(Flags::BaseRelative)) {
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
             errors.push("Base relative addressing used in a format 4 instruction");
-=======
-            return Err("Base relative addressing used in a format 4 instruction");
->>>>>>> Pass2 instruction translation (#4)
         }
 
         // TODO confirm correctness
         if self.format == Format::Four && self.has_flag(Flags::PcRelative) {
-<<<<<<< ead3018a2ce231ba32b1b3cf132be66c9b936cc2
             errors.push("PC relative addressing used in a format 4 instruction");
         }
 
@@ -305,17 +259,6 @@ impl Instruction {
             let errs: String = errors.join(", ");
             warn!("Found errors in {:?} flags: {:?}", self, errs);
             return Err(errs);
-=======
-            return Err("PC relative addressing used in a format 4 instruction");
-        }
-
-        if self.format == Format::Four && self.has_flag(Flags::Indexed) {
-            return Err("Indexed addressing used in a format 4 instruction");
-        }
-
-        if self.format == Format::Four && self.has_flag(Flags::Indirect) {
-            return Err("Indirect addressing used in a format 4 instruction");
->>>>>>> Pass2 instruction translation (#4)
         }
 
         Ok(())
