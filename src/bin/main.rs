@@ -42,11 +42,8 @@ fn main() {
     loop {
         let wrapped_line = asm_file.read_instruction();
         match wrapped_line {
-            Err(why) => {
-                println!("{:?}", why);
-                break;
-            },
-            Ok(s) => println!("{}", s),
+            None => break,
+            Some(s) => println!("{}", s),
         }
     }
 }

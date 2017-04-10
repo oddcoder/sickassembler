@@ -17,30 +17,34 @@ impl FileHandler {
             buf: f,
         };
     }
-    pub fn read_instruction(&mut self) -> Result<String, String> {
+    pub fn read_instruction(&mut self) -> Option<String> {
         return self.scrap_comment();
     }
-    fn scrap_comment(&mut self) -> Result<String, String> {
+    fn scrap_comment(&mut self) -> Option<String> {
         let mut line = String::new();
-        
+
         // Read until you reach end of file or a non-comment line
         // if the line is just a blank line, skip it
         loop {
-            if let Ok(num) = self.buf.read_line(&mut line) {
-                if num == 0 {
-                    // Nothing Read
-                    return Err("End of file reached".to_owned());
-                } else {
-                    // Remove the comments form the line read
-                    line = line.split(".").nth(0).unwrap().trim().to_owned();
+            match self.buf.read_line(&mut line) {
+                Ok(num) => {
+                    if num == 0 {
+                        // Nothing Read
+                        return None;
+                    } else {
+                        // Remove the comments form the line read
+                        line = line.split(".").nth(0).unwrap().trim().to_owned();
 
-                    if line.is_empty() {
-                        continue; // Skip empty lines or lines that contain only comments
+                        if line.is_empty() {
+                            continue; // Skip empty lines or lines that contain only comments
+                        }
+
+                        return Some(line);
                     }
-
-                    return Ok(line);
                 }
+                Err(e) => panic!("An OS I/O error occured, this is really bad!"),
             }
+
         }
     }
 }
