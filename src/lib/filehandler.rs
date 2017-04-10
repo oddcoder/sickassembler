@@ -1,7 +1,8 @@
 use std::fs::*;
-use std::io::*;
+use std::io::{BufReader, BufRead};
 use basic_types::instruction_set::*;
 use basic_types::instruction::*;
+
 #[derive(Debug)]
 pub struct FileHandler {
     path: String,
@@ -16,38 +17,34 @@ impl FileHandler {
             buf: f,
         };
     }
-    pub fn read_instruction(&mut self) -> Option<Result<String>> {
-        let line;
-        let wrapped_line = self.scrap_comment();
-        if wrapped_line.is_none() {
-            return None;
-        }
-        match wrapped_line.unwrap() { // keep in mind when A line is read ..
-            Err(e) => return Some(Err(e)),                    // it is totally consumed and no way to get it back!
-            Ok(s) => line = s,
-        }
-        return Some(Ok(line));
+    pub fn read_instruction(&mut self) -> Result<String, String> {
+        return self.scrap_comment();
     }
-    fn scrap_comment (&mut self) -> Option<Result<String>> {
-        let mut line;
+    fn scrap_comment(&mut self) -> Result<String, String> {
+        let mut line = String::new();
+        
+        // Read until you reach end of file or a non-comment line
+        // if the line is just a blank line, skip it
         loop {
-            let commented_line;
-            let wrapped_line =  (&mut self.buf).lines().nth(0);
-            if wrapped_line.is_none() {
-                return None;
-            }
-            match wrapped_line.unwrap() {
-                Err(e) => return Some(Err(e)),
-                Ok(s) => commented_line = s,
-            }
-            line = commented_line.split(".").nth(0).unwrap().trim().to_string();
-            if !line.is_empty(){
-                break;
+            if let Ok(num) = self.buf.read_line(&mut line) {
+                if num == 0 {
+                    // Nothing Read
+                    return Err("End of file reached".to_owned());
+                } else {
+                    // Remove the comments form the line read
+                    line = line.split(".").nth(0).unwrap().trim().to_owned();
+
+                    if line.is_empty() {
+                        continue; // Skip empty lines or lines that contain only comments
+                    }
+
+                    return Ok(line);
+                }
             }
         }
-        return Some(Ok(line));
     }
 }
+
 #[test]
 #[should_panic]
 fn test_file_opening() {

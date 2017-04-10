@@ -41,10 +41,7 @@ fn main() {
     let mut asm_file = FileHandler::new(input);
     loop {
         let wrapped_line = asm_file.read_instruction();
-        if wrapped_line.is_none() {
-            break
-        }
-        match wrapped_line.unwrap() {
+        match wrapped_line {
             Err(why) => {
                 println!("{:?}", why);
                 break;
