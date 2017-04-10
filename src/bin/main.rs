@@ -7,7 +7,6 @@ use getopts::Options;
 //use operands::OperandType;
 use sick_lib::filehandler::FileHandler;
 use std::env;
-
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {} FILE [options] file", program);
     print!("{}", opts.usage(&brief));
@@ -39,5 +38,18 @@ fn main() {
     } else {
         panic!("Error No input File selected");
     };
-    let asm_file = FileHandler::new(input);
+    let mut asm_file = FileHandler::new(input);
+    loop {
+        let wrapped_line = asm_file.read_instruction();
+        if wrapped_line.is_none() {
+            break
+        }
+        match wrapped_line.unwrap() {
+            Err(why) => {
+                println!("{:?}", why);
+                break;
+            },
+            Ok(s) => println!("{}", s),
+        }
+    }
 }

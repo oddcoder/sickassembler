@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use basic_types::instruction::{Instruction, AsmOperand};
+use basic_types::instruction::AsmOperand;
 use basic_types::formats::Format;
 use basic_types::operands::{self, OperandType};
 use basic_types::unit_or_pair::{self, UnitOrPair};
