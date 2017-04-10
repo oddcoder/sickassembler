@@ -42,7 +42,7 @@ impl FileHandler {
                         return Some(line);
                     }
                 }
-                Err(e) => panic!("An OS I/O error occured, this is really bad!"),
+                Err(e) => panic!(format!("An OS I/O error occured, this is really bad!, {}",e.to_string())),
             }
 
         }
