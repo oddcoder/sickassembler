@@ -16,22 +16,13 @@ mod raw_program_tests{
             first_instruction_address: 0x1000
         };
 
-        let end_record = match raw_program.end_record(){
-            Ok(s) => s,
-            Err(e) => panic!("Error: {}", e)
-        };
+        let end_record = raw_program.end_record();
         assert_eq!(end_record,String::from("E001000"));
 
-        let header_record = match raw_program.header_record(){
-            Ok(s) => s,
-            Err(e) => panic!("Error: {}", e)
-        };
+        let header_record = raw_program.header_record();
         assert_eq!(header_record,String::from("H00100000102A"));
 
-        let text_records = match raw_program.text_records(){
-            Ok(s) => s,
-            Err((e,i)) => panic!("Error: {:} at code with index {}", e,i)
-        };
+        let text_records = raw_program.text_records();
         assert_eq!(text_records, "TC400F3\nT0003F4D3\nT00430043");
     }
 }
