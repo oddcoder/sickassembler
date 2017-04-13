@@ -2,8 +2,8 @@ use std::fs::*;
 use std::io::{BufReader, BufRead};
 use basic_types::instruction_set::*;
 use basic_types::instruction::*;
-
-#[derive(Debug)]
+use basic_types::unit_or_pair::*;
+use basic_types::operands::*;
 pub struct FileHandler {
     path: String,
     buf: BufReader<File>,
@@ -20,9 +20,36 @@ impl FileHandler {
     }
 
     pub fn read_instruction(&mut self) -> Option<String> {
-        return self.scrap_comment();
+        let line;
+        match self.scrap_comment() {
+            None => return None,
+            Some(x) => line = x,
+        }
+        let mut words = line.split_whitespace();
+        let mut label:String = String::new();
+        let mut instruction:String = String::new();
+        let mut instruction_def:AssemblyDef;
+        let maybe_label = words.next().unwrap().to_string();
+        match fetch_instruction(&maybe_label) {
+            Err(meh) => {
+                label = maybe_label.to_string();
+            },
+            Ok(def) => {
+                instruction = maybe_label.to_string();
+                instruction_def = def;
+            },
+        }
+        if instruction.is_empty() {
+            instruction = words.next().unwrap().to_owned();
+            match fetch_instruction(&instruction) {
+                Err(why) => panic!(why.clone()),
+                Ok(def) => instruction_def = def,
+            }
+        }
+        let operands:UnitOrPair<AsmOperand> = parse_operands(words.next());
+        let mut inst:Instruction = Instruction::new(label, instruction, operands);
+        return Some("Comeone".to_owned());
     }
-
     /// Removes comments if found in a line, and returns
     /// an empty string if the line didn't conatin code
     fn scrap_comment(&mut self) -> Option<String> {
@@ -57,7 +84,32 @@ impl FileHandler {
     }
 }
 
+fn parse_operands(operands:Option<&str>) ->UnitOrPair<AsmOperand> {
+    let operand_string;
+    match operands {
+        None => return UnitOrPair::None,
+        Some(op) => operand_string = op.to_owned(),
+    }
+    let ops: Vec<&str> = operand_string.split(",").collect();
+    match ops.len() {
+        0 => return UnitOrPair::None,
+        1 => {
+            let op = parse(ops[0].to_owned());
+            return UnitOrPair::Unit(op);
+        },
+        2 => {
+            let op1 = parse(ops[0].to_owned());
+            let op2 = parse(ops[1].to_owned());
+            return UnitOrPair::Pair(op1, op2);
+        },
+        _ => panic!("expected ; or newline instead of `{}`", ops[2]),
+    }
+    return UnitOrPair::None;
+}
 
+fn parse(op: String) -> AsmOperand {
+    //TODO
+}
 #[cfg(test)]
 mod tests {
     use super::*; // Use all your parent's imports
