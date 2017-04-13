@@ -76,8 +76,7 @@ impl AssemblyDef {
 /// Checks if a provided instruction exists in the Instruction set and returns it or an error
 /// NOTE: The caller should check for complaince with the instruction set with respect
 /// to the number of operands, and so
-pub fn fetch_instruction(instr_mnemonic: &String) -> Result<AssemblyDef, &str> {
-
+pub fn fetch_instruction<'a>(instr_mnemonic: &String) -> Result<AssemblyDef, &'a str> {
     let mnemonic = &instr_mnemonic.to_uppercase().to_owned();
     if INSTRUCTION_SET.contains_key(mnemonic) == false {
         warn!("Failed to find mnemonic {:?}", instr_mnemonic.as_str());
