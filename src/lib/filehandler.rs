@@ -3,6 +3,7 @@ use std::io::{BufReader, BufRead};
 use basic_types::instruction_set::*;
 use basic_types::instruction::*;
 use basic_types::unit_or_pair::*;
+use basic_types::register::*;
 use basic_types::operands::*;
 pub struct FileHandler {
     path: String,
@@ -19,7 +20,7 @@ impl FileHandler {
         };
     }
 
-    pub fn read_instruction(&mut self) -> Option<String> {
+    pub fn read_instruction(&mut self) -> Option<Instruction> {
         let line;
         match self.scrap_comment() {
             None => return None,
@@ -48,7 +49,7 @@ impl FileHandler {
         }
         let operands:UnitOrPair<AsmOperand> = parse_operands(words.next());
         let mut inst:Instruction = Instruction::new(label, instruction, operands);
-        return Some("Comeone".to_owned());
+        return Some(inst);
     }
     /// Removes comments if found in a line, and returns
     /// an empty string if the line didn't conatin code
@@ -107,8 +108,37 @@ fn parse_operands(operands:Option<&str>) ->UnitOrPair<AsmOperand> {
     return UnitOrPair::None;
 }
 
-fn parse(op: String) -> AsmOperand {
-    //TODO
+fn parse(op:String) -> AsmOperand {
+    match &op as &str {
+        "A"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::A)),
+        "X"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::X)),
+        "L"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::L)),
+        "B"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::B)),
+        "S"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::S)),
+        "T"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::T)),
+        "F"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::F)),
+        _ => (),
+    }
+    let mut optype = OperandType::Label;
+    let mut index_start = 0;
+    match &op[0..1] {
+        "#" => {
+            optype = OperandType::Immediate;
+            index_start = 1;
+        },
+        "@" =>  {
+            optype = OperandType::Indirect;
+            index_start = 1;
+        }
+        "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9" => optype = OperandType::Raw,
+        _ => (),
+    }
+    let val = op[index_start..op.len()].to_owned();
+    let x = usize::from_str_radix(&val[0..1], 10);
+    match x {
+        Err(_) => return AsmOperand::new(optype, Value::Label(val)),
+        Ok(_) => return AsmOperand::new(optype, Value::Raw(val.parse().unwrap())),
+    }
 }
 #[cfg(test)]
 mod tests {
