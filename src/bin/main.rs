@@ -43,6 +43,7 @@ fn main() {
         let wrapped_line = asm_file.read_instruction();
         match wrapped_line {
             None => break,
+            Some(ref s) if s.is_empty() => continue,
             Some(s) => println!("{}", s),
         }
     }

@@ -1,10 +1,7 @@
-use basic_types::flags::*;
-use basic_types::instruction::{Instruction, AsmOperand};
+use basic_types::instruction::Instruction;
 use basic_types::operands::{OperandType, Value};
-use basic_types::formats::*;
 use basic_types::instruction_set::{self, AssemblyDef};
-use basic_types::unit_or_pair::UnitOrPair;
-use std::num;
+
 
 pub fn translate(instruction: &Instruction) -> Result<u32, &str> {
     //let f_vals = instruction.check_invalid_flags();   // TODO Report to RLS
@@ -37,9 +34,9 @@ pub fn translate(instruction: &Instruction) -> Result<u32, &str> {
 fn resolve_incomplete_operands(instruction: &Instruction) -> Result<Vec<u32>, &str> {
     // Convert immediate and indirect operands to a basic forms -> Raw
     let mut raws: Vec<u32> = Vec::new();
-    let opVec = instruction.unwrap_operands();
+    let op_vec = instruction.unwrap_operands();
 
-    for operand in &opVec {
+    for operand in &op_vec {
         let raw: Result<u32, &str> = match operand.val {
             Value::SignedInt(x) => Ok(x.abs() as u32),
             Value::Register(ref x) => Ok((*x as u8) as u32),

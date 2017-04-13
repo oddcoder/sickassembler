@@ -13,6 +13,7 @@ ENDFIL	LDA	EOF	. insert end of file marker
 	JSUB	WRREC	. write EOF
 	LDL	RETARD	. get return address
 	RSUB
+. Whole line comment
 EOD	BYTE	C'EOF'
 THREE	WORD	3
 ZERO	WORD	0
