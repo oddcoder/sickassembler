@@ -173,10 +173,6 @@ pub fn fetch_directive<'a>(instr_mnemonic: &String) -> Result<AssemblyDef, &'a s
 lazy_static!{
     static ref ASSEMBLER_DIRECTIVES: HashMap<String,AssemblyDef > = {
             let assembler_directives :HashMap <String, AssemblyDef> = [
-            ("START".to_owned(),
-                  AssemblyDef::new("START".to_owned(),
-                  UnitOrPair::Unit(Format::None),
-                  UnitOrPair::Unit(OperandType::Raw),0xFF)),
             ("END".to_owned(),
                   AssemblyDef::new("END".to_owned(),
                   UnitOrPair::Unit(Format::None),
