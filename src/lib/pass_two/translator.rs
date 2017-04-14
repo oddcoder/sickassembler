@@ -37,7 +37,7 @@ pub fn translate(instruction: &Instruction) -> Result<u32, &str> {
 fn resolve_incomplete_operands(instruction: &Instruction) -> Result<Vec<u32>, &str> {
     // Convert immediate and indirect operands to a basic forms -> Raw
     let mut raws: Vec<u32> = Vec::new();
-    let opVec = instruction.unwrap_operands();
+    let op_vec = instruction.unwrap_operands();
 
     for operand in &op_vec {
         let raw: Result<Vec<u32>, &str> = match operand.val {
