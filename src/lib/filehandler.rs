@@ -19,7 +19,21 @@ impl FileHandler {
             buf: f,
         };
     }
-
+    pub fn read_start(&mut self) -> (String, usize) {
+        let line;
+        match self.scrap_comment() {
+            None => panic!("Excepted START line"),
+            Some(x) => line = x,
+        }
+        let mut words:Vec<&str> = line.split_whitespace().collect();
+        if words.len() > 3 {
+            panic!("Unexpected \"{}\"", words[3]);
+        }
+        match words[1] {
+            "START" => return (words[0].to_owned(), words[2].parse().unwrap()),
+            _ => panic!("Expected \"START\" found \"{}\"", words[1]),
+        }
+    }
     pub fn read_instruction(&mut self) -> Option<Instruction> {
         let line;
         match self.scrap_comment() {
