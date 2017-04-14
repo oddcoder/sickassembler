@@ -1,3 +1,4 @@
+use regex::Regex;
 use std::fs::*;
 use std::io::{BufReader, BufRead};
 use basic_types::instruction_set::*;
@@ -36,6 +37,7 @@ impl FileHandler {
         }
     }
     pub fn read_instruction(&mut self) -> Option<Instruction> {
+        //TODO refactor later ...
         let line;
         match self.scrap_comment() {
             None => return None,
@@ -47,6 +49,7 @@ impl FileHandler {
         let mut instruction_def:AssemblyDef = AssemblyDef::dummy();
         let mut is_format_4 = false;
         let mut maybe_instruction = words.next().unwrap().to_string();
+        let mut is_directive = false;
         if &maybe_instruction[0..1] == "+"{
             is_format_4 = true;
             maybe_instruction.pop();
@@ -56,7 +59,14 @@ impl FileHandler {
                 if is_format_4 {
                     panic!("Label can not start with a +");
                 }
-                label = maybe_instruction.to_owned();
+                match fetch_directive(&maybe_instruction) {
+                    Err(meh) => label = maybe_instruction.to_owned(),
+                    Ok(def) => {
+                        instruction = maybe_instruction.to_owned();
+                        instruction_def = def;
+                        is_directive = true;
+                    }
+                }
             },
             Ok(def) => {
                 instruction = maybe_instruction.to_owned();
@@ -70,11 +80,24 @@ impl FileHandler {
                 instruction.pop();
             }
             match fetch_instruction(&instruction) {
-                Err(why) => panic!("{}:{}", instruction, why),
+                Err(_) => {
+                    match fetch_directive(&instruction) {
+                        Err(_) => panic!("{} is neither instruction nor pseudo-instruction", instruction),
+                        Ok(def) => {
+                            instruction_def = def;
+                            is_directive = true;
+                        }
+                    }
+                }
                 Ok(def) => instruction_def = def,
             }
         }
-        let operands:UnitOrPair<AsmOperand> = parse_operands(words.next());
+        let mut operands:UnitOrPair<AsmOperand> = parse_operands(words.next(), &is_directive);
+        /*TODO fix has_valid_operands
+        if !instruction_def.has_valid_operands(&operands) {
+            panic!("Invalid operands for istruction {}", instruction_def.mnemonic);
+        }
+        */
         let mut inst:Instruction = Instruction::new(label, instruction, operands);
         if is_format_4 {
             inst.set_format(Format::Four);
@@ -119,7 +142,7 @@ impl FileHandler {
     }
 }
 
-fn parse_operands(operands:Option<&str>) ->UnitOrPair<AsmOperand> {
+fn parse_operands(operands:Option<&str>, is_directive: &bool) ->UnitOrPair<AsmOperand> {
     let operand_string;
     match operands {
         None => return UnitOrPair::None,
@@ -129,12 +152,15 @@ fn parse_operands(operands:Option<&str>) ->UnitOrPair<AsmOperand> {
     match ops.len() {
         0 => return UnitOrPair::None,
         1 => {
-            let op = parse(ops[0].to_owned());
+            let op = parse(ops[0].to_owned(), &is_directive);
             return UnitOrPair::Unit(op);
         },
         2 => {
-            let op1 = parse(ops[0].to_owned());
-            let op2 = parse(ops[1].to_owned());
+            if *is_directive {
+                panic!("Assembler directives can't have 2 Operands");
+            }
+            let op1 = parse(ops[0].to_owned(), &false);
+            let op2 = parse(ops[1].to_owned(), &false);
             return UnitOrPair::Pair(op1, op2);
         },
         _ => panic!("expected . or newline instead of `{}`", ops[2]),
@@ -142,7 +168,7 @@ fn parse_operands(operands:Option<&str>) ->UnitOrPair<AsmOperand> {
     return UnitOrPair::None;
 }
 
-fn parse(op:String) -> AsmOperand {
+fn parse(op:String, is_directive: &bool) -> AsmOperand {
     match &op as &str {
         "A"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::A)),
         "X"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::X)),
@@ -154,6 +180,13 @@ fn parse(op:String) -> AsmOperand {
         _ => (),
     }
     let mut optype = OperandType::Label;
+    if *is_directive {
+        let char_stream = Regex::new(r"^C'[[:alnum:]]*'$").unwrap();
+        let hex_stream = Regex::new(r"^X'[[:xdigit:]]*'$").unwrap();
+        if char_stream.is_match(&op) || hex_stream.is_match(&op) {
+            optype = OperandType::Bytes;
+        }
+    }
     let mut index_start = 0;
     match &op[0..1] {
         "#" => {
@@ -164,14 +197,27 @@ fn parse(op:String) -> AsmOperand {
             optype = OperandType::Indirect;
             index_start = 1;
         }
-        "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9" => optype = OperandType::Raw,
+        "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9" => {
+            if *is_directive {
+                optype = OperandType::Immediate;
+            } else {
+                optype = OperandType::Raw;
+            }
+        },
         _ => (),
     }
     let val = op[index_start..op.len()].to_owned();
-    let x = usize::from_str_radix(&val[0..1], 10);
+    let mut x = usize::from_str_radix(&val[0..1], 10);
     match x {
         Err(_) => return AsmOperand::new(optype, Value::Label(val)),
-        Ok(_) => return AsmOperand::new(optype, Value::Raw(val.parse().unwrap())),
+        Ok(_) => {
+            if *is_directive {
+                return AsmOperand::new(optype, Value::Raw(usize::from_str_radix(&val, 16).unwrap() as u32));
+                return AsmOperand::new(optype, Value::Raw(val.parse().unwrap()));
+            } else {
+                return AsmOperand::new(optype, Value::Raw(val.parse().unwrap()));
+            }
+        },
     }
 }
 #[test]
