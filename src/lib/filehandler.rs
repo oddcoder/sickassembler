@@ -47,17 +47,17 @@ impl FileHandler {
         let maybe_label = words.next().unwrap().to_string();
         match fetch_instruction(&maybe_label) {
             Err(meh) => {
-                label = maybe_label.to_string();
+                label = maybe_label.to_owned();
             },
             Ok(def) => {
-                instruction = maybe_label.to_string();
+                instruction = maybe_label.to_owned();
                 instruction_def = def;
             },
         }
         if instruction.is_empty() {
             instruction = words.next().unwrap().to_owned();
             match fetch_instruction(&instruction) {
-                Err(why) => panic!(why.clone()),
+                Err(why) => panic!("{}:{}", instruction, why),
                 Ok(def) => instruction_def = def,
             }
         }
@@ -113,7 +113,7 @@ fn parse_operands(operands:Option<&str>) ->UnitOrPair<AsmOperand> {
             let op2 = parse(ops[1].to_owned());
             return UnitOrPair::Pair(op1, op2);
         },
-        _ => panic!("expected ; or newline instead of `{}`", ops[2]),
+        _ => panic!("expected . or newline instead of `{}`", ops[2]),
     }
     return UnitOrPair::None;
 }
