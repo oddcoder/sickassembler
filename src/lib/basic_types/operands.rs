@@ -10,6 +10,7 @@ pub enum OperandType {
     Immediate,
     Indirect, // memory location/label -> memory location
     Label, // Load the memory address for the lable
+    Bytes,
     None,
 
     // Pass2 will convert any of the provided operands above to a raw nueric value
@@ -37,5 +38,5 @@ pub enum Value {
     SignedInt(i32),
     Raw(u32),
     Label(String),
-    Bytes(Vec<char>),
+    Bytes(String),
 }

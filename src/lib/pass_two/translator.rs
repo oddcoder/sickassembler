@@ -74,7 +74,7 @@ fn resolve_label(label: &str) -> Result<u32, &str> {
     unimplemented!();
 }
 
-fn resolve_directive_operand(operand: &Vec<char>) -> Result<Vec<u32>, &str> {
+fn resolve_directive_operand(operand: &String) -> Result<Vec<u32>, &str> {
     unimplemented!()
 }
 
