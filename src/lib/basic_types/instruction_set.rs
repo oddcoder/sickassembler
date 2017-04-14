@@ -23,7 +23,7 @@ pub struct AssemblyDef {
 impl AssemblyDef {
     fn new(mnemonic: String,
            formats: UnitOrPair<Format>,
-           operands: UnitOrPair<OperandType>, // If an instruction can be on format 3 or 4, format 3 must come first (as in the IS)
+           operands: UnitOrPair<OperandType>,
            op_code: u32)
            -> AssemblyDef {
 
