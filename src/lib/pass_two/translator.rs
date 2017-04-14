@@ -37,18 +37,20 @@ fn resolve_incomplete_operands(instruction: &Instruction) -> Result<Vec<u32>, &s
     let op_vec = instruction.unwrap_operands();
 
     for operand in &op_vec {
-        let raw: Result<u32, &str> = match operand.val {
-            Value::SignedInt(x) => Ok(x.abs() as u32),
-            Value::Register(ref x) => Ok((*x as u8) as u32),
+        let raw: Result<Vec<u32>, &str> = match operand.val {
+            Value::SignedInt(x) => Ok(vec![x.abs() as u32]),
+            Value::Register(ref x) => Ok(vec![(*x as u8) as u32]),
             // Get from symtab
-            Value::Label(ref x) => resolve_label(x.as_str()),
-            Value::Raw(x) => Ok(x),
+            Value::Label(ref x) => resolve_label(x.as_str()).and_then(|v| Ok(vec![v])),
+            Value::Raw(x) => Ok(vec![x]),
+            Value::Bytes(ref text) => resolve_directive_operand(text),
         };
 
-        match raw {
-            Ok(x) => raws.push(x),
-            _ => return Err("Couldn't resolve label"),  // Nothing else can fail
+        if raw.is_err() {
+            return Err("Couldn't resolve label"); // Nothing else can fail
         }
+        let mut operand: Vec<u32> = raw.unwrap();
+        raws.append(&mut operand);
     }
     Ok(raws)
 }
@@ -70,6 +72,10 @@ fn resolve_label(label: &str) -> Result<u32, &str> {
     // TODO: Check the symtab
     // TODO: Check the range of addresses with the instruction format
     unimplemented!();
+}
+
+fn resolve_directive_operand(operand: &String) -> Result<Vec<u32>, &str> {
+    unimplemented!()
 }
 
 fn validate_instruction(instr: &Instruction) -> Result<(), &str> {

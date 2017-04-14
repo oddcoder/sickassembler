@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use basic_types::instruction::AsmOperand;
+use basic_types::instruction::{AsmOperand, Instruction};
 use basic_types::formats::Format;
 use basic_types::operands::{self, OperandType};
 use basic_types::unit_or_pair::{self, UnitOrPair};
@@ -74,6 +74,8 @@ impl AssemblyDef {
 
 
 /// Checks if a provided instruction exists in the Instruction set and returns it or an error
+/// NOTE: The caller should check for complaince with the instruction set with respect
+/// to the number of operands, and so
 pub fn fetch_instruction(instr_mnemonic: &String) -> Result<AssemblyDef, &str> {
 
     let mnemonic = &instr_mnemonic.to_uppercase().to_owned();
@@ -151,3 +153,71 @@ lazy_static!{
             return isa;
         };
     }
+
+/// Checks if a provided directive exists in the Directive table and returns it or an error
+/// if the mnemonic doesn't exist
+/// NOTE: The caller should check for complaince with the directory table with respect
+/// to the number of operands, and so
+pub fn fetch_directive<'a>(instr_mnemonic: &String) -> Result<AssemblyDef, &'a str> {
+
+    let mnemonic = &instr_mnemonic.to_uppercase().to_owned();
+    if ASSEMBLER_DIRECTIVES.contains_key(mnemonic) == false {
+        warn!("Failed to find directive {:?}", instr_mnemonic.as_str());
+
+        return Err("Directive isn't defined in the instruction set");
+    }
+
+    Ok(ASSEMBLER_DIRECTIVES.get(mnemonic).unwrap().clone())
+}
+
+lazy_static!{
+    static ref ASSEMBLER_DIRECTIVES: HashMap<String,AssemblyDef > = {
+            let assembler_directives :HashMap <String, AssemblyDef> = [
+            ("END".to_owned(),
+                  AssemblyDef::new("END".to_owned(),
+                  UnitOrPair::Unit(Format::None),
+                  UnitOrPair::Unit(OperandType::Immediate),0xFF)),
+            ("BYTE".to_owned(),
+                  AssemblyDef::new("BYTE".to_owned(),
+                  UnitOrPair::Unit(Format::None),
+                  UnitOrPair::Unit(OperandType::Bytes),0xFF)),
+            ("WORD".to_owned(),
+                  AssemblyDef::new("WORD".to_owned(),
+                  UnitOrPair::Unit(Format::None),
+                  UnitOrPair::Unit(OperandType::Immediate),0xFF)),
+            ("RESB".to_owned(),
+                  AssemblyDef::new("RESB".to_owned(),
+                  UnitOrPair::Unit(Format::None),
+                  UnitOrPair::Unit(OperandType::Immediate),0xFF)),
+            ("RESW".to_owned(),
+                  AssemblyDef::new("RESW".to_owned(),
+                  UnitOrPair::Unit(Format::None),
+                  UnitOrPair::Unit(OperandType::Immediate),0xFF)),
+            ("BASE".to_owned(),
+                  AssemblyDef::new("BASE".to_owned(),
+                  UnitOrPair::Unit(Format::None),
+                  UnitOrPair::Unit(OperandType::Label),0xFF)),
+            ("NOBASE".to_owned(),
+                  AssemblyDef::new("NOBASE".to_owned(),
+                  UnitOrPair::Unit(Format::None),
+                  UnitOrPair::Unit(OperandType::None),0xFF)),
+                    ].iter().cloned().collect();
+            return assembler_directives;
+        };
+    }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn directive_table_check_positive() {
+        let result: Result<AssemblyDef, &str> = fetch_directive(&"base".to_owned());
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn directive_table_check_negative() {
+        let result: Result<AssemblyDef, &str> = fetch_directive(&"ended".to_owned());
+        assert!(result.is_err());
+    }
+}
