@@ -37,4 +37,5 @@ pub enum Value {
     SignedInt(i32),
     Raw(u32),
     Label(String),
+    Bytes(Vec<char>),
 }
