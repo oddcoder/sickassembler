@@ -158,7 +158,7 @@ lazy_static!{
 /// if the mnemonic doesn't exist
 /// NOTE: The caller should check for complaince with the directory table with respect
 /// to the number of operands, and so
-pub fn fetch_directive(instr_mnemonic: &String) -> Result<AssemblyDef, &str> {
+pub fn fetch_directive<'a>(instr_mnemonic: &String) -> Result<AssemblyDef, &'a str> {
 
     let mnemonic = &instr_mnemonic.to_uppercase().to_owned();
     if ASSEMBLER_DIRECTIVES.contains_key(mnemonic) == false {
@@ -209,3 +209,19 @@ lazy_static!{
             return assembler_directives;
         };
     }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn directive_table_check_positive() {
+        let result: Result<AssemblyDef, &str> = fetch_directive(&"base".to_owned());
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn directive_table_check_negative() {
+        let result: Result<AssemblyDef, &str> = fetch_directive(&"ended".to_owned());
+        assert!(result.is_err());
+    }
+}
