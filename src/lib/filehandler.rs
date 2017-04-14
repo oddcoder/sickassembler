@@ -5,6 +5,7 @@ use basic_types::instruction::*;
 use basic_types::unit_or_pair::*;
 use basic_types::register::*;
 use basic_types::operands::*;
+use basic_types::formats::*;
 pub struct FileHandler {
     path: String,
     buf: BufReader<File>,
@@ -43,19 +44,31 @@ impl FileHandler {
         let mut words = line.split_whitespace();
         let mut label:String = String::new();
         let mut instruction:String = String::new();
-        let mut instruction_def:AssemblyDef;
-        let maybe_label = words.next().unwrap().to_string();
-        match fetch_instruction(&maybe_label) {
+        let mut instruction_def:AssemblyDef = AssemblyDef::dummy();
+        let mut is_format_4 = false;
+        let mut maybe_instruction = words.next().unwrap().to_string();
+        if &maybe_instruction[0..1] == "+"{
+            is_format_4 = true;
+            maybe_instruction.pop();
+        }
+        match fetch_instruction(&maybe_instruction) {
             Err(meh) => {
-                label = maybe_label.to_owned();
+                if is_format_4 {
+                    panic!("Label can not start with a +");
+                }
+                label = maybe_instruction.to_owned();
             },
             Ok(def) => {
-                instruction = maybe_label.to_owned();
+                instruction = maybe_instruction.to_owned();
                 instruction_def = def;
             },
         }
-        if instruction.is_empty() {
+        if !label.is_empty() {
             instruction = words.next().unwrap().to_owned();
+            if &instruction[0..1] == "+"{
+                is_format_4 = true;
+                instruction.pop();
+            }
             match fetch_instruction(&instruction) {
                 Err(why) => panic!("{}:{}", instruction, why),
                 Ok(def) => instruction_def = def,
@@ -63,6 +76,17 @@ impl FileHandler {
         }
         let operands:UnitOrPair<AsmOperand> = parse_operands(words.next());
         let mut inst:Instruction = Instruction::new(label, instruction, operands);
+        if is_format_4 {
+            inst.set_format(Format::Four);
+        } else {
+            let format = unwrap_to_vec(&instruction_def.format);
+            match format.len() {
+                0 => (),
+                1 => inst.format = format[0],
+                2 => inst.format = Format::Three,
+                _ => panic!("We Just found an instruction that had more than 2 formats! you are screwed"),
+            }
+        }
         return Some(inst);
     }
     /// Removes comments if found in a line, and skips

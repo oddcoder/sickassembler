@@ -34,6 +34,9 @@ impl AssemblyDef {
             operands: operands,
         }
     }
+    pub fn dummy() -> AssemblyDef {
+        AssemblyDef::new("DUMMY".to_owned(), UnitOrPair::None, UnitOrPair::None, 0xFF)
+    }
 
     /// Validates the operands of a given instruction
     pub fn has_valid_operands(&self, operands: &UnitOrPair<AsmOperand>) -> bool {
