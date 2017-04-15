@@ -23,7 +23,7 @@ pub struct AssemblyDef {
 impl AssemblyDef {
     fn new(mnemonic: String,
            formats: UnitOrPair<Format>,
-           operands: UnitOrPair<OperandType>, // If an instruction can be on format 3 or 4, format 3 must come first (as in the IS)
+           operands: UnitOrPair<OperandType>,
            op_code: u32)
            -> AssemblyDef {
 
@@ -33,6 +33,9 @@ impl AssemblyDef {
             format: formats,
             operands: operands,
         }
+    }
+    pub fn dummy() -> AssemblyDef {
+        AssemblyDef::new("DUMMY".to_owned(), UnitOrPair::None, UnitOrPair::None, 0xFF)
     }
 
     /// Validates the operands of a given instruction
@@ -76,8 +79,7 @@ impl AssemblyDef {
 /// Checks if a provided instruction exists in the Instruction set and returns it or an error
 /// NOTE: The caller should check for complaince with the instruction set with respect
 /// to the number of operands, and so
-pub fn fetch_instruction(instr_mnemonic: &String) -> Result<AssemblyDef, &str> {
-
+pub fn fetch_instruction<'a>(instr_mnemonic: &String) -> Result<AssemblyDef, &'a str> {
     let mnemonic = &instr_mnemonic.to_uppercase().to_owned();
     if INSTRUCTION_SET.contains_key(mnemonic) == false {
         warn!("Failed to find mnemonic {:?}", instr_mnemonic.as_str());
@@ -111,7 +113,7 @@ lazy_static!{
                 ("JSUB".to_owned(),     AssemblyDef::new("JSUB".to_owned(),     UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0x48)),
                 ("LDA".to_owned(),      AssemblyDef::new("LDA".to_owned(),      UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0x00)),
                 ("LDB".to_owned(),      AssemblyDef::new("LDB".to_owned(),      UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0x68)),
-                ("LDHC".to_owned(),     AssemblyDef::new("LDHC".to_owned(),     UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0x50)),
+                ("LDCH".to_owned(),     AssemblyDef::new("LDHC".to_owned(),     UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0x50)),
                 ("LDF".to_owned(),      AssemblyDef::new("LDF".to_owned(),      UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0x70)),
                 ("LDL".to_owned(),      AssemblyDef::new("LDL".to_owned(),      UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0x08)),
                 ("LDS".to_owned(),      AssemblyDef::new("LDS".to_owned(),      UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0x6C)),

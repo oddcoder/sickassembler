@@ -3,11 +3,9 @@
  */
 #[macro_use]
 extern crate lazy_static;
-
+extern crate regex;
 #[macro_use]
 extern crate log;
-
-extern crate regex;
 
 pub mod basic_types;
 pub mod pass_two;

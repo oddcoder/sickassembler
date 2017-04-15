@@ -39,12 +39,16 @@ fn main() {
         panic!("Error No input File selected");
     };
     let mut asm_file = FileHandler::new(input);
+    let (name, loc) = asm_file.read_start();
+    println!("File Name: {}.o", name);
+    println!("Location COunter starts at: {}", loc);
     loop {
-        let wrapped_line = asm_file.read_instruction();
-        match wrapped_line {
+        let instruction = asm_file.read_instruction();
+        match instruction {
             None => break,
-            Some(ref s) if s.is_empty() => continue,
-            Some(s) => println!("{}", s),
+            Some(s) => {
+                println!("{:?}", s);
+            },
         }
     }
 }

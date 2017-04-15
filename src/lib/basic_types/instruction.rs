@@ -15,28 +15,11 @@ pub struct AsmOperand {
 }
 
 impl AsmOperand {
-    pub fn new(op_t: OperandType, value: Value) -> Result<AsmOperand, &'static str> {
-
-        // validate operand type with value
-        let type_match = match (op_t.clone(), value.clone()) {
-            (OperandType::Immediate,Value::Raw(_)) |
-            (OperandType::Immediate,Value::SignedInt(_)) |
-            (OperandType::Indirect,Value::Raw(_)) |    // Memory address is raw
-            (OperandType::Label,Value::Label(_)) |
-            (OperandType::None,Value::Raw(_)) |
-            (OperandType::Register,Value::Register(_)) 
-            => true,
-            _=>false ,
-        };
-
-        if !type_match {
-            return Err("Operand type and value mismatch");
-        }
-
-        Ok(AsmOperand {
+    pub fn new(op_t: OperandType, value: Value) -> AsmOperand {
+        AsmOperand {
             opr_type: op_t,
             val: value,
-        })
+        }
     }
 }
 

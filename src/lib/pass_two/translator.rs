@@ -1,7 +1,10 @@
-use basic_types::instruction::Instruction;
+use basic_types::flags::*;
+use basic_types::instruction::{Instruction, AsmOperand};
 use basic_types::operands::{OperandType, Value};
+use basic_types::formats::*;
 use basic_types::instruction_set::{self, AssemblyDef};
-
+use basic_types::unit_or_pair::UnitOrPair;
+use std::num;
 
 pub fn translate(instruction: &Instruction) -> Result<u32, &str> {
     //let f_vals = instruction.check_invalid_flags();   // TODO Report to RLS
