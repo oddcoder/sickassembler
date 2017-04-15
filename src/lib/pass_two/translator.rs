@@ -3,8 +3,12 @@ use basic_types::instruction::{Instruction, AsmOperand};
 use basic_types::operands::{OperandType, Value};
 use basic_types::formats::*;
 use basic_types::instruction_set::{self, AssemblyDef};
+<<<<<<< Updated upstream
 use basic_types::unit_or_pair::UnitOrPair;
 use std::num;
+=======
+use regex::Regex;
+>>>>>>> Stashed changes
 
 pub fn translate(instruction: &Instruction) -> Result<u32, &str> {
     //let f_vals = instruction.check_invalid_flags();   // TODO Report to RLS
@@ -78,6 +82,21 @@ fn resolve_label(label: &str) -> Result<u32, &str> {
 }
 
 fn resolve_directive_operand(operand: &String) -> Result<Vec<u32>, &str> {
+    let re: Regex = Regex::new(r"^(C|X)'.+'").unwrap();
+    if re.is_match(operand) == false {
+        return Err("Operand isn't on the correct format");
+    }
+
+    let operand = operand.clone().to_uppercase();
+    if operand.starts_with('X') {
+        // TODO: Hex value
+
+    } else if operand.starts_with('C') {
+        // TODO: String value, convert it to bytes
+
+    } else {
+        return Err("Operand type undefined");
+    }
     unimplemented!()
 }
 
@@ -142,6 +161,47 @@ mod tests {
 
         assert_eq!(oprs.len(), 1);
         assert_eq!(oprs[0], 0);
+    }
+
+    #[test]
+    fn test_byte_operand_failing() {
+        let test_str: String = "abc'".to_owned(); // Malformed
+        let test_str_1: String = "'abc".to_owned(); // Malformed
+        let test_str_2: String = "X'abc".to_owned(); // Malformed
+        let test_str_3: String = "C'abc".to_owned(); // Malformed
+
+        let result = resolve_directive_operand(&test_str);
+        let result_1 = resolve_directive_operand(&test_str_1);
+        let result_2 = resolve_directive_operand(&test_str_1);
+        let result_3 = resolve_directive_operand(&test_str_1);
+
+        assert!(result.is_err());
+        assert!(result_1.is_err());
+        assert!(result_2.is_err());
+        assert!(result_3.is_err());
+    }
+
+    #[test]
+    fn test_byte_operand_passing() {
+        let test_str: String = "C'abc'".to_owned(); // Malformed
+        let test_str_1: String = "X'FF'".to_owned(); // Malformed
+        let test_str_2: String = "X'0A'".to_owned(); // Malformed
+        let test_str_3: String = "C'abcdefg'".to_owned(); // Malformed
+
+        let result = resolve_directive_operand(&test_str);
+        let result_1 = resolve_directive_operand(&test_str_1);
+        let result_2 = resolve_directive_operand(&test_str_1);
+        let result_3 = resolve_directive_operand(&test_str_1);
+
+        assert!(result.is_ok());
+        assert!(result_1.is_ok());
+        assert!(result_2.is_ok());
+        assert!(result_3.is_ok());
+
+        assert_eq!(result, vec![97, 98, 99]);
+        assert_eq!(result_1, 0xFF);
+        assert_eq!(result_2, 0x0A);
+        assert_eq!(result_3, vec![97, 98, 99, 100, 101, 102, 103]);
     }
 
 }
