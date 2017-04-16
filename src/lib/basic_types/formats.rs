@@ -7,3 +7,8 @@ pub enum Format {
     Four = 4,
     None,
 }
+
+
+pub fn get_bit_count(format: Format) -> i32 {
+    (format as i32) * 8
+}

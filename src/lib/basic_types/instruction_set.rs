@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use basic_types::instruction::AsmOperand;
-use basic_types::formats::Format;
+use basic_types::formats::{Format, get_bit_count};
 use basic_types::operands::{self, OperandType};
 use basic_types::unit_or_pair::{self, UnitOrPair};
 
@@ -72,6 +72,11 @@ impl AssemblyDef {
             _ => false,
         }
 
+    }
+
+    /// Gets the value of the opcode in the instruction
+    pub fn get_opcode_value(&self, format: Format) -> u32 {
+        self.op_code << (get_bit_count(format) - 8) as u32
     }
 }
 

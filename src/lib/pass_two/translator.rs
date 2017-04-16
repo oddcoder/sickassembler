@@ -1,6 +1,7 @@
 use basic_types::instruction::Instruction;
 use basic_types::operands::Value;
 use basic_types::instruction_set::{self, AssemblyDef};
+use basic_types::formats::Format;
 use std::fmt::UpperHex;
 use std::marker::Sized;
 use regex::Regex;
@@ -16,11 +17,14 @@ pub fn translate(instruction: &Instruction) -> Result<u32, &str> {
     //validate_instruction().unwrap_or();
 
     // Assemble the instruciton
+
+    // Operand field in the hex code
     let raw_operands = resolve_incomplete_operands(instruction);
+
+    // TODO: The opcode and flags will be added together
+    // then converted to a hex string
     let raw_opcode = resolve_opcode(instruction);
     let raw_flags = instruction.get_flags_value(); // TODO propagate the error from getting flag values
-
-
 
     debug!("Tranlating instruction {:?}", instruction);
     debug!("Raw instruction operands {:?}", raw_operands);
@@ -33,41 +37,53 @@ pub fn translate(instruction: &Instruction) -> Result<u32, &str> {
     unimplemented!()
 }
 
-fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, &str> {
+fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, String> {
     // Convert immediate and indirect operands to a basic forms -> Raw
     let mut raws: String = String::new();
     let op_vec = instruction.unwrap_operands();
+    let loc_ctr = instruction.locctr;
 
     for operand in &op_vec {
-        let raw: Result<String, &str> = match operand.val {
+        let mut raw: String = match operand.val {
             Value::SignedInt(x) => {
                 if x > 0x7FFFFF {
-                    return Err("Value out of 23-bit range");
+                    return Err("Value out of 23-bit range".to_string());
                 }
-                Ok(to_hex(x))
+                to_hex(x)
             }
             Value::Register(ref x) => {
                 let reg_num = *x as u8;
-                Ok((reg_num as u32).to_string())
+                (reg_num as u32).to_string()
             }
             // Get from symtab
-            Value::Label(ref x) => resolve_label(x.as_str()),
-            Value::Raw(x) => Ok(x.to_string()),
-            // Used by WORD / BYTE -> Generate hex codes for operand
-            Value::Bytes(ref text) => resolve_directive_operand(text),
-        };
+            Value::Label(ref x) => {
+                let sym_addr = resolve_label(x.as_str());
 
-        if raw.is_err() {
-            return Err("Couldn't resolve label"); // Nothing else can fail
-        }
-        let mut operand: String = raw.unwrap();
-        raws.push_str(&mut operand);
+                if let Err(e) = sym_addr {
+                    return Err(e.to_string());
+                }
+
+                let addr_field: String = adjust_addr_field(instruction, sym_addr.unwrap());
+                addr_field
+            }
+            Value::Raw(x) => x.to_string(),
+            // Used by WORD / BYTE -> Generate hex codes for operand
+            Value::Bytes(ref text) => {
+                let operand_val = resolve_directive_operand(text);
+                if let Err(e) = operand_val {
+                    return Err(e.to_string());
+                }
+
+                operand_val.unwrap()
+            }
+        };
+        raws.push_str(&mut raw);
     }
     Ok(raws)
 }
 
 /// Get the opcode value from the instruction set table
-fn resolve_opcode(instr: &Instruction) -> Result<String, &str> {
+fn resolve_opcode(instr: &Instruction) -> Result<u32, &str> {
 
     let instruction_set_def: AssemblyDef;
 
@@ -75,11 +91,15 @@ fn resolve_opcode(instr: &Instruction) -> Result<String, &str> {
         Ok(inst) => instruction_set_def = inst,
         Err(err) => return Err(err),
     };
+    let op_code = instruction_set_def.get_opcode_value(instr.format);
 
-    Ok(to_hex(instruction_set_def.op_code))
+    Ok(op_code)
 }
 
-fn resolve_label(label: &str) -> Result<String, &str> {
+/// Returns the location of the symbol from the
+/// symtab, the result is returned as i32 (it'll be envolved in subtraction)
+///  as it'll be subtracted from the locctr
+fn resolve_label(label: &str) -> Result<i32, &str> {
     // TODO: Check the symtab
     // TODO: Check the range of addresses with the instruction format
     unimplemented!();
@@ -116,12 +136,12 @@ fn parse_str_operand(operand_match: String) -> String {
         .map(|c| to_hex(c as u32))
         .collect::<Vec<String>>()
         .join("")
-
 }
 
 fn validate_instruction(instr: &Instruction) -> Result<(), &str> {
     // TODO: aggregate errors
     // TODO: indexed addressing with PC/Base relative instructions and for format 4
+    // TODO: handling base-relative adderssing
     // Check format correctness
     let instruction_set_def: AssemblyDef;
 
@@ -136,17 +156,30 @@ fn validate_instruction(instr: &Instruction) -> Result<(), &str> {
         return Err("Formats mismatched");
     }
 
-    // Check operands
+    // TODO: Check operands
     if instruction_set_def.has_valid_operands(&instr.operands) == false {
         return Err("Operands for this mnemonic are invalid");
     }
 
-    // Check memory range
+    // TODO: Check memory range
 
     if instruction_set_def.match_format(&instr.format) == false {
         return Err("Mismatched instruction formats");
     }
     unimplemented!()
+}
+
+fn adjust_addr_field(instruction: &Instruction, sym_addr: i32) -> String {
+    // If the instruction is format 4, return the address
+    if instruction.format == Format::Four {
+        return to_hex(sym_addr & 0x0000FFFF);
+    }
+
+    // TODO: check the calculation
+    let disp = instruction.locctr - sym_addr;
+
+    // Take the last 20 bits of the number
+    return to_hex(disp);
 }
 
 /// Removes the container of a WORD/BYTE oeprand, the prefix, the '
@@ -172,12 +205,16 @@ mod tests {
 
     #[test]
     fn test_resolve_op_code() {
-        let mut inst = Instruction::new_simple("add".to_owned());
-        inst.format = formats::Format::Four;
-        assert_eq!(resolve_opcode(&inst).unwrap(), "18");
+        let mut inst = Instruction::new_simple("ldx".to_owned());
+
+        inst.format = formats::Format::One;
+        assert_eq!(resolve_opcode(&inst).unwrap(), 0x04);
 
         inst.format = formats::Format::Three;
-        assert!(resolve_opcode(&inst).unwrap() == "18");
+        assert_eq!(resolve_opcode(&inst).unwrap(), 0x040000);
+
+        inst.format = formats::Format::Four;
+        assert!(resolve_opcode(&inst).unwrap() == 0x04000000);
     }
 
     #[test]
