@@ -10,9 +10,7 @@ pub fn translate(instruction: &Instruction) -> Result<u32, &str> {
     //let f_vals = instruction.check_invalid_flags();   // TODO Report to RLS
     //resolve_instruction_code(instruction, 0).and_then(resolve_operands)
 
-    // Check the flags for options
-    // TODO: Check for memory out of range error, using the locctr of instruction
-    // TODO: check for base value
+    // TODO: Check the flags for options
 
     //validate_instruction().unwrap_or();
 
@@ -63,7 +61,7 @@ fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, Stri
                     return Err(e.to_string());
                 }
 
-                let addr_field: String = adjust_addr_field(instruction, sym_addr.unwrap());
+                let addr_field: String = get_disp(instruction, sym_addr.unwrap());
                 addr_field
             }
             Value::Raw(x) => x.to_string(),
@@ -91,8 +89,8 @@ fn resolve_opcode(instr: &Instruction) -> Result<u32, &str> {
         Ok(inst) => instruction_set_def = inst,
         Err(err) => return Err(err),
     };
-    let op_code = instruction_set_def.get_opcode_value(instr.format);
 
+    let op_code = instruction_set_def.get_opcode_value(instr.format);
     Ok(op_code)
 }
 
@@ -169,14 +167,25 @@ fn validate_instruction(instr: &Instruction) -> Result<(), &str> {
     unimplemented!()
 }
 
-fn adjust_addr_field(instruction: &Instruction, sym_addr: i32) -> String {
+fn get_disp(instruction: &Instruction, sym_addr: i32) -> Result<String, &str> {
     // If the instruction is format 4, return the address
     if instruction.format == Format::Four {
-        return to_hex(sym_addr & 0x0000FFFF);
+        if (sym_addr > 0xFFFFF) {
+            return Err("Address is out of 20-bit range");
+        }
+        return to_hex(sym_addr);
     }
 
-    // TODO: check the calculation
-    let disp = instruction.locctr - sym_addr;
+    // TODO: check the calculation and range
+    let disp = (instruction.locctr + instruction.format as i32) - sym_addr;
+
+    // TODO: Check for memory out of range error, using the locctr of instruction
+    if !(disp >= -2048 && disp <= 2047) {
+        // TODO: check for base value
+        // If failed, error
+        return Err("Address is out of range");
+    }
+
 
     // Take the last 20 bits of the number
     return to_hex(disp);
