@@ -61,8 +61,10 @@ fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, Stri
                     return Err(e.to_string());
                 }
 
-                let addr_field: String = get_disp(instruction, sym_addr.unwrap());
-                addr_field
+                match get_disp(instruction, sym_addr.unwrap()) {
+                    Ok(addr) => addr,
+                    Err(e) => return Err(e.to_string()),
+                }
             }
             Value::Raw(x) => x.to_string(),
             // Used by WORD / BYTE -> Generate hex codes for operand
@@ -170,10 +172,10 @@ fn validate_instruction(instr: &Instruction) -> Result<(), &str> {
 fn get_disp(instruction: &Instruction, sym_addr: i32) -> Result<String, &str> {
     // If the instruction is format 4, return the address
     if instruction.format == Format::Four {
-        if (sym_addr > 0xFFFFF) {
+        if sym_addr > 0xFFFFF {
             return Err("Address is out of 20-bit range");
         }
-        return to_hex(sym_addr);
+        return Ok(to_hex(sym_addr));
     }
 
     // TODO: check the calculation and range
@@ -188,7 +190,7 @@ fn get_disp(instruction: &Instruction, sym_addr: i32) -> Result<String, &str> {
 
 
     // Take the last 20 bits of the number
-    return to_hex(disp);
+    return Ok(to_hex(disp));
 }
 
 /// Removes the container of a WORD/BYTE oeprand, the prefix, the '
