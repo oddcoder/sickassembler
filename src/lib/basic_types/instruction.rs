@@ -35,6 +35,7 @@ pub struct Instruction {
     pub mnemonic: String,
     pub format: Format,
     pub operands: UnitOrPair<AsmOperand>, // Group oerands in one field
+    pub locctr: i32,    // Signed because it'll be subtracted from signed quantities
 }
 
 impl Instruction {
@@ -47,6 +48,7 @@ impl Instruction {
             label: label,
             format: Format::None,
             mnemonic: mnemonic,
+            locctr: 0,
             flags: Vec::new(),
             operands: operands,
         }
@@ -61,6 +63,7 @@ impl Instruction {
             format: Format::None,
             mnemonic: mnemonic,
             flags: Vec::new(),
+            locctr: 0,
             operands: UnitOrPair::None,
         }
     }

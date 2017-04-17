@@ -32,6 +32,7 @@ pub fn match_variant(first: &OperandType, second: &OperandType) -> bool {
     }
 }
 
+/// Use the SignedInt with immediate operand types
 #[derive(Debug,PartialEq,Clone)]
 pub enum Value {
     Register(Register),
