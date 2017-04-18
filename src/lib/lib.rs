@@ -7,11 +7,11 @@ extern crate regex;
 #[macro_use]
 extern crate log;
 
+pub mod pass_one;
 pub mod basic_types;
 pub mod pass_two;
 pub mod filehandler;
 pub mod htme;
-
 pub mod semantics_validator;
 
 use std::fmt::UpperHex;
