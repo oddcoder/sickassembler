@@ -1,7 +1,17 @@
 use std::collections::hash_map::{Entry, HashMap};
 use basic_types::instruction::*;
+use basic_types::formats::Format;
 use filehandler::*;
+
 fn get_instruction_size (inst:&Instruction) -> i32 {
+    match inst.format {
+        Format::One => return 1,
+        Format::Two => return 2,
+        Format::Three => return 3,
+        Format::Four => return 4,
+        Format::None => (),
+    }
+    //TODO do the psuedo instructions ... which is damn headache
     return 0;
 }
 pub fn pass_one (start: &i32, mut file:FileHandler) ->(HashMap<String, i32>, Vec<Instruction>) {
