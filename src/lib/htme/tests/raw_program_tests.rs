@@ -47,5 +47,10 @@ mod raw_program_tests{
 
         let text_records = raw_program.text_records();
         assert_eq!(text_records, "TC400F3\nT0003F4D3\nT00430043");
+
+        let all_records = raw_program.all_records();
+        assert_eq!(all_records, "H00100000102A\nTC400F3\nT0003F4D3\nT00430043\nE001000");
+
+        raw_program.output_to_file()
     }
 }

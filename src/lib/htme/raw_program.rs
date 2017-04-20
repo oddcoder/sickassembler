@@ -1,3 +1,5 @@
+use std::io::prelude::*;
+use std::fs::File;
 use basic_types::formats::Format;
 use basic_types::instruction::Instruction;
 use htme::record_string::*;
@@ -107,5 +109,23 @@ impl RawProgram {
         header = header+ &record;
 
         return header;
+    }
+
+    pub fn modification_records(&self)->String{
+        return String::from("");
+    }
+
+    pub fn all_records(&self)->String{
+        let ref this = *self;
+        return format!("{}\n{}\n{}{}",this.header_record(), this.text_records(), this.modification_records(), this.end_record())
+    }
+
+
+    pub fn output_to_file(&self){
+        let mut file = match File::create(&(*self).program_name){
+            Ok(file) => file,
+            Err(e) => panic!("{}", e)
+        };
+        write!(file, "{}", (*self).all_records());
     }
 }
