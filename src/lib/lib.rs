@@ -6,6 +6,7 @@ extern crate lazy_static;
 extern crate regex;
 #[macro_use]
 extern crate log;
+extern crate parking_lot;
 
 pub mod pass_one;
 pub mod basic_types;

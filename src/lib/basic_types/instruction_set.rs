@@ -180,6 +180,7 @@ pub fn fetch_directive<'a>(instr_mnemonic: &String) -> Result<AssemblyDef, &'a s
     Ok(ASSEMBLER_DIRECTIVES.get(mnemonic).unwrap().clone())
 }
 
+/// Assembler directives that will trigger a special action
 pub fn is_action_directive(directive_mnemonic: &String) -> bool {
 
     match directive_mnemonic.to_uppercase().as_str() {

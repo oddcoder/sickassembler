@@ -12,6 +12,7 @@ pub fn translate(instruction: &mut Instruction) -> Result<String, String> {
     let mut errs: Vec<String> = Vec::new();
 
     // TODO: Check the flags for options
+    // FIXME: handle base-relative addressing
     {
         if let Err(e) = semantics_validator::validate_semantics(instruction) {
             panic!("Symantic Error(s): {}", e);
@@ -129,13 +130,16 @@ pub fn translate_literal(literal: &String) -> String {
         let mut operand_match: String = captures.get(0).unwrap().as_str().to_owned();
         remove_container(&mut operand_match);
         return operand_match;
-    } else {
+    } else if literal.starts_with('C') || literal.starts_with('c') {
         let captures = STR_REGEX.captures(literal.as_str()).unwrap();
         let mut operand_match: String = captures.get(0).unwrap().as_str().to_owned();
         remove_container(&mut operand_match);
 
         return parse_str_operand(operand_match);
+    } else {
+        panic!("Invalid literal to translate {}, expected C|X'...' ", literal);
     }
+
 }
 
 fn is_directive(instr: &Instruction) -> bool {

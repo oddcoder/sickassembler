@@ -216,7 +216,6 @@ impl Instruction {
 
         // TODO: Extract all the errors in the instruction flags,
         // as an array of (bool , fn)
-        // don't return just a sinle string and use Vec<string>
         let mut errors: Vec<&str> = Vec::new();
 
         if self.has_flag(Flags::BaseRelative) && self.has_flag(Flags::PcRelative) {

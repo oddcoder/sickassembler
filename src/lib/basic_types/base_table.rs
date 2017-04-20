@@ -7,18 +7,16 @@ use parking_lot::RwLock;
 
 /// Keeps track of the state
 lazy_static!{
-    static ref BASE_VEC:RwLock<Vec<Range>> = RwLock::new(Vec::new());
+    static ref BASE_VEC:RwLock<Vec<BaseRange>> = RwLock::new(Vec::new());
 }
 
 pub fn get_base_at(locctr: u32) -> Option<u32> {
     // Return the available base at locctr
     for base in BASE_VEC.read().iter() {
-        println!("{:?}", base);
         if base.start < locctr && base.end > locctr {
             return Some(base.value);
         }
     }
-    println!("{:?}", locctr);
     None
 }
 
@@ -28,9 +26,8 @@ pub fn get_base_at(locctr: u32) -> Option<u32> {
 // locctr
 pub fn set_base(locctr: u32, value: u32) {
     update_last(locctr);
-    let last_base = Range::new(locctr, value);
+    let last_base = BaseRange::new(locctr, value);
     {
-        println!("PUSH BASE {:?}", last_base);
         BASE_VEC.write().push(last_base);
     }
 
@@ -42,7 +39,6 @@ pub fn set_base(locctr: u32, value: u32) {
 // twice
 pub fn end_base(locctr: u32) {
     if update_last(locctr) == false {
-        println!("No base encountered twice in a row");
         panic!("No base encountered twice in a row");
     }
 }
@@ -69,14 +65,14 @@ fn update_last(locctr: u32) -> bool {
 
 
 #[derive(Debug,Clone,Copy)]
-struct Range {
+struct BaseRange {
     start: u32,
     end: u32,
     value: u32,
 }
-impl Range {
-    fn new(start_loc: u32, value: u32) -> Range {
-        Range {
+impl BaseRange {
+    fn new(start_loc: u32, value: u32) -> BaseRange {
+        BaseRange {
             start: start_loc,
             end: u32::max_value(),
             value: value,

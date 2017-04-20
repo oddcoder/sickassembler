@@ -101,6 +101,8 @@ impl FileHandler {
             panic!("Invalid operands for istruction {}", instruction_def.mnemonic);
         }
         */
+        // TODO: Check for action directives, don't add them to instruction vector
+
         let mut inst: Instruction = Instruction::new(label, instruction, operands);
         if is_format_4 {
             inst.set_format(Format::Four);
