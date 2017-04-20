@@ -1,4 +1,4 @@
-use super::super::to_hex;
+use super::super::{to_hex, to_hex_padded};
 use basic_types::instruction::Instruction;
 use basic_types::operands::Value;
 use basic_types::instruction_set::{self, AssemblyDef};
@@ -12,8 +12,6 @@ pub fn translate(instruction: &mut Instruction) -> Result<String, String> {
     let mut errs: Vec<String> = Vec::new();
 
     // TODO: Check the flags for options
-    // FIXME: validate should be removed from this location,
-    // take care of A register for fomat 2 instructions
     {
         if let Err(e) = semantics_validator::validate_semantics(instruction) {
             panic!("Symantic Error(s): {}", e);
@@ -52,8 +50,7 @@ pub fn translate(instruction: &mut Instruction) -> Result<String, String> {
         .expect("Failed to parse operand");
 
     let numeric_val = op_code.unwrap() + flags.unwrap();
-    println!("numericval:{:X} , operands: {}", numeric_val, operands);
-    Ok(to_hex(numeric_val + operands))
+    Ok(to_hex_padded(numeric_val + operands, instruction.format))
 }
 
 /// Returns the hex value of operands

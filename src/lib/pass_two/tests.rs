@@ -25,19 +25,29 @@ mod tests {
     #[test]
     fn translate_correct() {
         let mut instrs = vec![
-            //create_instruction("comp",
-                                    // UnitOrPair::Unit(AsmOperand::new(OperandType::Immediate,
-                                    //                                  Value::SignedInt(0))),
-                                    //                                  Format::Three),
+            create_instruction("comp",
+                                    UnitOrPair::Unit(AsmOperand::new(OperandType::Immediate,
+                                                                     Value::SignedInt(0))),
+                                                                     Format::Three),
                                     
                                                                      create_instruction("TIXR",
                                     UnitOrPair::Unit(AsmOperand::new(OperandType::Register,
                                                                      Value::Register(Register::T))),
-                                                                     Format::Two)
+                                                                     Format::Two),
+                                                                     create_instruction("LDA",
+                                    UnitOrPair::Unit(AsmOperand::new(OperandType::Immediate,
+                                                                     Value::SignedInt(3))),
+                                                                     Format::Three),
+                                                                     create_instruction("LDT",
+                                    UnitOrPair::Unit(AsmOperand::new(OperandType::Immediate,
+                                                                     Value::SignedInt(4096))),
+                                                                     Format::Four)
                                     ];
 
-        // assert_eq!(translate(&mut instrs[0]).unwrap(), "290000");
-        assert_eq!(translate(&mut instrs[0]).unwrap(), "B850");
+        assert_eq!(translate(&mut instrs[0]).unwrap(), "290000");
+        assert_eq!(translate(&mut instrs[1]).unwrap(), "B850");
+        assert_eq!(translate(&mut instrs[2]).unwrap(), "010003");
+        assert_eq!(translate(&mut instrs[3]).unwrap(), "75101000");
     }
 
     fn create_instruction(mnemonic: &str,
