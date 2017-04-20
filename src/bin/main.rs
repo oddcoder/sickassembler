@@ -1,8 +1,7 @@
 extern crate sick_lib;
 extern crate getopts;
-
+extern crate env_logger;
 use getopts::Options;
-//use sick_lib::basic_types::*;
 //use instruction::Instruction;
 //use operands::OperandType;
 use sick_lib::filehandler::FileHandler;
@@ -13,6 +12,8 @@ fn print_usage(program: &str, opts: Options) {
 }
 
 fn main() {
+
+    env_logger::init().unwrap();
     // credits goes to here:-
     // https://doc.rust-lang.org/getopts/getopts/index.html
     // Time will come where I will fully understant this!
@@ -48,7 +49,7 @@ fn main() {
             None => break,
             Some(s) => {
                 println!("{:?}", s);
-            },
+            }
         }
     }
 }

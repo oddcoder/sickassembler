@@ -1,48 +1,68 @@
+use super::super::{to_hex, to_hex_padded};
 use basic_types::instruction::Instruction;
 use basic_types::operands::Value;
 use basic_types::instruction_set::{self, AssemblyDef};
 use basic_types::formats::Format;
-use std::fmt::UpperHex;
-use std::marker::Sized;
+use semantics_validator;
+use std::u32;
 use regex::Regex;
 
-pub fn translate(instruction: &Instruction) -> Result<u32, &str> {
-    //let f_vals = instruction.check_invalid_flags();   // TODO Report to RLS
-    //resolve_instruction_code(instruction, 0).and_then(resolve_operands)
+pub fn translate(instruction: &mut Instruction) -> Result<String, String> {
+
+    let mut errs: Vec<String> = Vec::new();
 
     // TODO: Check the flags for options
+    {
+        if let Err(e) = semantics_validator::validate_semantics(instruction) {
+            panic!("Symantic Error(s): {}", e);
+        }
+    }
 
-    //validate_instruction().unwrap_or();
+
+    // Resolve operands first, in case of a directive, this function will return early
+    let raw_operands: Result<String, String> = resolve_incomplete_operands(instruction);
+
+    if is_directive(instruction) {
+        return raw_operands;
+    }
+
 
     // Assemble the instruciton
-
     // Operand field in the hex code
-    let raw_operands = resolve_incomplete_operands(instruction);
-
-    // TODO: The opcode and flags will be added together
-    // then converted to a hex string
-    let raw_opcode = resolve_opcode(instruction);
-    let raw_flags = instruction.get_flags_value(); // TODO propagate the error from getting flag values
+    let raw_opcode: Result<u32, &str> = resolve_opcode(instruction);
+    let raw_flags: Result<u32, String> = instruction.get_flags_value();
 
     debug!("Tranlating instruction {:?}", instruction);
     debug!("Raw instruction operands {:?}", raw_operands);
     debug!("Raw flag value {:?}", raw_flags);
     debug!("Instruction opcode {:?}", raw_opcode);
 
-    // TODO: extract error message
-    // TODO: combine results
+    let op_code = raw_opcode.map_err(|e| errs.push(e.to_owned()));
+    let operands = raw_operands.map_err(|e| errs.push(e));
+    let flags = raw_flags.map_err(|e| errs.push(e));
 
-    unimplemented!()
+    if errs.len() > 0 {
+        return Err(errs.join(", "));
+    }
+
+    // The operands are numeric if it's a normal instruction, not a directive
+    let operands: u32 = u32::from_str_radix(&operands.unwrap(), 16)
+        .expect("Failed to parse operand");
+
+    let numeric_val = op_code.unwrap() + flags.unwrap();
+    Ok(to_hex_padded(numeric_val + operands, instruction.format))
 }
 
+/// Returns the hex value of operands
 fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, String> {
     // Convert immediate and indirect operands to a basic forms -> Raw
     let mut raws: String = String::new();
     let op_vec = instruction.unwrap_operands();
-    let loc_ctr = instruction.locctr;
 
+    // TODO: indeirect and indexed operands
     for operand in &op_vec {
         let mut raw: String = match operand.val {
+            Value::None => String::new(),
             Value::SignedInt(x) => {
                 if x > 0x7FFFFF {
                     return Err("Value out of 23-bit range".to_string());
@@ -51,7 +71,8 @@ fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, Stri
             }
             Value::Register(ref x) => {
                 let reg_num = *x as u8;
-                (reg_num as u32).to_string()
+                println!("reg:{}", reg_num);
+                to_hex(reg_num as u32)
             }
             // Get from symtab
             Value::Label(ref x) => {
@@ -66,15 +87,14 @@ fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, Stri
                     Err(e) => return Err(e.to_string()),
                 }
             }
-            Value::Raw(x) => x.to_string(),
+            Value::Raw(x) => to_hex(x),
             // Used by WORD / BYTE -> Generate hex codes for operand
             Value::Bytes(ref text) => {
                 let operand_val = resolve_directive_operand(text);
-                if let Err(e) = operand_val {
-                    return Err(e.to_string());
+                match operand_val {
+                    Err(e) => return Err(e.to_string()),
+                    _ => operand_val.unwrap(),
                 }
-
-                operand_val.unwrap()
             }
         };
         raws.push_str(&mut raw);
@@ -107,27 +127,27 @@ fn resolve_label(label: &str) -> Result<i32, &str> {
 
 /// Converts the operand of the WORD/BYTE directive to object code
 fn resolve_directive_operand(operand: &String) -> Result<String, &str> {
-    // TODO: lazy_static the regex
-    let hex_regex: Regex = Regex::new(r"^(x|X)'[0-9a-fA-F]+'").unwrap();
-    let str_regex: Regex = Regex::new(r"^(c|C)'.+'").unwrap();
-
-    if hex_regex.is_match(operand) == false && str_regex.is_match(operand) == false {
-        return Err("Operand isn't on the correct format");
-    }
 
     if operand.starts_with('X') || operand.starts_with('x') {
         // ex. INPUT BYTE X’F1’ -> F1
-        let captures = hex_regex.captures(operand.as_str()).unwrap();
+        let captures = HEX_REGEX.captures(operand.as_str()).unwrap();
         let mut operand_match: String = captures.get(0).unwrap().as_str().to_owned();
         remove_container(&mut operand_match);
         return Ok(operand_match);
     } else {
-        let captures = str_regex.captures(operand.as_str()).unwrap();
+        let captures = STR_REGEX.captures(operand.as_str()).unwrap();
         let mut operand_match: String = captures.get(0).unwrap().as_str().to_owned();
         remove_container(&mut operand_match);
 
         return Ok(parse_str_operand(operand_match));
     }
+}
+
+fn is_directive(instr: &Instruction) -> bool {
+    if let Ok(_) = instruction_set::fetch_directive(&instr.mnemonic) {
+        return true;
+    }
+    return false;
 }
 
 fn parse_str_operand(operand_match: String) -> String {
@@ -138,38 +158,21 @@ fn parse_str_operand(operand_match: String) -> String {
         .join("")
 }
 
-fn validate_instruction(instr: &Instruction) -> Result<(), &str> {
+fn validate_instruction(instr: &mut Instruction) -> Result<(), String> {
     // TODO: aggregate errors
     // TODO: indexed addressing with PC/Base relative instructions and for format 4
     // TODO: handling base-relative adderssing
-    // Check format correctness
-    let instruction_set_def: AssemblyDef;
 
-    // Check mnemonic existence
-    match instruction_set::fetch_instruction(&instr.mnemonic) {
-        Ok(expr) => instruction_set_def = expr,
-        Err(e) => return Err(e),
+    if is_directive(instr) {
+        return Ok(());
     }
 
-    // Check format correctness
-    if instruction_set_def.match_format(&instr.format) == false {
-        return Err("Formats mismatched");
-    }
-
-    // TODO: Check operands
-    if instruction_set_def.has_valid_operands(&instr.operands) == false {
-        return Err("Operands for this mnemonic are invalid");
-    }
-
-    // TODO: Check memory range
-
-    if instruction_set_def.match_format(&instr.format) == false {
-        return Err("Mismatched instruction formats");
-    }
-    unimplemented!()
+    // TODO: Check operands for the adressing mode
+    Ok(())
 }
 
 fn get_disp(instruction: &Instruction, sym_addr: i32) -> Result<String, &str> {
+    // TODO: move to the instruction itself
     // If the instruction is format 4, return the address
     if instruction.format == Format::Four {
         if sym_addr > 0xFFFFF {
@@ -201,19 +204,20 @@ fn remove_container(byte_operand: &mut String) {
     byte_operand.pop();
 }
 
-fn to_hex<T>(num: T) -> String
-    where T: UpperHex + Sized
-{
-    format!("{:X}", num)
+lazy_static!{
+    // lazy_static regex to avoid recompilation on each function call -> read the docs
+    static ref HEX_REGEX:Regex = Regex::new(r"^(x|X)'[0-9a-fA-F]+'").unwrap();
+    static ref STR_REGEX: Regex = Regex::new(r"^(c|C)'.+'").unwrap();
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use basic_types::formats;
+    use basic_types::unit_or_pair::UnitOrPair;
     use basic_types::operands::{Value, OperandType};
     use basic_types::register::Register;
-
+    use basic_types::instruction::AsmOperand;
     #[test]
     fn test_resolve_op_code() {
         let mut inst = Instruction::new_simple("ldx".to_owned());
@@ -230,28 +234,14 @@ mod tests {
 
     #[test]
     fn test_resolve_regs() {
-        let mut inst = Instruction::new_simple("add".to_owned());
-        inst.add_operand(OperandType::Register, Value::Register(Register::A));
+        let inst =
+            Instruction::new(String::new(),
+                             "add".to_owned(),
+                             UnitOrPair::Unit(AsmOperand::new(OperandType::Register,
+                                                              Value::Register(Register::B))));
+
         let opr: String = resolve_incomplete_operands(&inst).unwrap();
-        assert_eq!(opr, "0");
-    }
-
-    #[test]
-    fn test_byte_operand_failing() {
-        let test_str: String = "abc'".to_owned(); // Malformed
-        let test_str_1: String = "'abc".to_owned(); // Malformed
-        let test_str_2: String = "X'abc".to_owned(); // Malformed
-        let test_str_3: String = "C'abc".to_owned(); // Malformed
-
-        let result = resolve_directive_operand(&test_str);
-        let result_1 = resolve_directive_operand(&test_str_1);
-        let result_2 = resolve_directive_operand(&test_str_1);
-        let result_3 = resolve_directive_operand(&test_str_1);
-
-        assert!(result.is_err());
-        assert!(result_1.is_err());
-        assert!(result_2.is_err());
-        assert!(result_3.is_err());
+        assert_eq!(opr, "3");
     }
 
     #[test]
