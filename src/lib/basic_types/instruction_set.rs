@@ -180,6 +180,14 @@ pub fn fetch_directive<'a>(instr_mnemonic: &String) -> Result<AssemblyDef, &'a s
     Ok(ASSEMBLER_DIRECTIVES.get(mnemonic).unwrap().clone())
 }
 
+pub fn is_action_directive(directive_mnemonic: &String) -> bool {
+
+    match directive_mnemonic.to_uppercase().as_str() {
+        "BASE" | "NOBASE" | "LTORG" => true,
+        _ => false,
+    }
+}
+
 lazy_static!{
     static ref ASSEMBLER_DIRECTIVES: HashMap<String,AssemblyDef > = {
             let assembler_directives :HashMap <String, AssemblyDef> = [

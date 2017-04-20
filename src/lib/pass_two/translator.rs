@@ -75,6 +75,7 @@ fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, Stri
             }
             // Get from symtab
             Value::Label(ref x) => {
+
                 let sym_addr = resolve_label(x.as_str());
 
                 if let Err(e) = sym_addr {
@@ -88,13 +89,7 @@ fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, Stri
             }
             Value::Raw(x) => to_hex(x),
             // Used by WORD / BYTE -> Generate hex codes for operand
-            Value::Bytes(ref text) => {
-                let operand_val = resolve_directive_operand(text);
-                match operand_val {
-                    Err(e) => return Err(e.to_string()),
-                    _ => operand_val.unwrap(),
-                }
-            }
+            Value::Bytes(ref text) => translate_literal(text),
         };
         raws.push_str(&mut raw);
     }
@@ -119,26 +114,27 @@ fn resolve_opcode(instr: &Instruction) -> Result<u32, &str> {
 /// symtab, the result is returned as i32 (it'll be envolved in subtraction)
 ///  as it'll be subtracted from the locctr
 fn resolve_label(label: &str) -> Result<i32, &str> {
+    // TODO: Check the literal table
     // TODO: Check the symtab
     // TODO: Check the range of addresses with the instruction format
     unimplemented!();
 }
 
-/// Converts the operand of the WORD/BYTE directive to object code
-fn resolve_directive_operand(operand: &String) -> Result<String, &str> {
+/// Converts the literal of the WORD/BYTE directive to object code
+pub fn translate_literal(literal: &String) -> String {
 
-    if operand.starts_with('X') || operand.starts_with('x') {
+    if literal.starts_with('X') || literal.starts_with('x') {
         // ex. INPUT BYTE X’F1’ -> F1
-        let captures = HEX_REGEX.captures(operand.as_str()).unwrap();
+        let captures = HEX_REGEX.captures(literal.as_str()).unwrap();
         let mut operand_match: String = captures.get(0).unwrap().as_str().to_owned();
         remove_container(&mut operand_match);
-        return Ok(operand_match);
+        return operand_match;
     } else {
-        let captures = STR_REGEX.captures(operand.as_str()).unwrap();
+        let captures = STR_REGEX.captures(literal.as_str()).unwrap();
         let mut operand_match: String = captures.get(0).unwrap().as_str().to_owned();
         remove_container(&mut operand_match);
 
-        return Ok(parse_str_operand(operand_match));
+        return parse_str_operand(operand_match);
     }
 }
 
@@ -254,8 +250,7 @@ mod tests {
     }
 
     fn check_str_operand(x: &str, v: &str) {
-        let result = resolve_directive_operand(&x.to_owned())
-            .expect(format!("Failed to parse {}", x).as_str());
+        let result = translate_literal(&x.to_owned());
         assert_eq!(result.to_uppercase(), v.to_uppercase());
     }
 

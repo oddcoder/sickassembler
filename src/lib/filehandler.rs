@@ -189,10 +189,14 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
     if *is_directive {
         let char_stream = Regex::new(r"^C'[[:alnum:]]*'$").unwrap();
         let hex_stream = Regex::new(r"^X'[[:xdigit:]]*'$").unwrap();
-        if char_stream.is_match(&op) || hex_stream.is_match(&op) {
+
+        if op.starts_with("=") &&
+           (char_stream.is_match(&op[1..]) || hex_stream.is_match(&op[1..])) {
+            // TODO: insert to literal table here
+        } else if char_stream.is_match(&op) || hex_stream.is_match(&op) {
             optype = OperandType::Bytes;
         }
-        // TODO: literal table here
+
     }
     let mut index_start = 0;
     match &op[0..1] {
@@ -217,7 +221,10 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
     let mut x = usize::from_str_radix(&val[0..1], 10);
     match x {
         Err(_) => {
-            // TODO: check for littab entry
+
+            if val.starts_with("=") {
+                // TODO: check for littab entry
+            }
             return AsmOperand::new(optype, Value::Label(val));
         }
         Ok(_) => {
