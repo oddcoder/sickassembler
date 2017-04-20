@@ -1,8 +1,8 @@
-use super::super::{to_hex, to_hex_padded};
+use super::super::{to_hex, string_from_object_code};
 use basic_types::instruction::Instruction;
 use basic_types::operands::Value;
 use basic_types::instruction_set::{self, AssemblyDef};
-use basic_types::formats::Format;
+use basic_types::formats::*;
 use semantics_validator;
 use std::u32;
 use regex::Regex;
@@ -50,7 +50,8 @@ pub fn translate(instruction: &mut Instruction) -> Result<String, String> {
         .expect("Failed to parse operand");
 
     let numeric_val = op_code.unwrap() + flags.unwrap();
-    Ok(to_hex_padded(numeric_val + operands, instruction.format))
+    Ok(string_from_object_code(numeric_val + operands,
+                               (get_bit_count(instruction.format) / 8) as u8))
 }
 
 /// Returns the hex value of operands
