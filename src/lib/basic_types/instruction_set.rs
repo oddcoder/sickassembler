@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use basic_types::instruction::AsmOperand;
 use basic_types::formats::{Format, get_bit_count};
-use basic_types::operands::{self, OperandType};
+use basic_types::operands::{self, OperandType, Value};
 use basic_types::unit_or_pair::{self, UnitOrPair};
 
 // The operands of the instruction will be indicated as a bit vector
@@ -40,19 +40,22 @@ impl AssemblyDef {
 
     /// Validates the operands of a given instruction
     pub fn has_valid_operands(&self, operands: &UnitOrPair<AsmOperand>) -> bool {
+        // TODO: delete this function, it checks for programmers errors
+        let others_ops: Vec<Value> = unit_or_pair::unwrap_to_vec(operands)
+            .iter()
+            .map(|o| o.clone().val)
+            .collect::<Vec<Value>>();
+        let def_operands: Vec<OperandType> = unit_or_pair::unwrap_to_vec(&self.operands);
 
-        let others_ops: Vec<AsmOperand> = unit_or_pair::unwrap_to_vec(operands);
-        let inst_ops: Vec<OperandType> = unit_or_pair::unwrap_to_vec(&self.operands);
-
-        if others_ops.len() != inst_ops.len() {
+        if others_ops.len() != def_operands.len() {
             return false;
         }
 
         // Merge the 2 collections
-        let zipped = others_ops.iter().zip(inst_ops);
+        let zipped = def_operands.iter().zip(others_ops);
 
-        for (others_op, inst_op) in zipped {
-            if operands::match_variant(&others_op.opr_type, &inst_op) == false {
+        for (def_operand, inst_op) in zipped {
+            if operands::match_value(&def_operand, &inst_op) == false {
                 return false;
             }
         }

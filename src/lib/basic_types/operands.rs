@@ -20,14 +20,14 @@ pub enum OperandType {
     Raw,
 }
 
-pub fn match_variant(first: &OperandType, second: &OperandType) -> bool {
+pub fn match_value(first: &OperandType, second: &Value) -> bool {
     match (first.clone(), second.clone()) {
-        (OperandType::Immediate, OperandType::Immediate) |
-        (OperandType::Indirect, OperandType::Indirect) |
-        (OperandType::Label, OperandType::Label) |
-        (OperandType::None, OperandType::None) |
-        (OperandType::Raw, OperandType::Raw) |
-        (OperandType::Register, OperandType::Register) => true,
+        (OperandType::Immediate, Value::SignedInt(_)) |
+        (OperandType::Indirect, Value::Label(_)) |
+        (OperandType::Label, Value::Label(_)) |
+        (OperandType::None, Value::None) |
+        (OperandType::Raw, Value::Raw(_)) |
+        (OperandType::Register, Value::Register(_)) => true,
         _ => false,
     }
 }
@@ -37,7 +37,8 @@ pub fn match_variant(first: &OperandType, second: &OperandType) -> bool {
 pub enum Value {
     Register(Register),
     SignedInt(i32),
-    Raw(u32),
+    Raw(u32), // Use this with indexed ?
     Label(String),
     Bytes(String),
+    None,
 }
