@@ -1,6 +1,6 @@
 
 #[cfg(test)]
-mod raw_program_tests{
+mod raw_program_tests {
     use htme::raw_program::*;
     use htme::record_string::*;
     use basic_types::formats::Format;
@@ -38,19 +38,19 @@ mod raw_program_tests{
                 (0x100E, string_from_object_code(0x43, 2), instr5)
             ];
 
-        let raw_program: RawProgram = RawProgram{
+        let raw_program: RawProgram = RawProgram {
             program_name: String::from("COPY"),
             starting_address: 0x1000,
             program_length: 0x102A,
             program: valid_program,
-            first_instruction_address: 0x1000
+            first_instruction_address: 0x1000,
         };
 
         let end_record = raw_program.end_record();
-        assert_eq!(end_record,String::from("E001000"));
+        assert_eq!(end_record, String::from("E001000"));
 
         let header_record = raw_program.header_record();
-        assert_eq!(header_record,String::from("H00100000102A"));
+        assert_eq!(header_record, String::from("H00100000102A"));
 
         let text_records = raw_program.text_records();
         assert_eq!(text_records, "TC400F3\nT0003F4D3\nT00430043");

@@ -32,7 +32,7 @@ impl RawProgram {
     //
     // }
 
-    pub fn end_record(& self)->String{
+    pub fn end_record(&self) -> String {
 
         //initing record
         let record = String::from("E");
@@ -47,7 +47,7 @@ impl RawProgram {
 
 
     //TODO:make this a lot less ugly
-    pub fn text_records(& self)->String{
+    pub fn text_records(&self) -> String {
         //intializing prev_address and prev_format
         let ref program = (*self).program;
         let (first_address, ref first_code, ref first_instruction) = program[0];
@@ -61,16 +61,16 @@ impl RawProgram {
         let mut bytes_left = 30;
 
         //iterating on program: address, code, instruction tuple.
-        for &(address, ref code, ref instruction) in program.iter(){
+        for &(address, ref code, ref instruction) in program.iter() {
             //I only care about instruction's format
             let format = (*instruction).format;
 
             //terminating conditions for a single T record
-            if address - prev_address > (prev_format as u32) || bytes_left < (format as u32){
+            if address - prev_address > (prev_format as u32) || bytes_left < (format as u32) {
                 let mut vec = vec![];
-                vec.extend_from_slice(&program[begin .. i]);
+                vec.extend_from_slice(&program[begin..i]);
                 let record = text_record_from_program(&vec);
-                if begin != 0{
+                if begin != 0 {
                     records.push_str("\n");
                 }
                 records.push_str(&record);
@@ -78,15 +78,15 @@ impl RawProgram {
                 bytes_left = 30;
             }
             bytes_left = bytes_left - format as u32;
-            i = i+1;
+            i = i + 1;
             prev_address = address;
             prev_format = format;
         }
 
         let mut vec = vec![];
-        vec.extend_from_slice(&program[begin .. i]);
+        vec.extend_from_slice(&program[begin..i]);
         let record = text_record_from_program(&vec);
-        if begin != 0{
+        if begin != 0 {
             records.push_str("\n");
         }
         records.push_str(&record);
@@ -95,7 +95,7 @@ impl RawProgram {
     }
 
 
-    pub fn header_record(&self)->String{
+    pub fn header_record(&self) -> String {
         let record_type = String::from("H");
         let mut header = record_type;
 
@@ -104,42 +104,48 @@ impl RawProgram {
 
         //appending starting address
         let record = string_from_object_code((*self).starting_address, record_width_in_bytes);
-        header = header+ &record;
+        header = header + &record;
 
         //appending program length
         let record = string_from_object_code((*self).program_length, record_width_in_bytes);
-        header = header+ &record;
+        header = header + &record;
 
         return header;
     }
 
-    pub fn modification_records(&self)->String{
+    pub fn modification_records(&self) -> String {
         let mut records = String::from("");
 
 
-        for &(address, ref code, ref instruction) in (*self).program.iter(){
+        for &(address, ref code, ref instruction) in (*self).program.iter() {
             let format = (*instruction).format;
-            if format == Format::Four{
+            if format == Format::Four {
                 let operands_vector = (*instruction).unwrap_operands();
-                if operands_vector[0].opr_type == OperandType::Label{
-                    let record = String::from("M")+ &string_from_object_code(address+1,3)+ &string_from_object_code(5, 1) + "\n";
+                if operands_vector[0].opr_type == OperandType::Label {
+                    let record = String::from("M") + &string_from_object_code(address + 1, 3) +
+                                 &string_from_object_code(5, 1) +
+                                 "\n";
                     records = records + &record;
                 }
             }
         }
-        return records
+        return records;
     }
 
-    pub fn all_records(&self)->String{
+    pub fn all_records(&self) -> String {
         let ref this = *self;
-        return format!("{}\n{}\n{}{}",this.header_record(), this.text_records(), this.modification_records(), this.end_record())
+        return format!("{}\n{}\n{}{}",
+                       this.header_record(),
+                       this.text_records(),
+                       this.modification_records(),
+                       this.end_record());
     }
 
 
-    pub fn output_to_file(&self){
-        let mut file = match File::create(&(*self).program_name){
+    pub fn output_to_file(&self) {
+        let mut file = match File::create(&(*self).program_name) {
             Ok(file) => file,
-            Err(e) => panic!("{}", e)
+            Err(e) => panic!("{}", e),
         };
         write!(file, "{}", (*self).all_records());
     }

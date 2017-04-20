@@ -1,6 +1,6 @@
 
 #[cfg(test)]
-mod record_from_program_tests{
+mod record_from_program_tests {
     use htme::record_string::*;
     use basic_types::formats::Format;
     use basic_types::instruction::Instruction;

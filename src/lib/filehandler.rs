@@ -27,7 +27,7 @@ impl FileHandler {
             None => panic!("Excepted START line"),
             Some(x) => line = x,
         }
-        let mut words:Vec<&str> = line.split_whitespace().collect();
+        let mut words: Vec<&str> = line.split_whitespace().collect();
         if words.len() > 3 {
             panic!("Unexpected \"{}\"", words[3]);
         }
@@ -44,13 +44,13 @@ impl FileHandler {
             Some(x) => line = x,
         }
         let mut words = line.split_whitespace();
-        let mut label:String = String::new();
-        let mut instruction:String = String::new();
-        let mut instruction_def:AssemblyDef = AssemblyDef::dummy();
+        let mut label: String = String::new();
+        let mut instruction: String = String::new();
+        let mut instruction_def: AssemblyDef = AssemblyDef::dummy();
         let mut is_format_4 = false;
         let mut maybe_instruction = words.next().unwrap().to_string();
         let mut is_directive = false;
-        if &maybe_instruction[0..1] == "+"{
+        if &maybe_instruction[0..1] == "+" {
             is_format_4 = true;
             maybe_instruction.pop();
         }
@@ -67,22 +67,25 @@ impl FileHandler {
                         is_directive = true;
                     }
                 }
-            },
+            }
             Ok(def) => {
                 instruction = maybe_instruction.to_owned();
                 instruction_def = def;
-            },
+            }
         }
         if !label.is_empty() {
             instruction = words.next().unwrap().to_owned();
-            if &instruction[0..1] == "+"{
+            if &instruction[0..1] == "+" {
                 is_format_4 = true;
                 instruction.pop();
             }
             match fetch_instruction(&instruction) {
                 Err(_) => {
                     match fetch_directive(&instruction) {
-                        Err(_) => panic!("{} is neither instruction nor pseudo-instruction", instruction),
+                        Err(_) => {
+                            panic!("{} is neither instruction nor pseudo-instruction",
+                                   instruction)
+                        }
                         Ok(def) => {
                             instruction_def = def;
                             is_directive = true;
@@ -92,13 +95,13 @@ impl FileHandler {
                 Ok(def) => instruction_def = def,
             }
         }
-        let mut operands:UnitOrPair<AsmOperand> = parse_operands(words.next(), &is_directive);
+        let mut operands: UnitOrPair<AsmOperand> = parse_operands(words.next(), &is_directive);
         /*TODO fix has_valid_operands
         if !instruction_def.has_valid_operands(&operands) {
             panic!("Invalid operands for istruction {}", instruction_def.mnemonic);
         }
         */
-        let mut inst:Instruction = Instruction::new(label, instruction, operands);
+        let mut inst: Instruction = Instruction::new(label, instruction, operands);
         if is_format_4 {
             inst.set_format(Format::Four);
         } else {
@@ -107,7 +110,10 @@ impl FileHandler {
                 0 => (),
                 1 => inst.format = format[0],
                 2 => inst.format = Format::Three,
-                _ => panic!("We Just found an instruction that had more than 2 formats! you are screwed"),
+                _ => {
+                    panic!("We Just found an instruction that had more than 2 formats! you are \
+                            screwed")
+                }
             }
         }
         return Some(inst);
@@ -142,7 +148,7 @@ impl FileHandler {
     }
 }
 
-fn parse_operands(operands:Option<&str>, is_directive: &bool) ->UnitOrPair<AsmOperand> {
+fn parse_operands(operands: Option<&str>, is_directive: &bool) -> UnitOrPair<AsmOperand> {
     let operand_string;
     match operands {
         None => return UnitOrPair::None,
@@ -154,7 +160,7 @@ fn parse_operands(operands:Option<&str>, is_directive: &bool) ->UnitOrPair<AsmOp
         1 => {
             let op = parse(ops[0].to_owned(), &is_directive);
             return UnitOrPair::Unit(op);
-        },
+        }
         2 => {
             if *is_directive {
                 panic!("Assembler directives can't have 2 Operands");
@@ -162,21 +168,21 @@ fn parse_operands(operands:Option<&str>, is_directive: &bool) ->UnitOrPair<AsmOp
             let op1 = parse(ops[0].to_owned(), &false);
             let op2 = parse(ops[1].to_owned(), &false);
             return UnitOrPair::Pair(op1, op2);
-        },
+        }
         _ => panic!("expected . or newline instead of `{}`", ops[2]),
     }
     return UnitOrPair::None;
 }
 
-fn parse(op:String, is_directive: &bool) -> AsmOperand {
+fn parse(op: String, is_directive: &bool) -> AsmOperand {
     match &op as &str {
-        "A"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::A)),
-        "X"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::X)),
-        "L"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::L)),
-        "B"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::B)),
-        "S"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::S)),
-        "T"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::T)),
-        "F"=> return AsmOperand::new(OperandType::Register, Value::Register(Register::F)),
+        "A" => return AsmOperand::new(OperandType::Register, Value::Register(Register::A)),
+        "X" => return AsmOperand::new(OperandType::Register, Value::Register(Register::X)),
+        "L" => return AsmOperand::new(OperandType::Register, Value::Register(Register::L)),
+        "B" => return AsmOperand::new(OperandType::Register, Value::Register(Register::B)),
+        "S" => return AsmOperand::new(OperandType::Register, Value::Register(Register::S)),
+        "T" => return AsmOperand::new(OperandType::Register, Value::Register(Register::T)),
+        "F" => return AsmOperand::new(OperandType::Register, Value::Register(Register::F)),
         _ => (),
     }
     let mut optype = OperandType::Label;
@@ -193,35 +199,36 @@ fn parse(op:String, is_directive: &bool) -> AsmOperand {
         "#" => {
             optype = OperandType::Immediate;
             index_start = 1;
-        },
-        "@" =>  {
+        }
+        "@" => {
             optype = OperandType::Indirect;
             index_start = 1;
         }
-        "0"|"1"|"2"|"3"|"4"|"5"|"6"|"7"|"8"|"9" => {
+        "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => {
             if *is_directive {
                 optype = OperandType::Immediate;
             } else {
                 optype = OperandType::Raw;
             }
-        },
+        }
         _ => (),
     }
     let val = op[index_start..op.len()].to_owned();
     let mut x = usize::from_str_radix(&val[0..1], 10);
     match x {
-        Err(_) =>{
+        Err(_) => {
             // TODO: check for littab entry
-            return AsmOperand::new(optype, Value::Label(val))
-        },
+            return AsmOperand::new(optype, Value::Label(val));
+        }
         Ok(_) => {
             if *is_directive {
-                return AsmOperand::new(optype, Value::Raw(usize::from_str_radix(&val, 16).unwrap() as u32));
+                return AsmOperand::new(optype,
+                                       Value::Raw(usize::from_str_radix(&val, 16).unwrap() as u32));
                 return AsmOperand::new(optype, Value::Raw(val.parse().unwrap()));
             } else {
                 return AsmOperand::new(optype, Value::Raw(val.parse().unwrap()));
             }
-        },
+        }
     }
 }
 #[test]
