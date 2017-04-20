@@ -2,6 +2,8 @@ use std::collections::hash_map::{Entry, HashMap};
 use basic_types::instruction::*;
 use basic_types::formats::Format;
 use filehandler::*;
+use basic_types::unit_or_pair::*;
+use basic_types::operands::*;
 
 fn get_instruction_size (inst:&Instruction) -> i32 {
     match inst.format {
@@ -11,7 +13,50 @@ fn get_instruction_size (inst:&Instruction) -> i32 {
         Format::Four => return 4,
         Format::None => (),
     }
-    //TODO do the psuedo instructions ... which is damn headache
+    match &*inst.mnemonic.to_uppercase() {
+        "BYTE" => {
+            let operands = unwrap_to_vec(&inst.operands);
+            if operands.len() != 1 {
+                panic!("RESB expects only 1 operand");
+            }
+            match operands[0].val {
+                Value::Raw(x) => return 1,
+                Value::SignedInt(x) => return 1,
+                Value::Label(ref x) => {
+                    if &x[0..1] == "X" {
+                        return (x.len() as i32 - 3)/2;
+                    } else if &x[0..1] == "C"{
+                        return x.len() as i32 - 3;
+                    }
+                }
+                _ => panic!("Unexpected Error"),
+            }
+        },
+        "WORD" => return 3,
+        "RESB" => {
+            let operands = unwrap_to_vec(&inst.operands);
+            if operands.len() != 1 {
+                panic!("RESB expects only 1 operand");
+            }
+            match operands[0].val {
+                Value::Raw(x) => return x as i32,
+                Value::SignedInt(x) => return x,
+                _ => panic!("Unexpected Error"),
+            }
+        },
+        "RESW" => {
+            let operands = unwrap_to_vec(&inst.operands);
+            if operands.len() != 1 {
+                panic!("RESW expects only 1 operand");
+            }
+             match operands[0].val {
+                 Value::Raw(x) => return x as i32,
+                 Value::SignedInt(x) => return x,
+                 _ => panic!("Unexpected Error"),
+             }
+        },
+        _ => (),
+    }
     return 0;
 }
 pub fn pass_one (start: &i32, mut file:FileHandler) ->(HashMap<String, i32>, Vec<Instruction>) {
