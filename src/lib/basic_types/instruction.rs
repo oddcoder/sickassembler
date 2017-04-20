@@ -28,7 +28,7 @@ impl AsmOperand {
  * Resembles a SIC/XE instruction, this object is immutable,
  * Each method that mutates the state should return a new object
  */
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Instruction {
     flags: Vec<Flags>, // Set and Get through functoins
 
