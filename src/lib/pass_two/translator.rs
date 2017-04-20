@@ -18,14 +18,12 @@ pub fn translate(instruction: &mut Instruction) -> Result<String, String> {
         }
     }
 
-
     // Resolve operands first, in case of a directive, this function will return early
     let raw_operands: Result<String, String> = resolve_incomplete_operands(instruction);
 
     if is_directive(instruction) {
         return raw_operands;
     }
-
 
     // Assemble the instruciton
     // Operand field in the hex code

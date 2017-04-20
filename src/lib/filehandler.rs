@@ -186,6 +186,7 @@ fn parse(op:String, is_directive: &bool) -> AsmOperand {
         if char_stream.is_match(&op) || hex_stream.is_match(&op) {
             optype = OperandType::Bytes;
         }
+        // TODO: literal table here
     }
     let mut index_start = 0;
     match &op[0..1] {
@@ -209,7 +210,10 @@ fn parse(op:String, is_directive: &bool) -> AsmOperand {
     let val = op[index_start..op.len()].to_owned();
     let mut x = usize::from_str_radix(&val[0..1], 10);
     match x {
-        Err(_) => return AsmOperand::new(optype, Value::Label(val)),
+        Err(_) =>{
+            // TODO: check for littab entry
+            return AsmOperand::new(optype, Value::Label(val))
+        },
         Ok(_) => {
             if *is_directive {
                 return AsmOperand::new(optype, Value::Raw(usize::from_str_radix(&val, 16).unwrap() as u32));
