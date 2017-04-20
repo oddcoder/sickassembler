@@ -4,8 +4,8 @@ mod raw_program_tests{
     use htme::raw_program::*;
     use htme::record_string::*;
     use basic_types::formats::Format;
-    use basic_types::instruction::Instruction;
-    use basic_types::operands::OperandType;
+    use basic_types::instruction::*;
+    use basic_types::operands::*;
     use basic_types::unit_or_pair::UnitOrPair;
 
 
@@ -14,7 +14,14 @@ mod raw_program_tests{
 
         let mut instr1 = Instruction::new_simple("some mnemonic".to_string());
         let mut instr2 = instr1.clone();
-        let mut instr3 = instr1.clone();
+        let operand = AsmOperand::new(OperandType::Label, Value::Label("el_label".to_string()));
+
+        let mut instr3 = Instruction::new(
+            String::new(),
+            "some mnemonic".to_string(),
+            UnitOrPair::Unit(operand)
+        );
+
         let mut instr4 = instr1.clone();
         let mut instr5 = instr1.clone();
         instr1.set_format(Format::One);
@@ -31,13 +38,13 @@ mod raw_program_tests{
                 (0x100E, string_from_object_code(0x43, 2), instr5)
             ];
 
-        let raw_program: RawProgram = RawProgram::new(
-            /*program_name:*/ String::from("COPY"),
-            /*starting_address:*/ 0x1000,
-            /*program_length:*/ 0x102A,
-            /*program:*/ valid_program,
-            /*first_instruction_address:*/ 0x1000
-        );
+        let raw_program: RawProgram = RawProgram{
+            program_name: String::from("COPY"),
+            starting_address: 0x1000,
+            program_length: 0x102A,
+            program: valid_program,
+            first_instruction_address: 0x1000
+        };
 
         let end_record = raw_program.end_record();
         assert_eq!(end_record,String::from("E001000"));
@@ -48,9 +55,12 @@ mod raw_program_tests{
         let text_records = raw_program.text_records();
         assert_eq!(text_records, "TC400F3\nT0003F4D3\nT00430043");
 
-        let all_records = raw_program.all_records();
-        assert_eq!(all_records, "H00100000102A\nTC400F3\nT0003F4D3\nT00430043\nE001000");
+        let modification_records = raw_program.modification_records();
+        assert_eq!(modification_records, "M00100805\n");
 
-        raw_program.output_to_file()
+        let all_records = raw_program.all_records();
+        assert_eq!(all_records, "H00100000102A\nTC400F3\nT0003F4D3\nT00430043\nM00100805\nE001000");
+
+        raw_program.output_to_file();
     }
 }
