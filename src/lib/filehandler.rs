@@ -3,7 +3,6 @@ use std::fs::File;
 use std::io::{BufReader, BufRead};
 use std::u32;
 
-// TODO: rexport from base library
 use instruction_set::*;
 use instruction::*;
 use unit_or_pair::*;

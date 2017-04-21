@@ -1,10 +1,10 @@
 // Make the linter silent
 #![allow(dead_code)]
-use basic_types::formats::Format;
-use basic_types::flags::Flags;
-use basic_types::operands::{OperandType, Value};
-use basic_types::unit_or_pair::{UnitOrPair, unwrap_to_vec};
-use basic_types::register::Register;
+use formats::Format;
+use flags::Flags;
+use operands::{OperandType, Value};
+use unit_or_pair::{UnitOrPair, unwrap_to_vec};
+use register::Register;
 use std::clone::Clone;
 use std::fmt;
 

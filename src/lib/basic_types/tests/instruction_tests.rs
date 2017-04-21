@@ -2,9 +2,9 @@
 #[cfg(test)]
 mod instuction_tests {
 
-    use basic_types::instruction::Instruction;
-    use basic_types::flags::Flags;
-    use basic_types::formats::Format;
+    use instruction::Instruction;
+    use flags::Flags;
+    use formats::Format;
 
     #[test]
     fn format_3_base_relative() {

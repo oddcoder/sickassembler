@@ -2,7 +2,7 @@
 #[cfg(test)]
 mod formatting_tests {
     use htme::record_string::*;
-    use basic_types::formats::Format;
+    use formats::Format;
 
     #[test]
     fn test_string_from_code() {

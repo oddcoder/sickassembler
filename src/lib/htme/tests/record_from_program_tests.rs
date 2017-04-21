@@ -2,8 +2,8 @@
 #[cfg(test)]
 mod record_from_program_tests {
     use htme::record_string::*;
-    use basic_types::formats::Format;
-    use basic_types::instruction::Instruction;
+    use formats::Format;
+    use instruction::Instruction;
 
     #[test]
     fn test_text_record_from_program() {

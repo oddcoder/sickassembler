@@ -1,8 +1,8 @@
 use std::io::prelude::*;
 use std::fs::File;
-use basic_types::formats::Format;
-use basic_types::instruction::Instruction;
-use basic_types::operands::*;
+use formats::Format;
+use instruction::Instruction;
+use operands::*;
 use htme::record_string::*;
 
 #[derive(Debug)]

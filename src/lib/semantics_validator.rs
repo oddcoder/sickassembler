@@ -2,10 +2,10 @@
 /// Validates the semantic structure (i.e instruction set compliance) of the instructions
 /// this shouldn't be done in any other module to keep the code clean
 ///
-use basic_types::instruction::Instruction;
-use basic_types::formats::Format;
-use basic_types::instruction_set::*;
-use basic_types::unit_or_pair::*;
+use instruction::Instruction;
+use formats::Format;
+use instruction_set::*;
+use unit_or_pair::*;
 
 pub fn validate_semantics(instr: &mut Instruction) -> Result<(), String> {
     let mut errs: Vec<String> = Vec::new();

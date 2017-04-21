@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use basic_types::register::Register;
+use register::Register;
 /**
 *  Instruction operand
 */

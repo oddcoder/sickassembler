@@ -239,11 +239,11 @@ lazy_static!{
 #[cfg(test)]
 mod tests {
     use super::*;
-    use basic_types::formats;
-    use basic_types::unit_or_pair::UnitOrPair;
-    use basic_types::operands::{Value, OperandType};
-    use basic_types::register::Register;
-    use basic_types::instruction::AsmOperand;
+    use formats;
+    use unit_or_pair::UnitOrPair;
+    use operands::{Value, OperandType};
+    use register::Register;
+    use instruction::AsmOperand;
     #[test]
     fn test_resolve_op_code() {
         let mut inst = Instruction::new_simple("ldx".to_owned());

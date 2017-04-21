@@ -1,5 +1,5 @@
-use basic_types::formats::Format;
-use basic_types::instruction::Instruction;
+use formats::Format;
+use instruction::Instruction;
 //TODO: decide if I need to move these?
 
 

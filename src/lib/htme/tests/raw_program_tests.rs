@@ -3,10 +3,10 @@
 mod raw_program_tests {
     use htme::raw_program::*;
     use htme::record_string::*;
-    use basic_types::formats::Format;
-    use basic_types::instruction::*;
-    use basic_types::operands::*;
-    use basic_types::unit_or_pair::UnitOrPair;
+    use formats::Format;
+    use instruction::*;
+    use operands::*;
+    use unit_or_pair::UnitOrPair;
 
 
     #[test]
