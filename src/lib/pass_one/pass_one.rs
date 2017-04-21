@@ -30,11 +30,12 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
                 Value::SignedInt(x) => return 1,
                 Value::Bytes(ref x) => {
                     if &x[0..1] == "X" {
-                        return (x.len() as i32 - 3) / 2;
+                        let len: f32 = ((x.len() as i32 - 3) / 2) as f32;
+                        return len.ceil() as i32;
                     } else if &x[0..1] == "C" {
                         return x.len() as i32 - 3;
                     } else if &x[0..1] == "=" {
-                        return get_literal(x).unwrap().length_in_bytes;
+                        return get_literal(x).unwrap().length_in_bytes();
                     }
                 }
                 _ => panic!("Unexpected Error {:?}", *inst),
@@ -130,7 +131,8 @@ fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32) -> i32 {
         insert_literal(&lit, loc);
         // literal declaration to be inserted in code
         let lit_decl = *create_from_literal(&lit, loc as i32);
-        loc += get_instruction_size(&lit_decl) as u32;
+        let lit_sz = get_instruction_size(&lit_decl) as u32;
+        loc += lit_sz;
         instructions.push(lit_decl);
     }
     loc as i32

@@ -6,6 +6,7 @@ use translator::translate_literal;
 use literal::Literal;
 use instruction::Instruction;
 
+
 lazy_static!{
     /// HashMap -> Keep the stored values unique
     static ref LITERAL_TABLE: RwLock<HashSet<Literal>> = RwLock::new(HashSet::new());
@@ -22,15 +23,11 @@ pub fn insert_literal(literal: &String, address: u32) {
     {
         let mut literal_id: &mut u32 = temp.deref_mut();
         let lit_val = translate_literal(&literal);
-        let len_bytes: i32 = (lit_val.len() / 2) as i32; // Convert hex string length to byte string length
+        let lit_name = lit = Literal::new(("lit_".to_owned() + &literal_id.to_string()),
+                                          lit_val,
+                                          literal.clone(),
+                                          address);
 
-        lit = Literal {
-            label: "lit_".to_owned() + &literal_id.to_string(),
-            value: lit_val,
-            external_name: literal.clone(),
-            address: address,
-            length_in_bytes: len_bytes,
-        };
         *literal_id = *literal_id + 1;
     }
 

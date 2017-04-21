@@ -12,7 +12,7 @@ ENDFIL	LDA	EOF	. insert end of file marker
 	STA	LENGTH
 	+JSUB	WRREC	. write EOF
 	LTORG
-	LDL	RETARD	. get return address
+	LDL	=C'RETARD'	. get return address
 	RSUB
 EOD	BYTE	C'EOF'
 THREE	WORD	3
@@ -46,6 +46,7 @@ WLOOP	TD	OUTPUT
 	WD	OUTPUT
 	TIX	LENGTH
 	JLT	WLOOP
-	RSUB
 OUTPUT	BYTE	X'05'
+	RSUB
+LDL	=C'AERETARDS'	. get return address
 	END	FIRST
