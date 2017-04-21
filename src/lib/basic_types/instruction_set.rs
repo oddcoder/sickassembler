@@ -78,8 +78,9 @@ impl AssemblyDef {
     }
 
     /// Gets the value of the opcode in the instruction
-    pub fn get_opcode_value(&self, format: Format) -> u32 {
-        self.op_code << (get_bit_count(format) - 8) as u32
+    pub fn get_opcode_value(&self, format: Format) -> i32 {
+        let bit_count: i32 = get_bit_count(format);
+        (self.op_code << (bit_count - 8 as i32)) as i32
     }
 }
 
@@ -181,12 +182,12 @@ pub fn fetch_directive<'a>(instr_mnemonic: &String) -> Result<AssemblyDef, &'a s
 }
 
 /// Assembler directives that will trigger a special action
-pub fn is_action_directive(directive_mnemonic: &str) -> Option<String> {
+pub fn is_base_mode_directive(directive_mnemonic: &str) -> Option<String> {
 
     let upper_cased = directive_mnemonic.to_uppercase();
 
     match upper_cased.as_str() {
-        "BASE" | "NOBASE" | "LTORG" => Some(upper_cased.to_owned()),
+        "BASE" | "NOBASE" => Some(upper_cased.to_owned()),
         _ => None,
     }
 }

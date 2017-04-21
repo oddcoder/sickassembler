@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug,PartialEq,Copy,Clone)]
 #[repr(u8)]
 pub enum Format {
@@ -7,7 +9,7 @@ pub enum Format {
     Four = 4,
     None,
 }
-use std::fmt;
+
 impl fmt::Display for Format {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self)

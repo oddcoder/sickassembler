@@ -59,7 +59,7 @@ impl FileHandler {
 
                     if let Value::SignedInt(op_end) = unwrap_to_vec(&instruction.operands)[0].val {
                         // Will panic on negative value
-                        prog.program_length = ((op_end as usize) - prog_header.1) as u32;
+                        prog.program_length = (op_end as i32 - prog_header.1 as i32) as u32;
                     }
                     continue; // Don't add end to instructions
                 }

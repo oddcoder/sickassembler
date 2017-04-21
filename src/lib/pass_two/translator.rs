@@ -1,11 +1,13 @@
 use super::super::{to_hex, string_from_object_code};
 use instruction::Instruction;
 use operands::Value;
-use instruction_set::{self, AssemblyDef, is_action_directive};
+use instruction_set::{self, AssemblyDef, is_base_mode_directive};
 use formats::*;
 use semantics_validator;
 use base_table::{set_base, end_base};
+use pass_one::pass_one::get_symbol;
 use std::u32;
+use base_table;
 use regex::Regex;
 
 pub fn translate(instruction: &mut Instruction) -> Result<String, String> {
@@ -22,6 +24,10 @@ pub fn translate(instruction: &mut Instruction) -> Result<String, String> {
 
     // Resolve operands first, in case of a directive, this function will return early
     let raw_operands: Result<String, String> = resolve_incomplete_operands(instruction);
+
+    if let Some(directive) = is_base_mode_directive(&instruction.mnemonic) {
+        // TODO: base
+    }
 
     if is_directive(instruction) {
         return raw_operands;
@@ -60,7 +66,6 @@ fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, Stri
     let mut raws: String = String::new();
     let op_vec = instruction.unwrap_operands();
 
-    // TODO: indeirect and indexed operands
     for operand in &op_vec {
         let mut raw: String = match operand.val {
             Value::None => String::new(),
@@ -76,15 +81,15 @@ fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, Stri
                 to_hex(reg_num as u32)
             }
             // Get from symtab
-            Value::Label(ref x) => {
+            Value::Label(ref lbl) => {
 
-                let sym_addr = resolve_label(x.as_str());
-
-                if let Err(e) = sym_addr {
-                    return Err(e.to_string());
+                let sym_addr;
+                match get_symbol(&lbl.to_owned()) {
+                    Some(addr) => sym_addr = addr,
+                    None => return Err("Symbol not found".to_owned()),
                 }
 
-                match get_disp(instruction, sym_addr.unwrap()) {
+                match get_disp(instruction, sym_addr) {
                     Ok(addr) => addr,
                     Err(e) => return Err(e.to_string()),
                 }
@@ -109,20 +114,31 @@ fn resolve_opcode(instr: &Instruction) -> Result<u32, &str> {
     };
 
     let op_code = instruction_set_def.get_opcode_value(instr.format);
-    Ok(op_code)
+    Ok(op_code as u32)
+}
+
+fn resolve_base_instruction(instruction: &Instruction) -> Result<(), String> {
+    match instruction.mnemonic.as_str() {
+        "BASE" => {
+            match resolve_label(&instruction.mnemonic) {
+                Ok(addr) => set_base(instruction.locctr, addr),
+                Err(e) => return Err(e.to_owned()),
+            }
+        }
+        "NOBASE" => end_base(instruction.locctr),
+        _ => (),
+    }
+    Ok(())
 }
 
 /// Returns the location of the symbol from the
 /// symtab, the result is returned as i32 (it'll be envolved in subtraction)
 ///  as it'll be subtracted from the locctr
 fn resolve_label(label: &str) -> Result<i32, &str> {
-    // TODO: Check the literal table
-    // TODO: Check the symtab
-    // TODO: Check the range of addresses with the instruction format
-    if label.starts_with("=") {
-        panic!("Literal!!");
+    match get_symbol(&label.to_owned()) {
+        Some(addr) => Ok(addr),
+        None => Err("Symbol not found"),
     }
-    unimplemented!();
 }
 
 /// Converts the literal of the WORD/BYTE directive to object code
@@ -161,12 +177,12 @@ fn is_directive(instr: &Instruction) -> bool {
 
 fn resolve_base_directive(instr: &Instruction) {
     let mnemonic = instr.mnemonic.to_uppercase();
-    let locctr = instr.locctr as u32;
+    let locctr = instr.locctr;
     if mnemonic == "BASE" {
         let val = instr.get_first_operand().val;
         //set_base(locctr /**/);
     } else if mnemonic == "NOBASE" {
-        end_base(locctr as u32);
+        end_base(locctr);
     } else {
         panic!("Unknown instruction {:?}", instr);
     }
@@ -180,19 +196,6 @@ fn parse_str_operand(operand_match: String) -> String {
         .join("")
 }
 
-fn validate_instruction(instr: &mut Instruction) -> Result<(), String> {
-    // TODO: aggregate errors
-    // TODO: indexed addressing with PC/Base relative instructions and for format 4
-    // TODO: handling base-relative adderssing
-    // TODO: Check operands for the adressing mode
-
-    if is_directive(instr) {
-        return Ok(());
-    }
-
-    Ok(())
-}
-
 fn get_disp(instruction: &Instruction, sym_addr: i32) -> Result<String, &str> {
     // TODO: move to the instruction itself
     // If the instruction is format 4, return the address
@@ -204,22 +207,26 @@ fn get_disp(instruction: &Instruction, sym_addr: i32) -> Result<String, &str> {
     }
 
     // TODO: check the calculation and range
-    let disp = (instruction.locctr + instruction.format as i32) - sym_addr;
+    let mut disp = (instruction.locctr + instruction.format as i32) - sym_addr;
+    let base = base_table::get_base_at(instruction.locctr as u32);
 
-    // TODO: Check for memory out of range error, using the locctr of instruction
-    // if {
-
-    // }
-    // else
-    if !(disp >= -2048 && disp <= 2047) {
-        // TODO: check for base value
-        // If failed, error
-        return Err("Address is out of range");
+    if (disp >= -2048 && disp < 2048) && base.is_none() {
+    } else if base.is_some() {
+        disp = (base.unwrap() as i32 + instruction.format as i32) - sym_addr;
+        if disp < 0 || disp > 4096 {
+            return Err("Address is out of base relative range");
+        }
+    } else {
+        return Err("Address is out of PC relative range and no base is specified");
     }
 
+    Ok(to_hex(disp))
+}
 
-    // Take the last 20 bits of the number
-    return Ok(to_hex(disp));
+fn panic_on_memory_limit(disp: i32, locctr: i32) {
+    if disp + locctr >= (1 << 20) {
+        panic!("Out of range address {}", disp + locctr)
+    }
 }
 
 /// Removes the container of a WORD/BYTE oeprand, the prefix, the '

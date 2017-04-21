@@ -239,10 +239,6 @@ impl Instruction {
             errors.push("Indexed and extended flags are set together");
         }
 
-        if self.format == Format::Three && self.has_flag(Flags::Extended) {
-            errors.push("Extended bit is set in a Format 3 instruction");
-        }
-
         // Check if a format 4 instruction has any invalid flags
         if self.format == Format::Four && !self.has_flag(Flags::Extended) {
             errors.push("E flag isn't set in a format 4 instruction");

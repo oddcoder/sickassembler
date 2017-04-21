@@ -3,7 +3,6 @@ use instruction::*;
 use formats::Format;
 use filehandler::*;
 use unit_or_pair::*;
-use instruction_set::is_action_directive;
 use parking_lot::RwLock;
 use operands::*;
 use literal::Literal;
@@ -24,7 +23,6 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
             if operands.len() != 1 {
                 panic!("BYTE expects only 1 operand");
             }
-            // TODO: fix operands of BYTE
             match operands[0].val {
                 Value::Raw(x) => return 1,
                 Value::SignedInt(x) => return 1,

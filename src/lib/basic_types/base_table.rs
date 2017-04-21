@@ -24,9 +24,9 @@ pub fn get_base_at(locctr: u32) -> Option<u32> {
 // and check its end, if it has no end (MAX_VAL)
 // set its end and insert a new base entry at
 // locctr
-pub fn set_base(locctr: u32, value: u32) {
-    update_last(locctr);
-    let last_base = BaseRange::new(locctr, value);
+pub fn set_base(locctr: i32, value: i32) {
+    update_last(locctr as u32);
+    let last_base = BaseRange::new(locctr as u32, value as u32);
     {
         BASE_VEC.write().push(last_base);
     }
@@ -37,8 +37,8 @@ pub fn set_base(locctr: u32, value: u32) {
 // and check its end, if it has an end (NOT MAX_VAL)
 // panic/indicate error, as this will be NO BASE called
 // twice
-pub fn end_base(locctr: u32) {
-    if update_last(locctr) == false {
+pub fn end_base(locctr: i32) {
+    if update_last(locctr as u32) == false {
         panic!("NOBASE encountered twice in a row");
     }
 }
