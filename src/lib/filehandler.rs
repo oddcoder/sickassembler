@@ -24,6 +24,7 @@ impl FileHandler {
             buf: f,
         };
     }
+
     pub fn read_start(&mut self) -> (String, usize) {
         let line;
         match self.scrap_comment() {
@@ -39,6 +40,7 @@ impl FileHandler {
             _ => panic!("Expected \"START\" found \"{}\"", words[1]),
         }
     }
+
     pub fn read_instruction(&mut self) -> Option<Instruction> {
         //TODO refactor later ...
         let line;
@@ -58,6 +60,7 @@ impl FileHandler {
             is_format_4 = true;
             maybe_instruction.pop();
         }
+
         match fetch_instruction(&maybe_instruction) {
             Err(meh) => {
                 if is_format_4 {
@@ -77,6 +80,7 @@ impl FileHandler {
                 instruction_def = def;
             }
         }
+
         if !label.is_empty() {
             instruction = words.next().unwrap().to_owned();
             if &instruction[0..1] == "+" {
@@ -99,6 +103,7 @@ impl FileHandler {
                 Ok(def) => instruction_def = def,
             }
         }
+
         let mut operands: UnitOrPair<AsmOperand> = parse_operands(words.next(), &is_directive);
         /*TODO fix has_valid_operands
         if !instruction_def.has_valid_operands(&operands) {
@@ -127,6 +132,7 @@ impl FileHandler {
         }
         return Some(inst);
     }
+
     /// Removes comments if found in a line, and skips
     /// empty lines.
     fn scrap_comment(&mut self) -> Option<String> {
@@ -196,14 +202,12 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
     }
     let mut optype = OperandType::Label;
     if *is_directive {
-        let char_stream = Regex::new(r"^C'[[:alnum:]]*'$").unwrap();
-        let hex_stream = Regex::new(r"^X'[[:xdigit:]]*'$").unwrap();
 
         if op.starts_with("=") &&
-           (char_stream.is_match(&op[1..]) || hex_stream.is_match(&op[1..])) {
+           (CHAR_STREAM.is_match(&op[1..]) || HEX_STREAM.is_match(&op[1..])) {
             // TODO: insert to literal table here
 
-        } else if char_stream.is_match(&op) || hex_stream.is_match(&op) {
+        } else if CHAR_STREAM.is_match(&op) || HEX_STREAM.is_match(&op) {
             optype = OperandType::Bytes;
         }
 
@@ -249,6 +253,11 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
     }
 }
 
+lazy_static!{
+    static ref CHAR_STREAM:Regex = Regex::new(r"^C'[[:alnum:]]+'$").unwrap();
+    static ref HEX_STREAM:Regex = Regex::new(r"^X'[[:xdigit:]]+'$").unwrap();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*; // Use all your parent's imports
@@ -263,8 +272,11 @@ mod tests {
 
     #[test]
     fn line_count_correct() {
+        /// Matches the number of instructions that come out from code
+        /// with the number of instructions in file
+
         let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
-        
+
         // Regex reference: http://kbknapp.github.io/doapi-rs/docs/regex/index.html
         // Escape all empty lines or comment lines
         let empty_lines_regex = Regex::new(r"(?m)^\s*\n|^\s+").unwrap();
@@ -281,7 +293,7 @@ mod tests {
         let lines = comments_cleared.split("\n")
             .filter(|s: &&str| !s.is_empty())
             .collect::<Vec<&str>>();
-        
+
         // Without regex
         let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
         let mut instruction_count = 0;
