@@ -1,16 +1,17 @@
 use super::super::{to_hex, string_from_object_code};
-use basic_types::instruction::Instruction;
-use basic_types::operands::Value;
-use basic_types::instruction_set::{self, AssemblyDef};
-use basic_types::formats::*;
+use instruction::Instruction;
+use operands::Value;
+use instruction_set::{self, AssemblyDef, is_action_directive};
+use formats::*;
 use semantics_validator;
+use base_table::{set_base, end_base};
 use std::u32;
 use regex::Regex;
 
 pub fn translate(instruction: &mut Instruction) -> Result<String, String> {
 
     let mut errs: Vec<String> = Vec::new();
-
+    // TODO: check for action directives in the caller of this function
     // TODO: Check the flags for options
     // FIXME: handle base-relative addressing
     {
@@ -118,6 +119,9 @@ fn resolve_label(label: &str) -> Result<i32, &str> {
     // TODO: Check the literal table
     // TODO: Check the symtab
     // TODO: Check the range of addresses with the instruction format
+    if label.starts_with("=") {
+        panic!("Literal!!");
+    }
     unimplemented!();
 }
 
@@ -150,6 +154,19 @@ fn is_directive(instr: &Instruction) -> bool {
     return false;
 }
 
+fn resolve_base_directive(instr: &Instruction) {
+    let mnemonic = instr.mnemonic.to_uppercase();
+    let locctr = instr.locctr as u32;
+    if mnemonic == "BASE" {
+        let val = instr.get_first_operand().val;
+        //set_base(locctr /**/);
+    } else if mnemonic == "NOBASE" {
+        end_base(locctr as u32);
+    } else {
+        panic!("Unknown instruction {:?}", instr);
+    }
+}
+
 fn parse_str_operand(operand_match: String) -> String {
     // EOF BYTE C’EOF’ -> 454F46
     operand_match.chars()
@@ -162,12 +179,12 @@ fn validate_instruction(instr: &mut Instruction) -> Result<(), String> {
     // TODO: aggregate errors
     // TODO: indexed addressing with PC/Base relative instructions and for format 4
     // TODO: handling base-relative adderssing
+    // TODO: Check operands for the adressing mode
 
     if is_directive(instr) {
         return Ok(());
     }
 
-    // TODO: Check operands for the adressing mode
     Ok(())
 }
 
@@ -185,6 +202,10 @@ fn get_disp(instruction: &Instruction, sym_addr: i32) -> Result<String, &str> {
     let disp = (instruction.locctr + instruction.format as i32) - sym_addr;
 
     // TODO: Check for memory out of range error, using the locctr of instruction
+    // if {
+
+    // }
+    // else
     if !(disp >= -2048 && disp <= 2047) {
         // TODO: check for base value
         // If failed, error

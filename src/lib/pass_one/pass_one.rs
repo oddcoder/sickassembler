@@ -1,10 +1,13 @@
 use std::collections::hash_map::{Entry, HashMap};
-use basic_types::instruction::*;
-use basic_types::formats::Format;
+use instruction::*;
+use formats::Format;
 use filehandler::*;
-use basic_types::unit_or_pair::*;
+use unit_or_pair::*;
+use instruction_set::is_action_directive;
 use parking_lot::RwLock;
-use basic_types::operands::*;
+use operands::*;
+use literal::Literal;
+use literal_table::{insert_literal, get_unresolved, get_literal};
 use super::super::RawProgram;
 
 fn get_instruction_size(inst: &Instruction) -> i32 {
@@ -70,22 +73,77 @@ pub fn pass_one(mut file: FileHandler) -> (HashMap<String, i32>, RawProgram) {
     let mut prog = prog_info.0;
     let mut loc = prog_info.1 as i32;
 
-    for &mut (_, ref mut instruction) in prog.program.iter_mut() {
-        instruction.locctr = loc;
-        if !instruction.label.is_empty() {
+    let temp_instructions: Vec<Instruction>;
 
+    {
+        // Move the instructions into a temp storage
+        // to allow for adding literals
+        temp_instructions = prog.program
+            .into_iter()
+            .map(move |t: (_, Instruction)| t.1)
+            .collect::<Vec<Instruction>>();
+    }
+
+    let mut instructions: Vec<Instruction> = Vec::new();
+
+    for mut instruction in temp_instructions {
+        instruction.locctr = loc;
+
+        if !instruction.label.is_empty() {
             if symbol_table.contains_key(&instruction.label) {
                 panic!("Label {} is defined at more than one location",
                        instruction.label);
             };
-
             insert_symbol(&instruction.label, loc);
         }
 
-        loc += get_instruction_size(&instruction);
+        if instruction.mnemonic.to_uppercase() == "LTORG" {
+            loc = flush_literals(&mut instructions, loc as u32);
+
+            // Base resolution can only be in pass2 -> symbol table incomplete & fwd referencing
+        } else {
+            loc += get_instruction_size(&instruction);
+            instructions.push(instruction);
+        }
     }
+    
+    // Flush remaining literals
+    flush_literals(&mut instructions, loc as u32);
+
+    // Move the instructions back
+    prog.program = instructions.into_iter()
+        .map(|i| (String::new(), i))
+        .collect::<Vec<(_, Instruction)>>();
 
     return (get_all_symbols(), prog);
+}
+
+fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32) -> i32 {
+    // TODO: fix literals
+    // TODO: insert in instruction vector
+    let mut loc = start_loc;
+    for lit in get_unresolved() {
+        insert_literal(&lit, loc);
+        // literal declaration to be inserted in code
+        let lit_decl = *create_from_literal(&lit, loc as i32);
+        loc += get_instruction_size(&lit_decl) as u32;
+        instructions.push(lit_decl);
+    }
+    loc as i32
+}
+
+fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
+    //Instruction::new(lit.name,lit.external_name)
+    insert_literal(lit, locctr as u32);
+    let literal: Literal = get_literal(lit).unwrap();
+
+    let mut lit_instr =
+        Instruction::new(literal.label,
+                         "BYTE".to_owned(),
+                         UnitOrPair::Unit(AsmOperand::new(OperandType::Bytes,
+                                                          Value::Bytes(literal.external_name))));
+    lit_instr.locctr = literal.address as i32;
+    Box::new(lit_instr)
 }
 
 lazy_static!{
@@ -116,4 +174,18 @@ pub fn get_all_symbols() -> HashMap<String, i32> {
 
 fn exists(symbol: &String) -> bool {
     return SYMBOL_TABLE.read().contains_key(symbol);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_literal_def() {
+        let instr: Instruction = *create_from_literal(&("C'BOX'".to_owned()), 1025);
+        println!("{:?}", instr);
+        assert_eq!(instr.mnemonic, "BYTE");
+        assert_eq!(instr.locctr, 1025);
+        assert_eq!(instr.get_first_operand().val,
+                   Value::Bytes(("C'BOX'".to_owned())));
+    }
 }

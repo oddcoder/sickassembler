@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use basic_types::instruction::AsmOperand;
-use basic_types::formats::{Format, get_bit_count};
-use basic_types::operands::{self, OperandType, Value};
-use basic_types::unit_or_pair::{self, UnitOrPair};
+use instruction::AsmOperand;
+use formats::{Format, get_bit_count};
+use operands::{self, OperandType, Value};
+use unit_or_pair::{self, UnitOrPair};
 
 // The operands of the instruction will be indicated as a bit vector
 // as inferred from the instruction set operands can be classified to

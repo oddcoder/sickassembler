@@ -4,14 +4,14 @@ use std::io::{BufReader, BufRead};
 use std::u32;
 
 // TODO: rexport from base library
-use basic_types::instruction_set::*;
-use basic_types::instruction::*;
-use basic_types::unit_or_pair::*;
-use basic_types::register::*;
-use basic_types::operands::*;
-use basic_types::formats::*;
-use basic_types::literal_table::{get_unresolved, insert_literal, insert_unresolved};
-use basic_types::base_table::{set_base, end_base};
+use instruction_set::*;
+use instruction::*;
+use unit_or_pair::*;
+use register::*;
+use operands::*;
+use formats::*;
+use literal_table::{get_unresolved, insert_literal, insert_unresolved};
+use base_table::{set_base, end_base};
 use super::RawProgram;
 
 pub struct FileHandler {
@@ -51,23 +51,24 @@ impl FileHandler {
         };
 
         {
-            while let Some(s) = self.read_instruction() {
-                // TODO: Check for action directives, don't add them to instruction vector
-                // if let Some(directive) = is_action_directive(instruction) {
-                //     // LTORG,BASE,NOBASE, those will be ignored in translation
-                // }
-                if s.mnemonic.to_uppercase() == "END" {
-                    // TODO: check for END
-                    // TODO: check for instructions after END
-                    // TODO: check for end less than start
-                    // TODO: change read_start to read boundary START/END
-                }
-                prog.program.push((String::new(), s));
+            while let Some(instruction) = self.read_instruction() {
 
+                if instruction.mnemonic.to_uppercase() == "END" {
+                    // TODO: change read_start to read boundary START/END
+                    // or replace with is action directive
+                    // check for instructions after END ( not applicable )
+
+                    if let Value::SignedInt(op_end) = unwrap_to_vec(&instruction.operands)[0].val {
+                        // Will panic on negative value
+                        prog.program_length = ((op_end as usize) - prog_header.1) as u32;
+                    }
+                    continue; // Don't add end to instructions
+                }
+
+                prog.program.push((String::new(), instruction));
             }
         };
 
-        // TODO: fix literals
         Ok((prog, prog_header.1))
     }
 
@@ -87,6 +88,12 @@ impl FileHandler {
             "START" => return (words[0].to_owned(), words[2].parse().unwrap()),
             _ => panic!("Expected \"START\" found \"{}\"", words[1]),
         }
+    }
+
+    /// Reads a START / END instruction
+    fn read_boundry_instruction(instr_name: String) -> (String, usize) {
+        // TODO: needs a function that reads the strings from file only
+        unimplemented!()
     }
 
     fn read_instruction(&mut self) -> Option<Instruction> {
@@ -233,18 +240,14 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
         "F" => return AsmOperand::new(OperandType::Register, Value::Register(Register::F)),
         _ => (),
     }
+
     let mut optype = OperandType::Label;
     if *is_directive {
-
-        if op.starts_with("=") &&
-           (CHAR_STREAM.is_match(&op[1..]) || HEX_STREAM.is_match(&op[1..])) {
-            // TODO: insert to literal table here
-
-        } else if CHAR_STREAM.is_match(&op) || HEX_STREAM.is_match(&op) {
+        if CHAR_STREAM.is_match(&op) || HEX_STREAM.is_match(&op) {
             optype = OperandType::Bytes;
         }
-
     }
+
     let mut index_start = 0;
     match &op[0..1] {
         "#" => {
@@ -254,6 +257,11 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
         "@" => {
             optype = OperandType::Indirect;
             index_start = 1;
+        }
+        "=" if (CHAR_STREAM.is_match(&op) || HEX_STREAM.is_match(&op)) => {
+            // Literals will be treated as labels
+            // Ignore the = sign at the start of name
+            insert_unresolved(&(op[1..].to_owned()));
         }
         "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => {
             if *is_directive {
@@ -268,10 +276,7 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
     let mut x = usize::from_str_radix(&val[0..1], 10);
     match x {
         Err(_) => {
-
-            if val.starts_with("=") {
-                // TODO: check for littab entry
-            }
+            // Isn't a number -> label or literal
             return AsmOperand::new(optype, Value::Label(val));
         }
         Ok(_) => {
@@ -293,7 +298,7 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
 ///     - true : label
 ///     - false : instruction
 fn is_label(suspect: &String) -> Result<bool, String> {
-    // TODO: replace with existing matching
+    // TODO: replace with existing matching in above functions
     let not_decodable = fetch_directive(suspect).is_err() && fetch_instruction(suspect).is_err();
     let is_valid_name = LABEL_STREAM.is_match(suspect);
 
@@ -351,8 +356,8 @@ mod tests {
         // Without regex
         let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
 
-        // Start is not included in parse_file result
-        let mut instruction_count_without_start = lines.len() - 1;
+        // Start and End are not included in parse_file result
+        let mut instruction_count_without_start = lines.len() - 2;
 
         let prog = asm_file.parse_file().unwrap().0;
 

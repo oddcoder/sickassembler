@@ -39,7 +39,7 @@ pub fn set_base(locctr: u32, value: u32) {
 // twice
 pub fn end_base(locctr: u32) {
     if update_last(locctr) == false {
-        panic!("No base encountered twice in a row");
+        panic!("NOBASE encountered twice in a row");
     }
 }
 

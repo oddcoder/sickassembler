@@ -6,10 +6,12 @@ use basic_types::operands::{OperandType, Value};
 use basic_types::unit_or_pair::{UnitOrPair, unwrap_to_vec};
 use basic_types::register::Register;
 use std::clone::Clone;
+use std::fmt;
+
 const BYTE_SIZE_TO_BITS: u8 = 8; // In the SIC machine, a byte is 3 bits
 
 
-#[derive(Debug,Clone)]
+#[derive(Clone)]
 pub struct AsmOperand {
     pub opr_type: OperandType,
     pub val: Value,
@@ -24,11 +26,17 @@ impl AsmOperand {
     }
 }
 
+impl fmt::Debug for AsmOperand {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{{ {:?} {:?} }}", self.opr_type, self.val)
+    }
+}
+
 /**
  * Resembles a SIC/XE instruction, this object is immutable,
  * Each method that mutates the state should return a new object
  */
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Instruction {
     flags: Vec<Flags>, // Set and Get through functoins
 
@@ -278,5 +286,25 @@ impl Instruction {
     pub fn add_reg_a(&mut self) {
         self.add_operand(AsmOperand::new(OperandType::Register, Value::Register(Register::A)))
             .unwrap();
+    }
+
+    pub fn get_first_operand(&self) -> AsmOperand {
+        unwrap_to_vec(&self.operands)[0].clone()
+    }
+
+    pub fn get_second_operand(&self) -> AsmOperand {
+        unwrap_to_vec(&self.operands)[1].clone()
+    }
+}
+
+impl fmt::Debug for Instruction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               " Format: {}, Locctr: {}, Label: {}, Mnemonic {} Operands: {:?}",
+               self.format,
+               self.locctr,
+               self.label,
+               self.mnemonic,
+               self.operands)
     }
 }

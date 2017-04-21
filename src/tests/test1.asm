@@ -10,7 +10,7 @@ ENDFIL	LDA	EOF	. insert end of file marker
 	STA	BUFFER
 	LDA	THREE	. set LENGTH = 3
 	STA	LENGTH
-	JSUB	WRREC	. write EOF
+	+JSUB	WRREC	. write EOF
 	LDL	RETARD	. get return address
 	RSUB
 EOD	BYTE	C'EOF'
