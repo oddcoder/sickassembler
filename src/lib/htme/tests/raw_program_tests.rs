@@ -23,16 +23,25 @@ mod raw_program_tests {
         let mut instr4 = instr1.clone();
         let mut instr5 = instr1.clone();
         instr1.set_format(Format::One);
-        instr2.set_format(Format::Two);
-        instr3.set_format(Format::Four);
-        instr4.set_format(Format::Two);
-        instr5.set_format(Format::Two);
+        instr1.locctr = 0x1000;
 
-        let valid_program = vec![(0x1000, string_from_object_code(0xC4, 1), instr1),
-                                 (0x1001, string_from_object_code(0xF3, 2), instr2),
-                                 (0x1007, string_from_object_code(0x3F4D3, 4), instr3),
-                                 (0x100C, string_from_object_code(0x43, 2), instr4),
-                                 (0x100E, string_from_object_code(0x43, 2), instr5)];
+        instr2.set_format(Format::Two);
+        instr2.locctr = 0x1001;
+
+        instr3.set_format(Format::Four);
+        instr3.locctr = 0x1007;
+
+        instr4.set_format(Format::Two);
+        instr4.locctr = 0x100C;
+
+        instr5.set_format(Format::Two);
+        instr5.locctr = 0x100E;
+
+        let valid_program = vec![(string_from_object_code(0xC4, 1), instr1),
+                                 (string_from_object_code(0xF3, 2), instr2),
+                                 (string_from_object_code(0x3F4D3, 4), instr3),
+                                 (string_from_object_code(0x43, 2), instr4),
+                                 (string_from_object_code(0x43, 2), instr5)];
 
         let raw_program: RawProgram = RawProgram {
             program_name: String::from("COPY"),
