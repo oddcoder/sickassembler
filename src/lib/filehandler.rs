@@ -113,7 +113,7 @@ impl FileHandler {
         let mut is_directive = false;
         if &maybe_instruction[0..1] == "+" {
             is_format_4 = true;
-            maybe_instruction.pop();
+            maybe_instruction.drain(0..1);
         }
 
         match fetch_instruction(&maybe_instruction) {
@@ -140,7 +140,7 @@ impl FileHandler {
             instruction = words.next().unwrap().to_owned();
             if &instruction[0..1] == "+" {
                 is_format_4 = true;
-                instruction.pop();
+                instruction.drain(0..1);
             }
             if let Ok(def) = fetch_instruction(&instruction) {
                 instruction_def = def;

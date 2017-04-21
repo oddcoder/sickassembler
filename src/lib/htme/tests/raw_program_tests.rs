@@ -44,7 +44,7 @@ mod raw_program_tests {
                                  (string_from_object_code(0x43, 2), instr5)];
 
         let raw_program: RawProgram = RawProgram {
-            program_name: String::from("COPY"),
+            program_name: String::from("COPY.htme"),
             starting_address: 0x1000,
             program_length: 0x102A,
             program: valid_program,
