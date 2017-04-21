@@ -6,7 +6,7 @@ use basic_types::instruction::Instruction;
 /*
  * returns string containing all records from program if all code and format pair make sense.
  */
-pub fn text_record_from_program(program: &Vec<(u32, String, Instruction)>)->String{
+pub fn text_record_from_program(program: &Vec<(String, Instruction)>) -> String {
 
     //counter to know where error happened
     let mut i = 0;
@@ -15,7 +15,8 @@ pub fn text_record_from_program(program: &Vec<(u32, String, Instruction)>)->Stri
     let mut record = String::from("");
 
     //iterate on program (address, code, instruction tuple)
-    for &(address, ref code, ref instruction) in program.iter(){
+    for &(ref code, ref instruction) in program.iter() {
+        let address = instruction.locctr;
         //push string onto record
         record.push_str(&code);
 
@@ -45,6 +46,8 @@ pub fn string_from_object_code(code: u32, string_width_in_bytes: u8) -> String {
 /*
  * returns u32 minimum number of hexa digits required to store the u32 code.
  */
+
+
 
 pub fn min_hexa_digits_required(code: u32) -> u32 {
     return (code as f64).log(16.0) as u32 + 1;

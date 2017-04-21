@@ -5,11 +5,12 @@ use basic_types::instruction::Instruction;
 use basic_types::operands::*;
 use htme::record_string::*;
 
+#[derive(Debug)]
 pub struct RawProgram {
     pub program_name: String,
     pub starting_address: u32,
     pub program_length: u32,
-    pub program: Vec<(u32, String, Instruction)>,
+    pub program: Vec<(String, Instruction)>,
     pub first_instruction_address: u32,
 }
 
@@ -50,7 +51,8 @@ impl RawProgram {
     pub fn text_records(&self) -> String {
         //intializing prev_address and prev_format
         let ref program = (*self).program;
-        let (first_address, ref first_code, ref first_instruction) = program[0];
+        let (ref first_code, ref first_instruction) = program[0];
+        let first_address = first_instruction.locctr;
         let mut prev_address = first_address;
         let mut prev_format = (*first_instruction).format;
         let mut records = String::from("");
@@ -61,12 +63,13 @@ impl RawProgram {
         let mut bytes_left = 30;
 
         //iterating on program: address, code, instruction tuple.
-        for &(address, ref code, ref instruction) in program.iter() {
+        for &(ref code, ref instruction) in program.iter() {
             //I only care about instruction's format
             let format = (*instruction).format;
+            let address = (*instruction).locctr;
 
             //terminating conditions for a single T record
-            if address - prev_address > (prev_format as u32) || bytes_left < (format as u32) {
+            if address - prev_address > prev_format as i32 || bytes_left < format as u32 {
                 let mut vec = vec![];
                 vec.extend_from_slice(&program[begin..i]);
                 let record = text_record_from_program(&vec);
@@ -117,8 +120,10 @@ impl RawProgram {
         let mut records = String::from("");
 
 
-        for &(address, ref code, ref instruction) in (*self).program.iter() {
+        for &(ref code, ref instruction) in (*self).program.iter() {
             let format = (*instruction).format;
+            let address:u32 = (*instruction).locctr as u32;
+
             if format == Format::Four {
                 let operands_vector = (*instruction).unwrap_operands();
                 if operands_vector[0].opr_type == OperandType::Label {

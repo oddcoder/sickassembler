@@ -1,6 +1,9 @@
 /**
  * Higher modules will be declared here
  */
+use std::fmt::UpperHex;
+use std::marker::Sized;
+
 #[macro_use]
 extern crate lazy_static;
 extern crate regex;
@@ -14,9 +17,11 @@ pub mod pass_two;
 pub mod filehandler;
 pub mod htme;
 pub mod semantics_validator;
+
+// Re-exports
 pub use htme::record_string::string_from_object_code;
-use std::fmt::UpperHex;
-use std::marker::Sized;
+pub use htme::raw_program::RawProgram;
+
 pub fn to_hex<T>(num: T) -> String
     where T: UpperHex + Sized
 {

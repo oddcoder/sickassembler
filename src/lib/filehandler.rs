@@ -12,7 +12,7 @@ use basic_types::operands::*;
 use basic_types::formats::*;
 use basic_types::literal_table::{get_unresolved, insert_literal, insert_unresolved};
 use basic_types::base_table::{set_base, end_base};
-use htme::raw_program::RawProgram;
+use super::RawProgram;
 
 pub struct FileHandler {
     path: String,
@@ -29,6 +29,10 @@ impl FileHandler {
         };
     }
 
+    /// Returns:
+    ///     - the program instructions
+    ///     - address in START instruction
+    ///     - address in END instruction
     pub fn parse_file(&mut self) -> Result<(RawProgram, usize), String> {
         let mut prog: RawProgram = RawProgram {
             program_name: String::new(),
@@ -55,8 +59,10 @@ impl FileHandler {
                 if s.mnemonic.to_uppercase() == "END" {
                     // TODO: check for END
                     // TODO: check for instructions after END
+                    // TODO: check for end less than start
+                    // TODO: change read_start to read boundary START/END
                 }
-                prog.program.push((0, String::new(), s));
+                prog.program.push((String::new(), s));
 
             }
         };
@@ -348,9 +354,9 @@ mod tests {
         // Start is not included in parse_file result
         let mut instruction_count_without_start = lines.len() - 1;
 
-        let prog = asm_file.parse_file();
+        let prog = asm_file.parse_file().unwrap().0;
 
-        assert_eq!(prog.unwrap().program.len(), instruction_count_without_start);
+        assert_eq!(prog.program.len(), instruction_count_without_start);
 
     }
 

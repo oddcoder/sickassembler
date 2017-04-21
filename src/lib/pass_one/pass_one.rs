@@ -3,7 +3,9 @@ use basic_types::instruction::*;
 use basic_types::formats::Format;
 use filehandler::*;
 use basic_types::unit_or_pair::*;
+use parking_lot::RwLock;
 use basic_types::operands::*;
+use super::super::RawProgram;
 
 fn get_instruction_size (inst:&Instruction) -> i32 {
     match inst.format {
@@ -59,27 +61,59 @@ fn get_instruction_size (inst:&Instruction) -> i32 {
     }
     return 0;
 }
-pub fn pass_one (mut file:FileHandler) ->(HashMap<String, i32>, Vec<Instruction>) {
+
+pub fn pass_one (mut file:FileHandler) ->(HashMap<String, i32>, RawProgram) {
     
     let mut symbol_table:HashMap<String, i32> = HashMap::new();
-    let mut listing:Vec<Instruction> = Vec::new();
     
     let prog_info = file.parse_file().unwrap();
-    let prog = prog_info.0;
+    let mut prog = prog_info.0;
     let mut loc  = prog_info.1 as i32;
     
-    let instructions = prog.program.iter().map(|tuple| tuple.2.clone()).collect::<Vec<Instruction>>();
-    
-    for mut instruction in instructions{
+    for &mut (_, ref mut instruction) in prog.program.iter_mut(){
         instruction.locctr = loc;
         if !instruction.label.is_empty() {
+            
             if symbol_table.contains_key(&instruction.label) {
                 panic!("Label {} is defined at more than one location", instruction.label);
             };
-            symbol_table.insert(instruction.label.clone(), loc);
+            
+            insert_symbol(&instruction.label, loc);
         }
+
         loc += get_instruction_size(&instruction);
-        listing.push(instruction);
     }
-    return (symbol_table, listing);
+    
+    return (get_all_symbols(), prog);
+}
+
+lazy_static!{
+    static ref SYMBOL_TABLE: RwLock<HashMap<String,i32>> = RwLock::new(HashMap::new());
+}
+
+fn insert_symbol(symbol: &String, address: i32) -> Result<(), String> {
+    
+    if exists(symbol) {
+        return Err(format!("Label {} is defined at more than one location",symbol));
+    }
+
+    SYMBOL_TABLE.write().insert(symbol.clone(),address);
+    Ok(())
+}
+
+pub fn get_symbol(symbol:&String) ->Option<i32>{
+    if exists(symbol) == false{
+        None
+    }
+    else{
+        Some(SYMBOL_TABLE.read().get(symbol).unwrap().clone())
+    }
+}
+
+pub fn get_all_symbols()->HashMap<String,i32>{
+    SYMBOL_TABLE.read().clone()
+}
+
+fn exists(symbol:&String)->bool{
+    return SYMBOL_TABLE.read().contains_key(symbol) 
 }
