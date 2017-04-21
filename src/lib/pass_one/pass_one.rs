@@ -22,19 +22,22 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
         "BYTE" => {
             let operands = unwrap_to_vec(&inst.operands);
             if operands.len() != 1 {
-                panic!("RESB expects only 1 operand");
+                panic!("BYTE expects only 1 operand");
             }
+            // TODO: fix operands of BYTE
             match operands[0].val {
                 Value::Raw(x) => return 1,
                 Value::SignedInt(x) => return 1,
-                Value::Label(ref x) => {
+                Value::Bytes(ref x) => {
                     if &x[0..1] == "X" {
                         return (x.len() as i32 - 3) / 2;
                     } else if &x[0..1] == "C" {
                         return x.len() as i32 - 3;
+                    } else if &x[0..1] == "=" {
+                        return get_literal(x).unwrap().length_in_bytes;
                     }
                 }
-                _ => panic!("Unexpected Error"),
+                _ => panic!("Unexpected Error {:?}", *inst),
             }
         }
         "WORD" => return 3,
@@ -46,7 +49,7 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
             match operands[0].val {
                 Value::Raw(x) => return x as i32,
                 Value::SignedInt(x) => return x,
-                _ => panic!("Unexpected Error"),
+                _ => panic!("Unexpected Error {:?}", *inst),
             }
         }
         "RESW" => {
@@ -106,9 +109,10 @@ pub fn pass_one(mut file: FileHandler) -> (HashMap<String, i32>, RawProgram) {
             instructions.push(instruction);
         }
     }
-    
+
     // Flush remaining literals
     flush_literals(&mut instructions, loc as u32);
+
 
     // Move the instructions back
     prog.program = instructions.into_iter()
@@ -144,6 +148,10 @@ fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
                                                           Value::Bytes(literal.external_name))));
     lit_instr.locctr = literal.address as i32;
     Box::new(lit_instr)
+}
+
+fn replace_literal(instruction: &mut Instruction) {
+    if let Value::Bytes(ref x) = instruction.get_first_operand().val {}
 }
 
 lazy_static!{

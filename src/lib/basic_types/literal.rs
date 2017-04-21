@@ -3,10 +3,11 @@ use std::cmp::{Eq, PartialEq};
 
 #[derive(Debug,Clone)]
 pub struct Literal {
-    pub label: String,  // Label chosen by the assembler
+    pub label: String, // Label chosen by the assembler
     pub value: String, // Object code value
     pub external_name: String, // Value in code, ex. C'EOF'
     pub address: u32,
+    pub length_in_bytes: i32,
 }
 
 impl Literal {

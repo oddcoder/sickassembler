@@ -242,10 +242,9 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
     }
 
     let mut optype = OperandType::Label;
-    if *is_directive {
-        if CHAR_STREAM.is_match(&op) || HEX_STREAM.is_match(&op) {
-            optype = OperandType::Bytes;
-        }
+
+    if CHAR_STREAM.is_match(&op) || HEX_STREAM.is_match(&op) {
+        optype = OperandType::Bytes;
     }
 
     let mut index_start = 0;
@@ -258,10 +257,11 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
             optype = OperandType::Indirect;
             index_start = 1;
         }
-        "=" if (CHAR_STREAM.is_match(&op) || HEX_STREAM.is_match(&op)) => {
+        "=" if (CHAR_STREAM.is_match(&op[1..]) || HEX_STREAM.is_match(&op[1..])) => {
             // Literals will be treated as labels
-            // Ignore the = sign at the start of name
-            insert_unresolved(&(op[1..].to_owned()));
+            // Add the = sign at the start of name to avoid errors in pass_one
+
+            insert_unresolved(&(op.to_owned()));
         }
         "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => {
             if *is_directive {
@@ -277,6 +277,9 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
     match x {
         Err(_) => {
             // Isn't a number -> label or literal
+            if CHAR_STREAM.is_match(&op) || HEX_STREAM.is_match(&op) {
+                return AsmOperand::new(optype, Value::Bytes(val));
+            }
             return AsmOperand::new(optype, Value::Label(val));
         }
         Ok(_) => {

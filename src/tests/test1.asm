@@ -8,9 +8,10 @@ CLOOP	JSUB	RDREC	. read input record
 	J	CLOOP	. loop
 ENDFIL	LDA	EOF	. insert end of file marker
 	STA	BUFFER
-	LDA	THREE	. set LENGTH = 3
+	LDA	=X'3'	. set LENGTH = 3
 	STA	LENGTH
 	+JSUB	WRREC	. write EOF
+	LTORG
 	LDL	RETARD	. get return address
 	RSUB
 EOD	BYTE	C'EOF'

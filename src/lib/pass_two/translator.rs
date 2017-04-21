@@ -126,7 +126,12 @@ fn resolve_label(label: &str) -> Result<i32, &str> {
 }
 
 /// Converts the literal of the WORD/BYTE directive to object code
-pub fn translate_literal(literal: &String) -> String {
+pub fn translate_literal(lit: &String) -> String {
+    let mut literal = lit.clone();
+    // TODO: cleanase the design of the string parser
+    if literal.starts_with("=") {
+        literal.drain(0..1);
+    }
 
     if literal.starts_with('X') || literal.starts_with('x') {
         // ex. INPUT BYTE X’F1’ -> F1
