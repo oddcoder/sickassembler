@@ -1,13 +1,12 @@
 use basic_types::formats::Format;
-
+use basic_types::instruction::Instruction;
 //TODO: decide if I need to move these?
 
 
 /*
  * returns string containing all records from program if all code and format pair make sense.
- * returns error message and its index for an invalid code and format.
  */
-pub fn text_record_from_program(program: &Vec<(u32, u32, Format)>)->String{
+pub fn text_record_from_program(program: &Vec<(u32, String, Instruction)>)->String{
 
     //counter to know where error happened
     let mut i = 0;
@@ -15,11 +14,10 @@ pub fn text_record_from_program(program: &Vec<(u32, u32, Format)>)->String{
     //empty record we keep appending to
     let mut record = String::from("");
 
-    //iterate on program (code-format tuple)
-    for &(address, code, format) in program.iter(){
+    //iterate on program (address, code, instruction tuple)
+    for &(address, ref code, ref instruction) in program.iter(){
         //push string onto record
-        let s = string_from_object_code(code,format as u8);
-        record.push_str(&s);
+        record.push_str(&code);
 
         //next
         i = i+1;
@@ -33,7 +31,6 @@ pub fn text_record_from_program(program: &Vec<(u32, u32, Format)>)->String{
 
 /*
  * returns string from a format-valid object-code.
- * returns error-string if the object-code and format don't add up.
  */
 pub fn string_from_object_code(code: u32, string_width_in_bytes: u8)-> String{
 
