@@ -122,7 +122,7 @@ impl RawProgram {
 
         for &(ref code, ref instruction) in (*self).program.iter() {
             let format = (*instruction).format;
-            let address:u32 = (*instruction).locctr as u32;
+            let address: u32 = (*instruction).locctr as u32;
 
             if format == Format::Four {
                 let operands_vector = (*instruction).unwrap_operands();

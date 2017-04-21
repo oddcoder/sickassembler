@@ -39,7 +39,7 @@ fn main() {
     } else {
         panic!("Error No input File selected");
     };
-    
+
     let asm_file = FileHandler::new(input);
     let listing_info = sick_lib::pass_one::pass_one::pass_one(asm_file);
     let sym_tab = listing_info.0;

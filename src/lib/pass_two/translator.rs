@@ -137,7 +137,8 @@ pub fn translate_literal(literal: &String) -> String {
 
         return parse_str_operand(operand_match);
     } else {
-        panic!("Invalid literal to translate {}, expected C|X'...' ", literal);
+        panic!("Invalid literal to translate {}, expected C|X'...' ",
+               literal);
     }
 
 }
