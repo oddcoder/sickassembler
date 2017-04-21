@@ -181,11 +181,13 @@ pub fn fetch_directive<'a>(instr_mnemonic: &String) -> Result<AssemblyDef, &'a s
 }
 
 /// Assembler directives that will trigger a special action
-pub fn is_action_directive(directive_mnemonic: &String) -> bool {
+pub fn is_action_directive(directive_mnemonic: &str) -> Option<String> {
 
-    match directive_mnemonic.to_uppercase().as_str() {
-        "BASE" | "NOBASE" | "LTORG" => true,
-        _ => false,
+    let upper_cased = directive_mnemonic.to_uppercase();
+
+    match upper_cased.as_str() {
+        "BASE" | "NOBASE" | "LTORG" => Some(upper_cased.to_owned()),
+        _ => None,
     }
 }
 

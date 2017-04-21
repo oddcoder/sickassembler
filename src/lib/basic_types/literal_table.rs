@@ -5,15 +5,13 @@ use std::ops::DerefMut;
 use pass_two::translator::translate_literal;
 use basic_types::literal::Literal;
 
-
-
 lazy_static!{
     static ref LITERAL_TABLE: RwLock<HashSet<Literal>> = RwLock::new(HashSet::new());
     static ref TEMP_LITERALS: RwLock<HashSet<String>> = RwLock::new(HashSet::new());    
     static ref LIT_ID: RwLock<u32> = RwLock::new(0);
 }
 
-fn insert_literal(literal: String, address: u32) {
+pub fn insert_literal(literal: String, address: u32) {
     let lit: Literal;
     {
         let mut temp = LIT_ID.write();
@@ -33,32 +31,27 @@ fn insert_literal(literal: String, address: u32) {
 }
 
 /// Insert a literal name to the temp literal table
-fn insert_unresolved(literal_name: String) {
+pub fn insert_unresolved(literal_name: String) {
     TEMP_LITERALS.write().insert(literal_name);
 }
 
 /// Called when encountering LTORG or end of file
-fn get_unresolved() -> Vec<String> {
+pub fn get_unresolved() -> Vec<String> {
     let ret: Vec<String> =
         TEMP_LITERALS.read().iter().map(|li| li.to_owned()).collect::<Vec<String>>();
     TEMP_LITERALS.write().clear();
     ret
 }
 
-fn get_literal(name: &String) -> Option<Literal> {
-    println!("Table");
+pub fn get_literal(name: &String) -> Option<Literal> {
     let val: String;
     {
-        println!("La Tabolo");
         val = translate_literal(name);
-        println!("La Tabola");
     }
-    println!("La Table");
-    //println!("LIT Count: {:?}", LITERAL_TABLE.read().keys().len());
+
     let table = LITERAL_TABLE.read();
 
     for lit in table.iter() {
-        println!("LIT: {:?} --- {:?}", lit, name);
         if *lit.value == val || lit.name == *name {}
         return Some(lit.clone());
     }

@@ -85,7 +85,7 @@ impl BaseRange {
 /// static, test results won't be realistic if the
 /// test was split in many functions
 #[test]
-pub fn test_base() {
+fn test_base() {
     set_base(0, 12);
     end_base(25);
     set_base(30, 31); // Endless base

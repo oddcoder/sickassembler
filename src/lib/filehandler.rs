@@ -1,5 +1,5 @@
 use regex::Regex;
-use std::fs::*;
+use std::fs::File;
 use std::io::{BufReader, BufRead};
 use basic_types::instruction_set::*;
 use basic_types::instruction::*;
@@ -7,6 +7,9 @@ use basic_types::unit_or_pair::*;
 use basic_types::register::*;
 use basic_types::operands::*;
 use basic_types::formats::*;
+use basic_types::literal_table::{get_unresolved, insert_literal, insert_unresolved};
+use basic_types::base_table::{set_base, end_base};
+
 pub struct FileHandler {
     path: String,
     buf: BufReader<File>,
@@ -43,6 +46,7 @@ impl FileHandler {
             None => return None,
             Some(x) => line = x,
         }
+
         let mut words = line.split_whitespace();
         let mut label: String = String::new();
         let mut instruction: String = String::new();
@@ -102,6 +106,9 @@ impl FileHandler {
         }
         */
         // TODO: Check for action directives, don't add them to instruction vector
+        // if let Some(directive) = is_action_directive(instruction) {
+        //     // LTORG,BASE,NOBASE, those will be ignored in translation
+        // }
 
         let mut inst: Instruction = Instruction::new(label, instruction, operands);
         if is_format_4 {
@@ -195,6 +202,7 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
         if op.starts_with("=") &&
            (char_stream.is_match(&op[1..]) || hex_stream.is_match(&op[1..])) {
             // TODO: insert to literal table here
+
         } else if char_stream.is_match(&op) || hex_stream.is_match(&op) {
             optype = OperandType::Bytes;
         }
@@ -240,8 +248,63 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
         }
     }
 }
-#[test]
-#[should_panic]
-fn test_file_opening() {
-    FileHandler::new("God Damn long file name that should never exit.asm".to_string());
+
+#[cfg(test)]
+mod tests {
+    use super::*; // Use all your parent's imports
+    use regex::Regex;
+    use std::io::Read;
+
+    #[test]
+    #[should_panic]
+    fn test_file_opening() {
+        FileHandler::new("God Damn long file name that should never exit.asm".to_string());
+    }
+
+    #[test]
+    fn line_count_correct() {
+        let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
+        
+        // Regex reference: http://kbknapp.github.io/doapi-rs/docs/regex/index.html
+        // Escape all empty lines or comment lines
+        let empty_lines_regex = Regex::new(r"(?m)^\s*\n|^\s+").unwrap();
+        let comment_regex = Regex::new(r"(?m)\..+").unwrap();
+        let mut file_content: String = String::new();
+        match asm_file.buf.read_to_string(&mut file_content) {
+            Err(e) => println!("{}", e),
+            _ => (),
+        };
+
+        let empty_lines_cleared = empty_lines_regex.replace_all(&file_content, "");
+        let comments_cleared = comment_regex.replace_all(&empty_lines_cleared, "");
+
+        let lines = comments_cleared.split("\n")
+            .filter(|s: &&str| !s.is_empty())
+            .collect::<Vec<&str>>();
+        
+        // Without regex
+        let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
+        let mut instruction_count = 0;
+        let start = asm_file.read_start();
+        instruction_count = instruction_count + 1;
+        loop {
+            let instruction = asm_file.read_instruction();
+            match instruction {
+                None => break,
+                Some(ref s) => {
+                    println!("{:?} {:?}", instruction_count, s);
+                    instruction_count += 1;
+                }
+            }
+            // match wrapped_line {
+            //     None => break,
+            //     Some(ref s) if s.is_empty() => continue,
+            //     Some(s) => {}
+            // }
+            // Check that the output from regex has the same number of lines as the
+            // output from the function
+        }
+        println!("{:?} --> {}", lines, lines.len());
+        assert_eq!(instruction_count, lines.len());
+    }
 }
