@@ -1,4 +1,5 @@
 extern crate sick_lib;
+use std::collections::HashMap;
 extern crate getopts;
 extern crate env_logger;
 use getopts::Options;
@@ -43,11 +44,16 @@ fn main() {
     // let (name, loc) = asm_file.read_start();
     // println!("File Name: {}.o", name);
     // println!("Location Counter starts at: {}", loc);
-    
-    let prog = asm_file.parse_file();
 
-    for inst in &prog.unwrap().program {
-        println!("{:?}", inst);
-    }
+    // let prog = asm_file.parse_file();
 
+    // for inst in &prog.unwrap().program {
+    //     println!("{:?}", inst);
+    // }
+    let listing_info = sick_lib::pass_one::pass_one::pass_one(asm_file);
+    let listing_table = listing_info.0;
+    let listing_instructions = listing_info.1;
+
+    println!("{:?}", listing_table);
+    println!("{:?}", listing_instructions);
 }

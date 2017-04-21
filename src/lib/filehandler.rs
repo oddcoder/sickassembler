@@ -29,7 +29,7 @@ impl FileHandler {
         };
     }
 
-    pub fn parse_file(&mut self) -> Result<RawProgram, String> {
+    pub fn parse_file(&mut self) -> Result<(RawProgram, usize), String> {
         let mut prog: RawProgram = RawProgram {
             program_name: String::new(),
             starting_address: u32::MAX,
@@ -52,12 +52,17 @@ impl FileHandler {
                 // if let Some(directive) = is_action_directive(instruction) {
                 //     // LTORG,BASE,NOBASE, those will be ignored in translation
                 // }
+                if s.mnemonic.to_uppercase() == "END" {
+                    // TODO: check for END
+                    // TODO: check for instructions after END
+                }
                 prog.program.push((0, String::new(), s));
+
             }
         };
 
         // TODO: fix literals
-        Ok(prog)
+        Ok((prog, prog_header.1))
     }
 
     fn read_start(&mut self) -> (String, usize) {

@@ -59,12 +59,15 @@ fn get_instruction_size (inst:&Instruction) -> i32 {
     }
     return 0;
 }
-pub fn pass_one (start: &i32, mut file:FileHandler) ->(HashMap<String, i32>, Vec<Instruction>) {
-    let mut loc  = *start;
+pub fn pass_one (mut file:FileHandler) ->(HashMap<String, i32>, Vec<Instruction>) {
+    
     let mut symbol_table:HashMap<String, i32> = HashMap::new();
     let mut listing:Vec<Instruction> = Vec::new();
     
-    let prog = file.parse_file().unwrap();
+    let prog_info = file.parse_file().unwrap();
+    let prog = prog_info.0;
+    let mut loc  = prog_info.1 as i32;
+    
     let instructions = prog.program.iter().map(|tuple| tuple.2.clone()).collect::<Vec<Instruction>>();
     
     for mut instruction in instructions{
