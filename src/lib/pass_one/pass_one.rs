@@ -63,12 +63,11 @@ pub fn pass_one (start: &i32, mut file:FileHandler) ->(HashMap<String, i32>, Vec
     let mut loc  = *start;
     let mut symbol_table:HashMap<String, i32> = HashMap::new();
     let mut listing:Vec<Instruction> = Vec::new();
-    let mut instruction;
-    loop {
-        match file.read_instruction() {
-            None => break,
-            Some(inst) => instruction = inst,
-        }
+    
+    let prog = file.parse_file().unwrap();
+    let instructions = prog.program.iter().map(|tuple| tuple.2.clone()).collect::<Vec<Instruction>>();
+    
+    for mut instruction in instructions{
         instruction.locctr = loc;
         if !instruction.label.is_empty() {
             if symbol_table.contains_key(&instruction.label) {

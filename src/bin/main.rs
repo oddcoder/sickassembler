@@ -40,16 +40,14 @@ fn main() {
         panic!("Error No input File selected");
     };
     let mut asm_file = FileHandler::new(input);
-    let (name, loc) = asm_file.read_start();
-    println!("File Name: {}.o", name);
-    println!("Location COunter starts at: {}", loc);
-    loop {
-        let instruction = asm_file.read_instruction();
-        match instruction {
-            None => break,
-            Some(s) => {
-                println!("{:?}", s);
-            }
-        }
+    // let (name, loc) = asm_file.read_start();
+    // println!("File Name: {}.o", name);
+    // println!("Location Counter starts at: {}", loc);
+    
+    let prog = asm_file.parse_file();
+
+    for inst in &prog.unwrap().program {
+        println!("{:?}", inst);
     }
+
 }

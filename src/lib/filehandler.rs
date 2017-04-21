@@ -1,6 +1,9 @@
 use regex::Regex;
 use std::fs::File;
 use std::io::{BufReader, BufRead};
+use std::u32;
+
+// TODO: rexport from base library
 use basic_types::instruction_set::*;
 use basic_types::instruction::*;
 use basic_types::unit_or_pair::*;
@@ -9,6 +12,7 @@ use basic_types::operands::*;
 use basic_types::formats::*;
 use basic_types::literal_table::{get_unresolved, insert_literal, insert_unresolved};
 use basic_types::base_table::{set_base, end_base};
+use htme::raw_program::RawProgram;
 
 pub struct FileHandler {
     path: String,
@@ -25,23 +29,56 @@ impl FileHandler {
         };
     }
 
-    pub fn read_start(&mut self) -> (String, usize) {
+    pub fn parse_file(&mut self) -> Result<RawProgram, String> {
+        let mut prog: RawProgram = RawProgram {
+            program_name: String::new(),
+            starting_address: u32::MAX,
+            program_length: u32::MAX,
+            program: Vec::new(),
+            first_instruction_address: u32::MAX,
+        };
+
+        let prog_header: (String, usize);
+
+        {
+            // Scope for borrowing mutably
+            prog_header = self.read_start();
+            prog.program_name = prog_header.0;
+        };
+
+        {
+            while let Some(s) = self.read_instruction() {
+                // TODO: Check for action directives, don't add them to instruction vector
+                // if let Some(directive) = is_action_directive(instruction) {
+                //     // LTORG,BASE,NOBASE, those will be ignored in translation
+                // }
+                prog.program.push((0, String::new(), s));
+            }
+        };
+
+        // TODO: fix literals
+        Ok(prog)
+    }
+
+    fn read_start(&mut self) -> (String, usize) {
         let line;
         match self.scrap_comment() {
             None => panic!("Excepted START line"),
             Some(x) => line = x,
         }
         let mut words: Vec<&str> = line.split_whitespace().collect();
+
         if words.len() > 3 {
             panic!("Unexpected \"{}\"", words[3]);
         }
+
         match words[1] {
             "START" => return (words[0].to_owned(), words[2].parse().unwrap()),
             _ => panic!("Expected \"START\" found \"{}\"", words[1]),
         }
     }
 
-    pub fn read_instruction(&mut self) -> Option<Instruction> {
+    fn read_instruction(&mut self) -> Option<Instruction> {
         //TODO refactor later ...
         let line;
         match self.scrap_comment() {
@@ -87,35 +124,20 @@ impl FileHandler {
                 is_format_4 = true;
                 instruction.pop();
             }
-            match fetch_instruction(&instruction) {
-                Err(_) => {
-                    match fetch_directive(&instruction) {
-                        Err(_) => {
-                            panic!("{} is neither instruction nor pseudo-instruction",
-                                   instruction)
-                        }
-                        Ok(def) => {
-                            instruction_def = def;
-                            is_directive = true;
-                        }
-                    }
-                }
-                Ok(def) => instruction_def = def,
+            if let Ok(def) = fetch_instruction(&instruction) {
+                instruction_def = def;
+            } else if let Ok(def) = fetch_directive(&instruction) {
+                instruction_def = def;
+                is_directive = true;
+            } else {
+                panic!("{} is neither instruction nor pseudo-instruction",
+                       instruction)
             }
         }
 
         let mut operands: UnitOrPair<AsmOperand> = parse_operands(words.next(), &is_directive);
-        /*TODO fix has_valid_operands
-        if !instruction_def.has_valid_operands(&operands) {
-            panic!("Invalid operands for istruction {}", instruction_def.mnemonic);
-        }
-        */
-        // TODO: Check for action directives, don't add them to instruction vector
-        // if let Some(directive) = is_action_directive(instruction) {
-        //     // LTORG,BASE,NOBASE, those will be ignored in translation
-        // }
-
         let mut inst: Instruction = Instruction::new(label, instruction, operands);
+
         if is_format_4 {
             inst.set_format(Format::Four);
         } else {
@@ -253,9 +275,28 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
     }
 }
 
+/// Tells whether a token is a valid label or an instruction
+/// returns:
+/// Err -> invalid token (Not a label nor instruction)
+/// Result ->
+///     - true : label
+///     - false : instruction
+fn is_label(suspect: &String) -> Result<bool, String> {
+    // TODO: replace with existing matching
+    let not_decodable = fetch_directive(suspect).is_err() && fetch_instruction(suspect).is_err();
+    let is_valid_name = LABEL_STREAM.is_match(suspect);
+
+    if not_decodable && !is_valid_name {
+        Err(format!("Invalid token {}", suspect))
+    } else {
+        Ok(not_decodable && is_valid_name)
+    }
+}
+
 lazy_static!{
     static ref CHAR_STREAM:Regex = Regex::new(r"^C'[[:alnum:]]+'$").unwrap();
     static ref HEX_STREAM:Regex = Regex::new(r"^X'[[:xdigit:]]+'$").unwrap();
+    static ref LABEL_STREAM:Regex = Regex::new(r"^[a-zA-Z_$][a-zA-Z_$0-9]*$").unwrap();
 }
 
 #[cfg(test)]
@@ -272,6 +313,44 @@ mod tests {
 
     #[test]
     fn line_count_correct() {
+        let lines = with_regex();
+
+        // Without regex
+        let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
+        let mut instruction_count = 0;
+        let start = asm_file.read_start();
+        instruction_count = instruction_count + 1;
+        loop {
+            let instruction = asm_file.read_instruction();
+            match instruction {
+                None => break,
+                Some(ref s) => {
+                    println!("{:?} {:?}", instruction_count, s);
+                    instruction_count += 1;
+                }
+            }
+        }
+        println!("{:?} --> {}", lines, lines.len());
+        assert_eq!(instruction_count, lines.len());
+    }
+
+    #[test]
+    fn test_parse_file() {
+        let lines = with_regex();
+        // Without regex
+        let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
+
+        // Start is not included in parse_file result
+        let mut instruction_count_without_start = lines.len() - 1;
+
+        let prog = asm_file.parse_file();
+
+        assert_eq!(prog.unwrap().program.len(), instruction_count_without_start);
+
+    }
+
+    /// Extracts code in file using regex
+    fn with_regex() -> Vec<String> {
         /// Matches the number of instructions that come out from code
         /// with the number of instructions in file
 
@@ -292,31 +371,9 @@ mod tests {
 
         let lines = comments_cleared.split("\n")
             .filter(|s: &&str| !s.is_empty())
-            .collect::<Vec<&str>>();
+            .map(|s| s.to_owned())
+            .collect::<Vec<String>>();
 
-        // Without regex
-        let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
-        let mut instruction_count = 0;
-        let start = asm_file.read_start();
-        instruction_count = instruction_count + 1;
-        loop {
-            let instruction = asm_file.read_instruction();
-            match instruction {
-                None => break,
-                Some(ref s) => {
-                    println!("{:?} {:?}", instruction_count, s);
-                    instruction_count += 1;
-                }
-            }
-            // match wrapped_line {
-            //     None => break,
-            //     Some(ref s) if s.is_empty() => continue,
-            //     Some(s) => {}
-            // }
-            // Check that the output from regex has the same number of lines as the
-            // output from the function
-        }
-        println!("{:?} --> {}", lines, lines.len());
-        assert_eq!(instruction_count, lines.len());
+        lines
     }
 }

@@ -91,13 +91,15 @@ fn test_base() {
     set_base(30, 31); // Endless base
 
     assert_eq!(get_base_at(14).unwrap(), 12);
-    assert!(get_base_at(26).is_none());
+    assert!(get_base_at(26).is_none(), "Base at 26 isn't none");
     assert_eq!(get_base_at(35).is_some(), true);
+
 }
 #[test]
 #[should_panic]
 fn double_end_base() {
-    set_base(0, 12);
-    end_base(25);
-    end_base(26);
+    // Keep the addresses away from the first test, as tests run in parallel
+    set_base(1024, 12);
+    end_base(1027);
+    end_base(1029);
 }
