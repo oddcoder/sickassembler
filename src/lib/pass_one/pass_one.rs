@@ -72,10 +72,9 @@ pub fn pass_one(mut file: FileHandler) -> (HashMap<String, i32>, RawProgram) {
 
     let mut symbol_table: HashMap<String, i32> = HashMap::new();
 
-    let prog_info = file.parse_file().unwrap();
-    let mut prog = prog_info.0;
-    let mut loc = prog_info.1 as i32;
-
+    let (mut prog, mut loc) = file.parse_file().unwrap();
+    let mut loc = loc as i32;
+    
     let temp_instructions: Vec<Instruction>;
 
     {

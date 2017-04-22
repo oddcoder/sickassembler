@@ -41,13 +41,8 @@ impl FileHandler {
             first_instruction_address: u32::MAX,
         };
 
-        let prog_header: (String, usize);
+        let (name, end_address) = self.read_start();
 
-        {
-            // Scope for borrowing mutably
-            prog_header = self.read_start();
-            prog.program_name = prog_header.0;
-        };
 
         {
             while let Some(instruction) = self.read_instruction() {
@@ -59,7 +54,7 @@ impl FileHandler {
 
                     if let Value::SignedInt(op_end) = unwrap_to_vec(&instruction.operands)[0].val {
                         // Will panic on negative value
-                        prog.program_length = (op_end as i32 - prog_header.1 as i32) as u32;
+                        prog.program_length = (op_end as i32 - end_address as i32) as u32;
                     }
                     continue; // Don't add end to instructions
                 }
@@ -68,7 +63,7 @@ impl FileHandler {
             }
         };
 
-        Ok((prog, prog_header.1))
+        Ok((prog, end_address))
     }
 
     fn read_start(&mut self) -> (String, usize) {
@@ -369,7 +364,7 @@ mod tests {
         // Start and End are not included in parse_file result
         let mut instruction_count_without_start = lines.len() - 2;
 
-        let prog = asm_file.parse_file().unwrap().0;
+        let (prog, _) = asm_file.parse_file().unwrap();
 
         assert_eq!(prog.program.len(), instruction_count_without_start);
 

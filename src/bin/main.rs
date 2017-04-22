@@ -41,9 +41,7 @@ fn main() {
     };
 
     let asm_file = FileHandler::new(input);
-    let listing_info = sick_lib::pass_one::pass_one::pass_one(asm_file);
-    let sym_tab = listing_info.0;
-    let mut raw_program = listing_info.1;
+    let (sym_tab, mut raw_program) = sick_lib::pass_one::pass_one::pass_one(asm_file);
     let errs = sick_lib::pass_two::translator::pass_two(&mut raw_program);
 
     for entry in sym_tab {
