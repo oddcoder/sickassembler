@@ -1,8 +1,8 @@
 
 #[cfg(test)]
-mod formatting_tests{
+mod formatting_tests {
     use htme::record_string::*;
-    use basic_types::formats::Format;
+    use formats::Format;
 
     #[test]
     fn test_string_from_code() {
@@ -18,7 +18,7 @@ mod formatting_tests{
 
 
     #[test]
-    fn test_hex_digits_required(){
+    fn test_hex_digits_required() {
         let digits = min_hexa_digits_required(0x34);
         assert_eq!(digits, 2 as u32);
 

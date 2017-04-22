@@ -8,10 +8,12 @@ CLOOP	JSUB	RDREC	. read input record
 	J	CLOOP	. loop
 ENDFIL	LDA	EOF	. insert end of file marker
 	STA	BUFFER
-	LDA	THREE	. set LENGTH = 3
+	LDA	=X'3'	. set LENGTH = 3
+	BASE  EOD
 	STA	LENGTH
-	JSUB	WRREC	. write EOF
-	LDL	RETARD	. get return address
+	+JSUB	WRREC	. write EOF
+	LTORG
+	LDL	=C'RETARD'	. get return address
 	RSUB
 EOD	BYTE	C'EOF'
 THREE	WORD	3
@@ -20,6 +22,7 @@ RETADR	RESW	1
 LENGTH	RESW	1
 BUFFER	RESB	4096
 
+. Whole line comment
 RDREC	LDX	ZERO	. CLEAR LOOP COUNTER
 	LDA	ZERO
 RLOOP	TD	INPUT
@@ -44,6 +47,7 @@ WLOOP	TD	OUTPUT
 	WD	OUTPUT
 	TIX	LENGTH
 	JLT	WLOOP
-	RSUB
 OUTPUT	BYTE	X'05'
+	RSUB
+LDL	=C'AERETARDS'	. get return address
 	END	FIRST

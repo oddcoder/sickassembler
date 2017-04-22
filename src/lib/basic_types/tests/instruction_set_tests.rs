@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod instuction_set_tests {
 
-    use basic_types::instruction_set;
-    use basic_types::formats;
+    use instruction_set;
+    use formats;
     #[test]
     fn check_op_code() {
         let op = instruction_set::fetch_instruction(&"add".to_owned()).unwrap().op_code;

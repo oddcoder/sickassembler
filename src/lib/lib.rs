@@ -1,11 +1,15 @@
 /**
  * Higher modules will be declared here
  */
+use std::fmt::UpperHex;
+use std::marker::Sized;
+
 #[macro_use]
 extern crate lazy_static;
 extern crate regex;
 #[macro_use]
 extern crate log;
+extern crate parking_lot;
 
 pub mod pass_one;
 pub mod basic_types;
@@ -14,27 +18,26 @@ pub mod filehandler;
 pub mod htme;
 pub mod semantics_validator;
 
-use std::fmt::UpperHex;
-use std::marker::Sized;
+// Re-exports
+pub use htme::record_string::string_from_object_code;
+pub use htme::raw_program::RawProgram;
+
+// Re-export sub modules, to make imports neater
+pub use basic_types::instruction;
+pub use basic_types::formats;
+pub use basic_types::operands;
+pub use basic_types::flags;
+pub use basic_types::register;
+pub use basic_types::instruction_set;
+pub use basic_types::unit_or_pair;
+pub use basic_types::literal_table;
+pub use basic_types::literal;
+pub use basic_types::base_table;
+
+pub use pass_two::translator;
+
 pub fn to_hex<T>(num: T) -> String
     where T: UpperHex + Sized
 {
     format!("{:X}", num)
-}
-
-use basic_types::formats::{Format, get_bit_count};
-pub fn to_hex_padded<T>(num: T, format: Format) -> String
-    where T: UpperHex + Sized
-{
-    let mut s: String = format!("{:X}", num);
-
-    // Pad with zeros if necessary, division by 4 -> to get the number number of hex chars
-    let pad_count = (get_bit_count(format) / 4) - s.len() as i32;
-
-    if pad_count == 0 {
-        return s;
-    }
-
-    s = vec!["0";pad_count as usize].join("") + &s;
-    s
 }

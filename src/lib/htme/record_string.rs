@@ -1,12 +1,12 @@
-use basic_types::formats::Format;
-use basic_types::instruction::Instruction;
+use formats::Format;
+use instruction::Instruction;
 //TODO: decide if I need to move these?
 
 
 /*
  * returns string containing all records from program if all code and format pair make sense.
  */
-pub fn text_record_from_program(program: &Vec<(u32, String, Instruction)>)->String{
+pub fn text_record_from_program(program: &Vec<(String, Instruction)>) -> String {
 
     //counter to know where error happened
     let mut i = 0;
@@ -15,12 +15,13 @@ pub fn text_record_from_program(program: &Vec<(u32, String, Instruction)>)->Stri
     let mut record = String::from("");
 
     //iterate on program (address, code, instruction tuple)
-    for &(address, ref code, ref instruction) in program.iter(){
+    for &(ref code, ref instruction) in program.iter() {
+        let address = instruction.locctr;
         //push string onto record
         record.push_str(&code);
 
         //next
-        i = i+1;
+        i = i + 1;
     }
 
     //if we're here, everything went well and record is returned
@@ -32,9 +33,9 @@ pub fn text_record_from_program(program: &Vec<(u32, String, Instruction)>)->Stri
 /*
  * returns string from a format-valid object-code.
  */
-pub fn string_from_object_code(code: u32, string_width_in_bytes: u8)-> String{
+pub fn string_from_object_code(code: u32, string_width_in_bytes: u8) -> String {
 
-    let hex_digits = (string_width_in_bytes*2) as u32;
+    let hex_digits = (string_width_in_bytes * 2) as u32;
 
     //return string with right amount of zeros to the left.
     return format!("{:01$X}", code, hex_digits as usize);
@@ -45,6 +46,11 @@ pub fn string_from_object_code(code: u32, string_width_in_bytes: u8)-> String{
 /*
  * returns u32 minimum number of hexa digits required to store the u32 code.
  */
-pub fn min_hexa_digits_required(code:u32)-> u32 {
+
+
+
+
+
+pub fn min_hexa_digits_required(code: u32) -> u32 {
     return (code as f64).log(16.0) as u32 + 1;
 }

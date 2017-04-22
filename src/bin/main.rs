@@ -39,17 +39,24 @@ fn main() {
     } else {
         panic!("Error No input File selected");
     };
-    let mut asm_file = FileHandler::new(input);
-    let (name, loc) = asm_file.read_start();
-    println!("File Name: {}.o", name);
-    println!("Location COunter starts at: {}", loc);
-    loop {
-        let instruction = asm_file.read_instruction();
-        match instruction {
-            None => break,
-            Some(s) => {
-                println!("{:?}", s);
-            }
-        }
+
+    let asm_file = FileHandler::new(input);
+    let listing_info = sick_lib::pass_one::pass_one::pass_one(asm_file);
+    let sym_tab = listing_info.0;
+    let mut raw_program = listing_info.1;
+    let errs = sick_lib::pass_two::translator::pass_two(&mut raw_program);
+
+    for entry in sym_tab {
+        println!("{:?}", entry);
+    }
+
+    print!("\n\n\n");
+
+    for entry in raw_program.program {
+        println!("{:?}", entry);
+    }
+
+    for err in errs {
+        println!("{}", err);
     }
 }

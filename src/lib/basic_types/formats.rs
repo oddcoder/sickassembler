@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug,PartialEq,Copy,Clone)]
 #[repr(u8)]
 pub enum Format {
@@ -8,6 +10,11 @@ pub enum Format {
     None,
 }
 
+impl fmt::Display for Format {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
 
 pub fn get_bit_count(format: Format) -> i32 {
     (format as i32) * 8

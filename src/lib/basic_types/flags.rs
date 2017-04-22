@@ -4,7 +4,7 @@ use std::fmt;
 const OP_CODE_LEN_F3_F4: u8 = 6; // Length of the opcode field in format 3/4
 
 // Be printable
-#[derive(Debug,Copy,Clone)]
+#[derive(Debug,Copy,Clone,Hash,Eq)]
 // Be equatable
 #[derive(PartialEq)]
 // Be in 8 bytes

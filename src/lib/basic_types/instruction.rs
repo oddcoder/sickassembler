@@ -1,15 +1,18 @@
 // Make the linter silent
 #![allow(dead_code)]
-use basic_types::formats::Format;
-use basic_types::flags::Flags;
-use basic_types::operands::{OperandType, Value};
-use basic_types::unit_or_pair::{UnitOrPair, unwrap_to_vec};
-use basic_types::register::Register;
+use formats::Format;
+use flags::Flags;
+use std::collections::HashSet;
+use operands::{OperandType, Value};
+use unit_or_pair::{UnitOrPair, unwrap_to_vec};
+use register::Register;
 use std::clone::Clone;
+use std::fmt;
+
 const BYTE_SIZE_TO_BITS: u8 = 8; // In the SIC machine, a byte is 3 bits
 
 
-#[derive(Debug,Clone)]
+#[derive(Clone)]
 pub struct AsmOperand {
     pub opr_type: OperandType,
     pub val: Value,
@@ -24,17 +27,23 @@ impl AsmOperand {
     }
 }
 
+impl fmt::Debug for AsmOperand {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{{ {:?} {:?} }}", self.opr_type, self.val)
+    }
+}
+
 /**
  * Resembles a SIC/XE instruction, this object is immutable,
  * Each method that mutates the state should return a new object
  */
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct Instruction {
-    flags: Vec<Flags>, // Set and Get through functoins
+    flags: HashSet<Flags>, // Set and Get through functoins
 
     pub label: String,
     pub mnemonic: String,
-    pub format: Format,
+    format: Format,
     pub operands: UnitOrPair<AsmOperand>, // Group oerands in one field
     pub locctr: i32, // Signed because it'll be subtracted from signed quantities
 }
@@ -50,7 +59,9 @@ impl Instruction {
             format: Format::None,
             mnemonic: mnemonic,
             locctr: 0,
-            flags: Vec::new(),
+            // SIC/XE defaults ind. and imm. falgs to 1
+            flags: HashSet::new(),
+
             // Set the operands with the add_operand function to raise the flags
             operands: UnitOrPair::None,
         };
@@ -71,7 +82,7 @@ impl Instruction {
             label: String::new(),
             format: Format::None,
             mnemonic: mnemonic,
-            flags: Vec::new(),
+            flags: HashSet::new(),
             locctr: 0,
             operands: UnitOrPair::None,
         }
@@ -79,16 +90,54 @@ impl Instruction {
 
     ///
     /// set_format set the formats of the instruction
+    /// this is typically called after setting the operands
     ///
     pub fn set_format(&mut self, instruction_format: Format) {
 
         self.format = instruction_format;
 
+        for operand in &self.unwrap_operands() {
+            let flag: Option<Flags> = match operand.opr_type {
+                OperandType::Immediate => Some(Flags::Immediate),
+                OperandType::Indirect => Some(Flags::Indirect),
+                OperandType::Register => {
+                    // If the instruction has 2 operands and the second is register X
+                    if operand.val == Value::Register(Register::X) &&
+                       self.unwrap_operands().len() == 2 {
+                        Some(Flags::Indexed)
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            };
+
+            flag.map(|f| self.flags.insert(f));
+        }
+
+        if instruction_format == Format::One || instruction_format == Format::Two {
+            return;
+        }
+
+        // If no immediate/indeirect flags were specified
+        if self.flags.contains(&Flags::Immediate) == false &&
+           self.flags.contains(&Flags::Indirect) == false {
+            // Normal SIC/XE instructions have indirect, immediate flags set
+            self.flags.extend(vec![Flags::Indirect, Flags::Immediate].into_iter());
+        }
+
+        // Format 4 can have immediate operands, and label operands
+        // +LDT #4096 75101000
+        // 105F LDT LENGTH 774000 where 0033 LENGTH
         if instruction_format == Format::Four {
-            self.flags.push(Flags::Extended);
+            self.flags.insert(Flags::Extended);
         }
 
         info!("Set format of {:?} as {:?}", self, instruction_format);
+    }
+
+    pub fn get_format(&self) -> Format {
+        self.format
     }
 
     pub fn add_label(&mut self, label: String) -> Result<(), &str> {
@@ -105,31 +154,6 @@ impl Instruction {
     *   Adds an operand to the instruction as appropriate
     **/
     fn add_operand(&mut self, op: AsmOperand) -> Result<(), &str> {
-
-        let mut flag_type: Option<Flags> = None;
-
-        match op.opr_type {
-            OperandType::Immediate => flag_type = Some(Flags::Immediate),
-            OperandType::Indirect => flag_type = Some(Flags::Indirect),
-            OperandType::Register if op.val == Value::Register(Register::X) => {
-                self.flags.push(Flags::Indexed);
-                return Ok(());
-            }
-            _ => (),
-        }
-
-        if let Some(flag) = flag_type {
-            // TODO: should we check the inverse condition?
-            // will it cause bugs in case of adding operands before
-            // setting the instruction format
-            if self.format == Format::One || self.format == Format::Two {
-                warn!("Format 1 or 2 can't have flags set");
-                return Err("Format 1 or 2 can't have flags set");
-            }
-
-            self.flags.push(flag);
-            info!("Added flag {:?} to instruction {:?}", flag, self);
-        }
 
         // Match on a copy, modify the original
         match self.operands.clone() {
@@ -162,15 +186,6 @@ impl Instruction {
         let fmt_num = self.format;
         let instr_len: u8 = fmt_num as u8 * BYTE_SIZE_TO_BITS;
 
-        // check if BaseRelative and PcRelative flags are set, indicate errors
-        match self.check_invalid_flags() {
-            Err(st) => {
-                warn!("Error when checking flags of {:?};", self);
-                return Err(st);
-            }
-            _ => (), // Continue execution on success
-        };
-
         for flag_iter in &self.flags {
 
             // Note that the flag location is counted from left to write
@@ -184,10 +199,6 @@ impl Instruction {
 
         info!("Value of flags in {:?} is {:?}", self, total_value);
         Ok(total_value)
-    }
-
-    fn has_flag(&self, flag: Flags) -> bool {
-        self.flags.iter().position(|&f| f == flag) != None
     }
 
     pub fn unwrap_operands(&self) -> Vec<AsmOperand> {
@@ -204,73 +215,14 @@ impl Instruction {
         operands
     }
 
-    pub fn set_addressing_mode(&mut self, flag: Flags) {
-        if flag != Flags::PcRelative && flag != Flags::BaseRelative {
-            panic!("This function doesn't set any flags other than P,B");
-        }
-
-        self.flags.push(flag);
+    pub fn set_base_relative(&mut self) {
+        self.flags.insert(Flags::BaseRelative);
     }
 
-    fn check_invalid_flags<'a>(&'a self) -> Result<(), String> {
-
-        // TODO: Extract all the errors in the instruction flags,
-        // as an array of (bool , fn)
-        // don't return just a sinle string and use Vec<string>
-        let mut errors: Vec<&str> = Vec::new();
-
-        if self.has_flag(Flags::BaseRelative) && self.has_flag(Flags::PcRelative) {
-            errors.push("PC relative and Base relative flags are set together");
-        }
-
-        if self.has_flag(Flags::Indexed) && self.has_flag(Flags::Immediate) {
-            errors.push("Indexed and immediate flags are set together");
-        }
-
-
-        if self.has_flag(Flags::Indexed) && self.has_flag(Flags::Indirect) {
-            errors.push("Indexed and extended flags are set together");
-        }
-
-        if self.format == Format::Three && self.has_flag(Flags::Extended) {
-            errors.push("Extended bit is set in a Format 3 instruction");
-        }
-
-        // Check if a format 4 instruction has any invalid flags
-        if self.format == Format::Four && !self.has_flag(Flags::Extended) {
-            errors.push("E flag isn't set in a format 4 instruction");
-        }
-
-        if self.format == Format::Four &&
-           (self.has_flag(Flags::Indirect) || self.has_flag(Flags::Indexed)) {
-            errors.push("Indirect/Indexed addressing used in a format 4 instruction");
-        }
-
-        if self.format == Format::Four && (self.has_flag(Flags::BaseRelative)) {
-            errors.push("Base relative addressing used in a format 4 instruction");
-        }
-
-        // TODO confirm correctness
-        if self.format == Format::Four && self.has_flag(Flags::PcRelative) {
-            errors.push("PC relative addressing used in a format 4 instruction");
-        }
-
-        if self.format == Format::Four && self.has_flag(Flags::Indexed) {
-            errors.push("Indexed addressing used in a format 4 instruction");
-        }
-
-        if self.format == Format::Four && self.has_flag(Flags::Indirect) {
-            errors.push("Indirect addressing used in a format 4 instruction");
-        }
-
-        if errors.len() > 0 {
-            let errs: String = errors.join(", ");
-            warn!("Found errors in {:?} flags: {:?}", self, errs);
-            return Err(errs);
-        }
-
-        Ok(())
+    pub fn set_pc_relative(&mut self) {
+        self.flags.insert(Flags::PcRelative);
     }
+
 
     /// Add the A register for instructions that are format 2 but take one operand
     /// this fixes object code generation as the first register parameter doesn't get
@@ -279,5 +231,26 @@ impl Instruction {
     pub fn add_reg_a(&mut self) {
         self.add_operand(AsmOperand::new(OperandType::Register, Value::Register(Register::A)))
             .unwrap();
+    }
+
+    pub fn get_first_operand(&self) -> AsmOperand {
+        unwrap_to_vec(&self.operands)[0].clone()
+    }
+
+    pub fn get_second_operand(&self) -> AsmOperand {
+        unwrap_to_vec(&self.operands)[1].clone()
+    }
+}
+
+impl fmt::Debug for Instruction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               " F: {:^8}, {:^6} {:^12} {:^12} {:?} {:?}",
+               self.format,
+               self.locctr,
+               self.label,
+               self.mnemonic,
+               self.flags,
+               self.operands)
     }
 }

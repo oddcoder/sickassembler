@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use basic_types::instruction::AsmOperand;
-use basic_types::formats::{Format, get_bit_count};
-use basic_types::operands::{self, OperandType, Value};
-use basic_types::unit_or_pair::{self, UnitOrPair};
+use instruction::AsmOperand;
+use formats::{Format, get_bit_count};
+use operands::{self, OperandType, Value};
+use unit_or_pair::{self, UnitOrPair};
 
 // The operands of the instruction will be indicated as a bit vector
 // as inferred from the instruction set operands can be classified to
@@ -78,8 +78,9 @@ impl AssemblyDef {
     }
 
     /// Gets the value of the opcode in the instruction
-    pub fn get_opcode_value(&self, format: Format) -> u32 {
-        self.op_code << (get_bit_count(format) - 8) as u32
+    pub fn get_opcode_value(&self, format: Format) -> i32 {
+        let bit_count: i32 = get_bit_count(format);
+        (self.op_code << (bit_count - 8 as i32)) as i32
     }
 }
 
@@ -135,7 +136,7 @@ lazy_static!{
                 ("OR".to_owned(),       AssemblyDef::new("OR".to_owned(),       UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0x44)),
                 ("RD".to_owned(),       AssemblyDef::new("RD".to_owned(),       UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0xD8)),
                 ("RMO".to_owned(),      AssemblyDef::new("RMO".to_owned(),      UnitOrPair::Unit(Format::Two),                      UnitOrPair::Pair(OperandType::Register, OperandType::Register), 0xAC)),
-                ("RSUB".to_owned(),     AssemblyDef::new("RSUB".to_owned(),     UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0x4C)),
+                ("RSUB".to_owned(),     AssemblyDef::new("RSUB".to_owned(),     UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::None,                                               0x4C)),
                 ("SHIFTL".to_owned(),   AssemblyDef::new("SHIFTL".to_owned(),   UnitOrPair::Unit(Format::Two),                      UnitOrPair::Pair(OperandType::Register, OperandType::Immediate),0xA4)),
                 ("SHIFTR".to_owned(),   AssemblyDef::new("SHIRFT".to_owned(),   UnitOrPair::Unit(Format::Two),                      UnitOrPair::Pair(OperandType::Register, OperandType::Immediate),0xA8)),
                 ("SIO".to_owned(),     AssemblyDef::new("SIO".to_owned(),       UnitOrPair::Unit(Format::One),                      UnitOrPair::None,                                               0xF0)),
@@ -180,6 +181,25 @@ pub fn fetch_directive<'a>(instr_mnemonic: &String) -> Result<AssemblyDef, &'a s
     Ok(ASSEMBLER_DIRECTIVES.get(mnemonic).unwrap().clone())
 }
 
+/// Assembler directives that will trigger a special action
+pub fn is_base_mode_directive(directive_mnemonic: &str) -> Option<String> {
+
+    let upper_cased = directive_mnemonic.to_uppercase();
+
+    match upper_cased.as_str() {
+        "BASE" | "NOBASE" => Some(upper_cased.to_owned()),
+        _ => None,
+    }
+}
+
+/// Indicates a directive that will generate object code
+pub fn is_decodable_directive(mnemonic: &str) -> bool {
+    match mnemonic.to_uppercase().as_str() {
+        "BYTE" | "WORD" => true,
+        _ => false,
+    }
+}
+
 lazy_static!{
     static ref ASSEMBLER_DIRECTIVES: HashMap<String,AssemblyDef > = {
             let assembler_directives :HashMap <String, AssemblyDef> = [
@@ -209,6 +229,10 @@ lazy_static!{
                   UnitOrPair::Unit(OperandType::Label),0xFF)),
             ("NOBASE".to_owned(),
                   AssemblyDef::new("NOBASE".to_owned(),
+                  UnitOrPair::Unit(Format::None),
+                  UnitOrPair::Unit(OperandType::None),0xFF)),
+            ("LTORG".to_owned(),
+                  AssemblyDef::new("LTORG".to_owned(),
                   UnitOrPair::Unit(Format::None),
                   UnitOrPair::Unit(OperandType::None),0xFF)),
                     ].iter().cloned().collect();
