@@ -36,7 +36,6 @@ pub fn validate_semantics(instr: &mut Instruction) -> Result<(), String> {
 
             if op_count == 1 {
                 instr.add_reg_a();
-                println!("{:?}", instr);
             }
         }
     }

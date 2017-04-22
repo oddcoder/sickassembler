@@ -104,6 +104,10 @@ impl Instruction {
                     // If the instruction has 2 operands and the second is register X
                     if operand.val == Value::Register(Register::X) &&
                        self.unwrap_operands().len() == 2 {
+                        //  Remove the X register from the operands
+                        // LDCH BUFFER,X 53C003
+                        self.remove_op_register_x();
+                        // Set the indexed flag
                         Some(Flags::Indexed)
                     } else {
                         None
@@ -240,17 +244,31 @@ impl Instruction {
     pub fn get_second_operand(&self) -> AsmOperand {
         unwrap_to_vec(&self.operands)[1].clone()
     }
+
+    /// The register X isn't converted to an object code
+    /// if the instruction is in indexed mode,
+    /// so it must be removed from the operand list
+    /// LDCH BUFFER,X 53C003 -> Buffer is at loc 3
+    pub fn remove_op_register_x(&mut self) {
+        let oprs = self.unwrap_operands();
+        for opr in &oprs {
+            match opr.val {
+                Value::Register(Register::X) => continue,
+                _ => self.operands = UnitOrPair::Unit(opr.clone()),
+            }
+        }
+
+    }
 }
 
 impl fmt::Debug for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               " F: {:^8}, {:^6} {:^12} {:^12} {:?} {:?}",
+               "{:8} {:8} {:8} {:8} {:?}",
                self.format,
                self.locctr,
                self.label,
                self.mnemonic,
-               self.flags,
                self.operands)
     }
 }

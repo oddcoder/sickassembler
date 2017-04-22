@@ -4,7 +4,7 @@ use operands::Value;
 use instruction_set::{self, AssemblyDef, is_base_mode_directive, is_decodable_directive};
 use formats::*;
 use semantics_validator;
-use base_table::{set_base, end_base};
+use base_table::{set_base, end_base, get_base_at};
 use pass_one::pass_one::get_symbol;
 use std::u32;
 use base_table;
@@ -110,18 +110,17 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, 
                 let sym_addr;
                 match get_symbol(&lbl.to_owned()) {
                     Some(addr) => sym_addr = addr,
-                    None => return Err("Symbol not found".to_owned()),
+                    None => return Err(format!("Symbol not found {{ {} }}", lbl)),
                 }
-
-                {
-                    match get_disp(instruction, sym_addr) {
-                        Ok(addr) => {
-                            println!("--> disp {:X} {:X} ", sym_addr, instruction.locctr);
-                            addr
-                        }
-                        Err(e) => return Err(e.to_string()),
+                let locctr = instruction.locctr;
+                let instruction_cp = instruction.clone();
+                match get_disp(instruction, sym_addr) {
+                    Ok(addr) => addr,
+                    Err(e) => {
+                        return Err(e.to_string());
                     }
                 }
+
             }
             Value::Raw(x) => to_hex(x),
             // Used by WORD / BYTE -> Generate hex codes for operand
@@ -229,18 +228,23 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, &str
 
     let final_disp: i32;
     let mut disp: i32 = sym_addr - (instruction.locctr + instruction.get_format() as i32);
+    let base = get_base_at(instruction.locctr as u32);
 
-    let base = base_table::get_base_at(instruction.locctr as u32);
     // PC relative is invalid
     if -2048 <= disp && disp < 2048 {
+
         instruction.set_pc_relative();
         final_disp = disp & 0xFFFF;
-    } else if base.is_some() {
-        disp = sym_addr - (base.unwrap() as i32 + instruction.get_format() as i32);
 
-        if (0 < disp && disp < 4096) == true {
+    } else if base.is_some() {
+
+        let base = base.unwrap() as i32;
+        let disp = sym_addr - base;
+
+        if 0 <= base && base < 4096 {
             instruction.set_base_relative();
             final_disp = disp & 0xFFF;
+
         } else {
             println!("Address is out of base relative range {} {}",
                      disp,

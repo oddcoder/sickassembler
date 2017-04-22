@@ -1,7 +1,13 @@
+#[macro_use]
+extern crate prettytable;
 extern crate sick_lib;
 extern crate getopts;
 extern crate env_logger;
 use getopts::Options;
+use prettytable::Table;
+use prettytable::row::Row;
+use prettytable::cell::Cell;
+
 //use instruction::Instruction;
 //use operands::OperandType;
 use sick_lib::filehandler::FileHandler;
@@ -52,16 +58,29 @@ fn main() {
 
     // Sort by address
     sym_tab.sort_by(|a, b| a.1.cmp(&b.1));
-
+    // Create the table
+    let mut table = Table::new();
     for (name, address) in sym_tab {
-        println!("{:8} {:<8X}", name, address);
+        table.add_row(Row::new(vec![Cell::new(&name), Cell::new(&format!("{:04X}", address))]));
     }
+    table.printstd();
 
     print!("\n\n\n");
 
-    for entry in raw_program.program {
-        println!("{:?}", entry);
+    let mut table = Table::new();
+    table.add_row(Row::new(vec![Cell::new("Obj"),
+                                Cell::new("Loc"),
+                                Cell::new("Label"),
+                                Cell::new("Mnemonic"),
+                                Cell::new("Format")]));
+    for (objcode, instr) in raw_program.program {
+        table.add_row(Row::new(vec![Cell::new(&objcode),
+                                    Cell::new(&format!("{:04X}", instr.locctr)),
+                                    Cell::new(&instr.label),
+                                    Cell::new(&instr.mnemonic),
+                                    Cell::new(&instr.get_format().to_string())]));
     }
+    table.printstd();
 
     for err in errs {
         println!("{}", err);
