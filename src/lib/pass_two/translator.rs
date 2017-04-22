@@ -7,7 +7,6 @@ use semantics_validator;
 use base_table::{set_base, end_base, get_base_at};
 use pass_one::pass_one::get_symbol;
 use std::u32;
-use base_table;
 use regex::Regex;
 use super::super::RawProgram;
 
@@ -215,13 +214,13 @@ fn parse_str_operand(operand_match: String) -> String {
         .join("")
 }
 
-fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, &str> {
+fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, String> {
 
     // TODO: move to the instruction itself
     // If the instruction is format 4, return the address
     if instruction.get_format() == Format::Four {
         if sym_addr > 0xFFFFF {
-            return Err("Address is out of 20-bit range");
+            return Err("Address is out of 20-bit range".to_owned());
         }
         return Ok(to_hex(sym_addr & 0xFFFF));
     }
@@ -249,12 +248,19 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, &str
             println!("Address is out of base relative range {} {}",
                      disp,
                      sym_addr);
-            return Err("Address is out of base relative range");
+            return Err(format!("Address is out of base relative range {} {} {:?}",
+                               disp,
+                               sym_addr,
+                               instruction));
         }
 
     } else {
         println!("Address is out of range {} {} and no PC", disp, sym_addr);
-        return Err("Address is out of PC relative range and no base is specified");
+        return Err(format!("Address is out of PC relative range and no base is specified, \
+                            PC-DISP {:X} TA{:X} Instruction:{:?}",
+                           disp,
+                           sym_addr,
+                           instruction));
     }
 
     panic_on_memory_limit(final_disp, instruction.locctr);

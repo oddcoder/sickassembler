@@ -4,12 +4,16 @@ use parking_lot::RwLock;
 use std::ops::DerefMut;
 use translator::translate_literal;
 use literal::Literal;
+use regex::RegexSet;
 
 lazy_static!{
     /// HashMap -> Keep the stored values unique
     static ref LITERAL_TABLE: RwLock<HashSet<Literal>> = RwLock::new(HashSet::new());
     static ref TEMP_LITERALS: RwLock<HashSet<String>> = RwLock::new(HashSet::new());    
     static ref LIT_ID: RwLock<u32> = RwLock::new(0);
+    
+    static ref LIT_REGEX:RegexSet = RegexSet::new(&[r"^=C'[[:alnum:]]+'$",
+                                                    r"^=X'[[:xdigit:]]+'$"]).unwrap();
 }
 
 pub fn insert_literal(literal: &String, address: u32) {
@@ -60,6 +64,10 @@ pub fn get_literal(name: &String) -> Option<Literal> {
         }
     }
     None
+}
+
+pub fn is_literal(st: &String) -> bool {
+    LIT_REGEX.is_match(st)
 }
 
 #[test]

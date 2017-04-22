@@ -240,12 +240,12 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
             optype = OperandType::Indirect;
             index_start = 1;
         }
-        "=" if (CHAR_STREAM.is_match(&op[1..]) || HEX_STREAM.is_match(&op[1..])) => {
-            // Literals will be treated as labels
-            // Add the = sign at the start of name to avoid errors in pass_one
+        // "=" if (CHAR_STREAM.is_match(&op[1..]) || HEX_STREAM.is_match(&op[1..])) => {
+        //     // Literals will be treated as labels
+        //     // Add the = sign at the start of name to avoid errors in pass_one
 
-            insert_unresolved(&(op.to_owned()));
-        }
+        //     insert_unresolved(&(op.to_owned()));
+        // }
         "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => {
             if *is_directive {
                 optype = OperandType::Immediate;

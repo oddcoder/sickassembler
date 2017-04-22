@@ -15,6 +15,7 @@ ENDFIL	LDA	EOF	. insert end of file marker
 	LTORG
 	LDL	=C'RETARD'	. get return address
 	RSUB
+	LDL	=C'RETARDA'	. get return address
 EOD	BYTE	C'EOF'
 THREE	WORD	3
 ZERO	WORD	0
