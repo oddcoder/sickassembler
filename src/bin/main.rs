@@ -1,7 +1,16 @@
+#[macro_use]
+extern crate prettytable;
 extern crate sick_lib;
 extern crate getopts;
 extern crate env_logger;
+extern crate term;
+
+use term::{Attr, color};
 use getopts::Options;
+use prettytable::Table;
+use prettytable::row::Row;
+use prettytable::cell::Cell;
+
 //use instruction::Instruction;
 //use operands::OperandType;
 use sick_lib::filehandler::FileHandler;
@@ -46,16 +55,39 @@ fn main() {
     let (sym_tab, mut raw_program) = sick_lib::pass_one::pass_one::pass_one(asm_file);
     let errs = sick_lib::pass_two::translator::pass_two(&mut raw_program);
 
-    for entry in sym_tab {
-        println!("{:?}", entry);
+    let mut sym_tab = sym_tab.into_iter()
+        .map(|e| (e.0, e.1))
+        .collect::<Vec<(String, i32)>>();
+
+    // Sort by address
+    sym_tab.sort_by(|a, b| a.1.cmp(&b.1));
+    // Create the table
+    let mut table = Table::new();
+    table.add_row(Row::new(vec![Cell::new("Address"), Cell::new("Name")]));
+    for (name, address) in sym_tab {
+        table.add_row(Row::new(vec![ 
+        Cell::new(&format!("{:04X}", address)).with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),Cell::new(&name)]));
     }
+    table.printstd();
 
     print!("\n\n\n");
 
-    for entry in raw_program.program {
-        println!("{:?}", entry);
+    let mut table = Table::new();
+    table.add_row(Row::new(vec![Cell::new("Loc"),
+                                Cell::new("Label"),
+                                Cell::new("Mnemonic"),
+                                Cell::new("Obj")]));
+    for (objcode, instr) in raw_program.program {
+        table.add_row(Row::new(vec![Cell::new(&format!("{:04X}", instr.locctr))
+                                        .with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),
+                                    Cell::new(&instr.label),
+                                    Cell::new(&instr.mnemonic),
+                                    Cell::new(&objcode)
+                                        .with_style(term::Attr::ForegroundColor(color::BRIGHT_YELLOW))]));
     }
+    table.printstd();
 
+    // TODO: don't produce HTME on errors
     for err in errs {
         println!("{}", err);
     }

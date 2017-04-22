@@ -271,8 +271,9 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
         }
         Ok(_) => {
             if *is_directive {
+                // Directive operands are in decimal
                 return AsmOperand::new(optype,
-                                       Value::Raw(usize::from_str_radix(&val, 16).unwrap() as u32));
+                                       Value::SignedInt(i32::from_str_radix(&val, 10).unwrap()));
             } else {
                 return AsmOperand::new(optype, Value::Raw(val.parse().unwrap()));
             }
