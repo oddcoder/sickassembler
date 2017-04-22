@@ -21,17 +21,17 @@ pub fn validate_semantics(instr: &mut Instruction) -> Result<(), String> {
         Err(_) => return Err("Isn't an instruction or a directive".to_owned()),
     }
 
-    if def.has_valid_operands(&instr.operands) == false {
-        errs.push("Operands for this mnemonic are invalid".to_owned());
-    }
+    // if def.has_valid_operands(&instr.operands) == false {
+    //     errs.push("Operands for this mnemonic are invalid".to_owned());
+    // }
 
     // Check format correctness
-    if def.match_format(&instr.format) == false {
+    if def.match_format(&instr.get_format()) == false {
         errs.push("Invalid instruction format".to_owned());
     } else {
         // Format is matched correctly, adjust format 2 instructions with 1 register
         // check the docs of add_reg_a
-        if instr.format == Format::Two && instr.unwrap_operands().len() == 1 {
+        if instr.get_format() == Format::Two && instr.unwrap_operands().len() == 1 {
             let op_count = unwrap_to_vec(&def.operands).len();
 
             if op_count == 1 {

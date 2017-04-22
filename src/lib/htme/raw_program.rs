@@ -20,7 +20,7 @@ impl RawProgram {
     //
     //     let mut vec = vec![];
     //     for &(address, ref code, ref instruction) in program.iter(){
-    //         vec.push((address, code.to_owned(), (*instruction).format));
+    //         vec.push((address, code.to_owned(), (*instruction).get_format()));
     //     }
     //
     //     RawProgram{
@@ -54,7 +54,7 @@ impl RawProgram {
         let (ref first_code, ref first_instruction) = program[0];
         let first_address = first_instruction.locctr;
         let mut prev_address = first_address;
-        let mut prev_format = (*first_instruction).format;
+        let mut prev_format = (*first_instruction).get_format();
         let mut records = String::from("");
 
         //counters
@@ -65,7 +65,7 @@ impl RawProgram {
         //iterating on program: address, code, instruction tuple.
         for &(ref code, ref instruction) in program.iter() {
             //I only care about instruction's format
-            let format = (*instruction).format;
+            let format = (*instruction).get_format();
             let address = (*instruction).locctr;
 
             //terminating conditions for a single T record
@@ -121,7 +121,7 @@ impl RawProgram {
 
 
         for &(ref code, ref instruction) in (*self).program.iter() {
-            let format = (*instruction).format;
+            let format = (*instruction).get_format();
             let address: u32 = (*instruction).locctr as u32;
 
             if format == Format::Four {

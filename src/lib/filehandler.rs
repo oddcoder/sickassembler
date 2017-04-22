@@ -161,8 +161,8 @@ impl FileHandler {
             let format = unwrap_to_vec(&instruction_def.format);
             match format.len() {
                 0 => (),
-                1 => inst.format = format[0],
-                2 => inst.format = Format::Three,
+                1 => inst.set_format(format[0]),
+                2 => inst.set_format(Format::Three),
                 _ => {
                     panic!("We Just found an instruction that had more than 2 formats! you are \
                             screwed")
@@ -240,13 +240,15 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
         _ => (),
     }
 
-    let mut optype = OperandType::Label;
+    let mut optype = OperandType::None;
 
     if CHAR_STREAM.is_match(&op) || HEX_STREAM.is_match(&op) {
         optype = OperandType::Bytes;
     }
 
+    optype = OperandType::Label;
     let mut index_start = 0;
+
     match &op[0..1] {
         "#" => {
             optype = OperandType::Immediate;
@@ -271,15 +273,21 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
         }
         _ => (),
     }
+
     let val = op[index_start..op.len()].to_owned();
     let mut x = usize::from_str_radix(&val[0..1], 10);
+
     match x {
         Err(_) => {
             // Isn't a number -> label or literal
             if CHAR_STREAM.is_match(&op) || HEX_STREAM.is_match(&op) {
+                optype = OperandType::Bytes;
                 return AsmOperand::new(optype, Value::Bytes(val));
+            } else {
+
+                return AsmOperand::new(optype, Value::Label(val));
             }
-            return AsmOperand::new(optype, Value::Label(val));
+
         }
         Ok(_) => {
             if *is_directive {

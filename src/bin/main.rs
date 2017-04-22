@@ -43,7 +43,8 @@ fn main() {
     let asm_file = FileHandler::new(input);
     let listing_info = sick_lib::pass_one::pass_one::pass_one(asm_file);
     let sym_tab = listing_info.0;
-    let listing_instructions = listing_info.1;
+    let mut raw_program = listing_info.1;
+    let errs = sick_lib::pass_two::translator::pass_two(&mut raw_program);
 
     for entry in sym_tab {
         println!("{:?}", entry);
@@ -51,8 +52,11 @@ fn main() {
 
     print!("\n\n\n");
 
-    for entry in listing_instructions.program {
+    for entry in raw_program.program {
         println!("{:?}", entry);
     }
 
+    for err in errs {
+        println!("{}", err);
+    }
 }

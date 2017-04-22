@@ -1,7 +1,7 @@
 use super::super::{to_hex, string_from_object_code};
 use instruction::Instruction;
 use operands::Value;
-use instruction_set::{self, AssemblyDef, is_base_mode_directive};
+use instruction_set::{self, AssemblyDef, is_base_mode_directive, is_decodable_directive};
 use formats::*;
 use semantics_validator;
 use base_table::{set_base, end_base};
@@ -9,8 +9,35 @@ use pass_one::pass_one::get_symbol;
 use std::u32;
 use base_table;
 use regex::Regex;
+use super::super::RawProgram;
 
-pub fn translate(instruction: &mut Instruction) -> Result<String, String> {
+/// Returns the errors
+pub fn pass_two(prog: &mut RawProgram) -> Vec<String> {
+
+    let temp_instructions: Vec<Instruction>;
+
+    // {
+    //     // Move the instructions into a temp storage
+    //     // to allow for adding literals
+    //     temp_objcodes = prog.program
+    //         .into_iter()
+    //         .map(move |t: (_, Instruction)| t.1)
+    //         .collect::<Vec<Instruction>>();
+    // }
+    let mut errs: Vec<String> = Vec::new();
+
+    for &mut (ref mut obj_code, ref mut instr) in prog.program.iter_mut() {
+        // TODO: add obj code
+        match translate(instr) {
+            Ok(obj) => *obj_code = obj,
+            Err(e) => errs.push(e),
+        }
+    }
+
+    errs
+}
+
+fn translate(instruction: &mut Instruction) -> Result<String, String> {
 
     let mut errs: Vec<String> = Vec::new();
     // TODO: check for action directives in the caller of this function
@@ -18,21 +45,29 @@ pub fn translate(instruction: &mut Instruction) -> Result<String, String> {
     // FIXME: handle base-relative addressing
     {
         if let Err(e) = semantics_validator::validate_semantics(instruction) {
-            panic!("Symantic Error(s): {}", e);
+            panic!("Symantic Error(s): {} \n {:?} \n\n", e, instruction);
         }
     }
 
     // Resolve operands first, in case of a directive, this function will return early
-    let raw_operands: Result<String, String> = resolve_incomplete_operands(instruction);
 
-    if let Some(directive) = is_base_mode_directive(&instruction.mnemonic) {
-        // TODO: base
+    if is_base_mode_directive(&instruction.mnemonic).is_some() {
+        // Add the base entry
+        resolve_base_directive(instruction);
+        return Ok(String::new());
     }
 
-    if is_directive(instruction) {
+    let raw_operands: Result<String, String>;
+    {
+        raw_operands = resolve_incomplete_operands(instruction);
+    }
+
+
+    if is_decodable_directive(&instruction.mnemonic) {
         return raw_operands;
+    } else if is_directive(instruction) && !is_decodable_directive(&instruction.mnemonic) {
+        return Ok(String::new());
     }
-
     // Assemble the instruciton
     // Operand field in the hex code
     let raw_opcode: Result<u32, &str> = resolve_opcode(instruction);
@@ -53,15 +88,15 @@ pub fn translate(instruction: &mut Instruction) -> Result<String, String> {
 
     // The operands are numeric if it's a normal instruction, not a directive
     let operands: u32 = u32::from_str_radix(&operands.unwrap(), 16)
-        .expect("Failed to parse operand");
+        .map_err(|e| errs.push("Failed to parse operand".to_owned()))
+        .unwrap_or(0);
 
     let numeric_val = op_code.unwrap() + flags.unwrap();
-    Ok(string_from_object_code(numeric_val + operands,
-                               (get_bit_count(instruction.format) / 8) as u8))
+    Ok(string_from_object_code(numeric_val + operands, (instruction.get_format()) as u8))
 }
 
 /// Returns the hex value of operands
-fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, String> {
+fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, String> {
     // Convert immediate and indirect operands to a basic forms -> Raw
     let mut raws: String = String::new();
     let op_vec = instruction.unwrap_operands();
@@ -88,10 +123,12 @@ fn resolve_incomplete_operands(instruction: &Instruction) -> Result<String, Stri
                     Some(addr) => sym_addr = addr,
                     None => return Err("Symbol not found".to_owned()),
                 }
-
-                match get_disp(instruction, sym_addr) {
-                    Ok(addr) => addr,
-                    Err(e) => return Err(e.to_string()),
+                println!("--> disp {:X} {:X} ", sym_addr, instruction.locctr);
+                {
+                    match get_disp(instruction, sym_addr) {
+                        Ok(addr) => addr,
+                        Err(e) => return Err(e.to_string()),
+                    }
                 }
             }
             Value::Raw(x) => to_hex(x),
@@ -113,22 +150,28 @@ fn resolve_opcode(instr: &Instruction) -> Result<u32, &str> {
         Err(err) => return Err(err),
     };
 
-    let op_code = instruction_set_def.get_opcode_value(instr.format);
+    let op_code = instruction_set_def.get_opcode_value(instr.get_format());
     Ok(op_code as u32)
 }
 
-fn resolve_base_instruction(instruction: &Instruction) -> Result<(), String> {
-    match instruction.mnemonic.as_str() {
-        "BASE" => {
-            match resolve_label(&instruction.mnemonic) {
-                Ok(addr) => set_base(instruction.locctr, addr),
-                Err(e) => return Err(e.to_owned()),
+fn resolve_base_directive(instr: &Instruction) {
+    let mnemonic = instr.mnemonic.to_uppercase();
+    let locctr = instr.locctr;
+
+    println!("BASE: {:?}", instr.operands);
+
+    if mnemonic == "BASE" {
+        if let Value::Label(val) = instr.get_first_operand().val {
+            match resolve_label(&val) {
+                Ok(addr) => set_base(locctr, addr),
+                Err(e) => panic!("Invalid base {}", e),
             }
         }
-        "NOBASE" => end_base(instruction.locctr),
-        _ => (),
+    } else if mnemonic == "NOBASE" {
+        end_base(locctr);
+    } else {
+        panic!("Unknown instruction {:?}", instr);
     }
-    Ok(())
 }
 
 /// Returns the location of the symbol from the
@@ -175,19 +218,6 @@ fn is_directive(instr: &Instruction) -> bool {
     return false;
 }
 
-fn resolve_base_directive(instr: &Instruction) {
-    let mnemonic = instr.mnemonic.to_uppercase();
-    let locctr = instr.locctr;
-    if mnemonic == "BASE" {
-        let val = instr.get_first_operand().val;
-        //set_base(locctr /**/);
-    } else if mnemonic == "NOBASE" {
-        end_base(locctr);
-    } else {
-        panic!("Unknown instruction {:?}", instr);
-    }
-}
-
 fn parse_str_operand(operand_match: String) -> String {
     // EOF BYTE C’EOF’ -> 454F46
     operand_match.chars()
@@ -196,32 +226,45 @@ fn parse_str_operand(operand_match: String) -> String {
         .join("")
 }
 
-fn get_disp(instruction: &Instruction, sym_addr: i32) -> Result<String, &str> {
+fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, &str> {
+
     // TODO: move to the instruction itself
     // If the instruction is format 4, return the address
-    if instruction.format == Format::Four {
+    if instruction.get_format() == Format::Four {
         if sym_addr > 0xFFFFF {
             return Err("Address is out of 20-bit range");
         }
-        return Ok(to_hex(sym_addr));
+        return Ok(to_hex(sym_addr & 0xFFFF));
     }
 
     // TODO: check the calculation and range
-    let mut disp = (instruction.locctr + instruction.format as i32) - sym_addr;
+    let mut disp: i32 = sym_addr - (instruction.locctr + instruction.get_format() as i32);
     let base = base_table::get_base_at(instruction.locctr as u32);
 
-    if (disp >= -2048 && disp < 2048) && base.is_none() {
+    // PC relative is invalid
+    if -2048 <= disp && disp < 2048 {
+        instruction.set_pc_relative();
+        return Ok(to_hex(disp & 0xFFFF));
     } else if base.is_some() {
-        disp = (base.unwrap() as i32 + instruction.format as i32) - sym_addr;
-        if disp < 0 || disp > 4096 {
+        disp = sym_addr - (base.unwrap() as i32 + instruction.get_format() as i32);
+
+        if (0 < disp && disp < 4096) == true {
+            instruction.set_base_relative();
+            return Ok(to_hex(disp & 0xFFF));
+        } else {
+            println!("Address is out of base relative range {} {}",
+                     disp,
+                     sym_addr);
             return Err("Address is out of base relative range");
         }
+
     } else {
+        println!("Address is out of range {} {} and no PC", disp, sym_addr);
         return Err("Address is out of PC relative range and no base is specified");
     }
-
-    Ok(to_hex(disp))
 }
+
+
 
 fn panic_on_memory_limit(disp: i32, locctr: i32) {
     if disp + locctr >= (1 << 20) {
@@ -255,25 +298,25 @@ mod tests {
     fn test_resolve_op_code() {
         let mut inst = Instruction::new_simple("ldx".to_owned());
 
-        inst.format = formats::Format::One;
+        inst.set_format(formats::Format::One);
         assert_eq!(resolve_opcode(&inst).unwrap(), 0x04);
 
-        inst.format = formats::Format::Three;
+        inst.set_format(formats::Format::Three);
         assert_eq!(resolve_opcode(&inst).unwrap(), 0x040000);
 
-        inst.format = formats::Format::Four;
+        inst.set_format(formats::Format::Four);
         assert!(resolve_opcode(&inst).unwrap() == 0x04000000);
     }
 
     #[test]
     fn test_resolve_regs() {
-        let inst =
+        let mut inst =
             Instruction::new(String::new(),
                              "add".to_owned(),
                              UnitOrPair::Unit(AsmOperand::new(OperandType::Register,
                                                               Value::Register(Register::B))));
 
-        let opr: String = resolve_incomplete_operands(&inst).unwrap();
+        let opr: String = resolve_incomplete_operands(&mut inst).unwrap();
         assert_eq!(opr, "3");
     }
 
@@ -297,5 +340,43 @@ mod tests {
         let test_str: String = "abc".to_owned();
         let result = parse_str_operand(test_str);
         assert_eq!(result, "616263");
+    }
+
+    #[test]
+    fn translate_correct() {
+        let mut instrs = vec![
+                                                                     create_instruction("comp",
+                                    UnitOrPair::Unit(AsmOperand::new(OperandType::Immediate,
+                                                                     Value::SignedInt(0))),
+                                                                     Format::Three),
+                                    
+                                                                     create_instruction("TIXR",
+                                    UnitOrPair::Unit(AsmOperand::new(OperandType::Register,
+                                                                     Value::Register(Register::T))),
+                                                                     Format::Two),
+                                                                     create_instruction("LDA",
+                                    UnitOrPair::Unit(AsmOperand::new(OperandType::Immediate,
+                                                                     Value::SignedInt(3))),
+                                                                     Format::Three),
+                                                                     create_instruction("LDT",
+                                    UnitOrPair::Unit(AsmOperand::new(OperandType::Immediate,
+                                                                     Value::SignedInt(4096))),
+                                                                     Format::Four)
+                                    ];
+
+        assert_eq!(translate(&mut instrs[0]).unwrap(), "290000");
+        assert_eq!(translate(&mut instrs[1]).unwrap(), "B850");
+        assert_eq!(translate(&mut instrs[2]).unwrap(), "010003");
+        assert_eq!(translate(&mut instrs[3]).unwrap(), "75101000");
+    }
+
+    fn create_instruction(mnemonic: &str,
+                          operands: UnitOrPair<AsmOperand>,
+                          format: Format)
+                          -> Instruction {
+
+        let mut instr = Instruction::new(String::new(), mnemonic.to_owned(), operands);
+        instr.set_format(format);
+        instr
     }
 }

@@ -9,6 +9,7 @@ CLOOP	JSUB	RDREC	. read input record
 ENDFIL	LDA	EOF	. insert end of file marker
 	STA	BUFFER
 	LDA	=X'3'	. set LENGTH = 3
+	BASE  EOD
 	STA	LENGTH
 	+JSUB	WRREC	. write EOF
 	LTORG

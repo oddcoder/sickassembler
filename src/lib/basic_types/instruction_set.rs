@@ -136,7 +136,7 @@ lazy_static!{
                 ("OR".to_owned(),       AssemblyDef::new("OR".to_owned(),       UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0x44)),
                 ("RD".to_owned(),       AssemblyDef::new("RD".to_owned(),       UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0xD8)),
                 ("RMO".to_owned(),      AssemblyDef::new("RMO".to_owned(),      UnitOrPair::Unit(Format::Two),                      UnitOrPair::Pair(OperandType::Register, OperandType::Register), 0xAC)),
-                ("RSUB".to_owned(),     AssemblyDef::new("RSUB".to_owned(),     UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::Unit(OperandType::Immediate),                       0x4C)),
+                ("RSUB".to_owned(),     AssemblyDef::new("RSUB".to_owned(),     UnitOrPair::Pair(Format::Three, Format::Four),      UnitOrPair::None,                                               0x4C)),
                 ("SHIFTL".to_owned(),   AssemblyDef::new("SHIFTL".to_owned(),   UnitOrPair::Unit(Format::Two),                      UnitOrPair::Pair(OperandType::Register, OperandType::Immediate),0xA4)),
                 ("SHIFTR".to_owned(),   AssemblyDef::new("SHIRFT".to_owned(),   UnitOrPair::Unit(Format::Two),                      UnitOrPair::Pair(OperandType::Register, OperandType::Immediate),0xA8)),
                 ("SIO".to_owned(),     AssemblyDef::new("SIO".to_owned(),       UnitOrPair::Unit(Format::One),                      UnitOrPair::None,                                               0xF0)),
@@ -189,6 +189,14 @@ pub fn is_base_mode_directive(directive_mnemonic: &str) -> Option<String> {
     match upper_cased.as_str() {
         "BASE" | "NOBASE" => Some(upper_cased.to_owned()),
         _ => None,
+    }
+}
+
+/// Indicates a directive that will generate object code
+pub fn is_decodable_directive(mnemonic: &str) -> bool {
+    match mnemonic.to_uppercase().as_str() {
+        "BYTE" | "WORD" => true,
+        _ => false,
     }
 }
 

@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use register::Register;
+use std::fmt;
 /**
 *  Instruction operand
 */
@@ -33,7 +34,7 @@ pub fn match_value(first: &OperandType, second: &Value) -> bool {
 }
 
 /// Use the SignedInt with immediate operand types
-#[derive(Debug,PartialEq,Clone)]
+#[derive(PartialEq,Clone)]
 pub enum Value {
     Register(Register),
     SignedInt(i32),
@@ -41,4 +42,20 @@ pub enum Value {
     Label(String),
     Bytes(String),
     None,
+}
+
+impl fmt::Debug for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let to_print;
+
+        to_print = match self.clone() {
+            Value::Register(x) => (x as u8).to_string(),
+            Value::Raw(x) => (x).to_string(),
+            Value::SignedInt(x) => x.to_string(),
+            Value::Label(x) | Value::Bytes(x) => x,
+            _ => String::new(),
+        };
+
+        write!(f, "\"{}\"", to_print)
+    }
 }

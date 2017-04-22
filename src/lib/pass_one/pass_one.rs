@@ -10,7 +10,7 @@ use literal_table::{insert_literal, get_unresolved, get_literal};
 use super::super::RawProgram;
 
 fn get_instruction_size(inst: &Instruction) -> i32 {
-    match inst.format {
+    match inst.get_format() {
         Format::One => return 1,
         Format::Two => return 2,
         Format::Three => return 3,
@@ -57,8 +57,9 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
                 panic!("RESW expects only 1 operand");
             }
             match operands[0].val {
-                Value::Raw(x) => return x as i32,
-                Value::SignedInt(x) => return x,
+                // FIXME: parser mistake, this should take a SingedInt i.e. immediate value
+                Value::Raw(x) => return (x * 3) as i32,
+                Value::SignedInt(x) => return x * 3,
                 _ => panic!("Unexpected Error"),
             }
         }
