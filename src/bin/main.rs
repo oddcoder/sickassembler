@@ -46,8 +46,15 @@ fn main() {
     let (sym_tab, mut raw_program) = sick_lib::pass_one::pass_one::pass_one(asm_file);
     let errs = sick_lib::pass_two::translator::pass_two(&mut raw_program);
 
-    for entry in sym_tab {
-        println!("{:?}", entry);
+    let mut sym_tab = sym_tab.into_iter()
+        .map(|e| (e.0, e.1))
+        .collect::<Vec<(String, i32)>>();
+
+    // Sort by address
+    sym_tab.sort_by(|a, b| a.1.cmp(&b.1));
+
+    for (name, address) in sym_tab {
+        println!("{:8} {:<8X}", name, address);
     }
 
     print!("\n\n\n");

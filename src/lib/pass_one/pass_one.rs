@@ -46,7 +46,7 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
                 panic!("RESB expects only 1 operand");
             }
             match operands[0].val {
-                Value::Raw(x) => return x as i32,
+                //Value::Raw(x) => return x as i32,
                 Value::SignedInt(x) => return x,
                 _ => panic!("Unexpected Error {:?}", *inst),
             }
@@ -57,8 +57,6 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
                 panic!("RESW expects only 1 operand");
             }
             match operands[0].val {
-                // FIXME: parser mistake, this should take a SingedInt i.e. immediate value
-                Value::Raw(x) => return (x * 3) as i32,
                 Value::SignedInt(x) => return x * 3,
                 _ => panic!("Unexpected Error"),
             }

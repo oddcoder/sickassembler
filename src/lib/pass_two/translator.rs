@@ -102,7 +102,6 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, 
             }
             Value::Register(ref x) => {
                 let reg_num = *x as u8;
-                println!("reg:{}", reg_num);
                 to_hex(reg_num as u32)
             }
             // Get from symtab
@@ -113,10 +112,13 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, 
                     Some(addr) => sym_addr = addr,
                     None => return Err("Symbol not found".to_owned()),
                 }
-                println!("--> disp {:X} {:X} ", sym_addr, instruction.locctr);
+
                 {
                     match get_disp(instruction, sym_addr) {
-                        Ok(addr) => addr,
+                        Ok(addr) => {
+                            println!("--> disp {:X} {:X} ", sym_addr, instruction.locctr);
+                            addr
+                        }
                         Err(e) => return Err(e.to_string()),
                     }
                 }
@@ -147,8 +149,6 @@ fn resolve_opcode(instr: &Instruction) -> Result<u32, &str> {
 fn resolve_base_directive(instr: &Instruction) {
     let mnemonic = instr.mnemonic.to_uppercase();
     let locctr = instr.locctr;
-
-    println!("BASE: {:?}", instr.operands);
 
     if mnemonic == "BASE" {
         if let Value::Label(val) = instr.get_first_operand().val {
