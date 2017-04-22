@@ -9,12 +9,10 @@ use unit_or_pair::*;
 use register::*;
 use operands::*;
 use formats::*;
-use literal_table::{get_unresolved, insert_literal, insert_unresolved};
-use base_table::{set_base, end_base};
+use literal_table::insert_unresolved;
 use super::RawProgram;
 
 pub struct FileHandler {
-    path: String,
     buf: BufReader<File>,
 }
 
@@ -22,10 +20,7 @@ impl FileHandler {
     pub fn new(path: String) -> FileHandler {
         let file = File::open(&path).unwrap();
         let f = BufReader::new(file);
-        return FileHandler {
-            path: path,
-            buf: f,
-        };
+        return FileHandler { buf: f };
     }
 
     /// Returns:
@@ -41,13 +36,8 @@ impl FileHandler {
             first_instruction_address: u32::MAX,
         };
 
-        let prog_header: (String, usize);
-
-        {
-            // Scope for borrowing mutably
-            prog_header = self.read_start();
-            prog.program_name = prog_header.0;
-        };
+        let (name, end_address) = self.read_start();
+        prog.program_name = name;
 
         {
             while let Some(instruction) = self.read_instruction() {
@@ -59,7 +49,7 @@ impl FileHandler {
 
                     if let Value::SignedInt(op_end) = unwrap_to_vec(&instruction.operands)[0].val {
                         // Will panic on negative value
-                        prog.program_length = (op_end as i32 - prog_header.1 as i32) as u32;
+                        prog.program_length = (op_end as i32 - end_address as i32) as u32;
                     }
                     continue; // Don't add end to instructions
                 }
@@ -68,7 +58,7 @@ impl FileHandler {
             }
         };
 
-        Ok((prog, prog_header.1))
+        Ok((prog, end_address))
     }
 
     fn read_start(&mut self) -> (String, usize) {
@@ -77,7 +67,7 @@ impl FileHandler {
             None => panic!("Excepted START line"),
             Some(x) => line = x,
         }
-        let mut words: Vec<&str> = line.split_whitespace().collect();
+        let words: Vec<&str> = line.split_whitespace().collect();
 
         if words.len() > 3 {
             panic!("Unexpected \"{}\"", words[3]);
@@ -87,12 +77,6 @@ impl FileHandler {
             "START" => return (words[0].to_owned(), words[2].parse().unwrap()),
             _ => panic!("Expected \"START\" found \"{}\"", words[1]),
         }
-    }
-
-    /// Reads a START / END instruction
-    fn read_boundry_instruction(instr_name: String) -> (String, usize) {
-        // TODO: needs a function that reads the strings from file only
-        unimplemented!()
     }
 
     fn read_instruction(&mut self) -> Option<Instruction> {
@@ -116,12 +100,12 @@ impl FileHandler {
         }
 
         match fetch_instruction(&maybe_instruction) {
-            Err(meh) => {
+            Err(_) => {
                 if is_format_4 {
                     panic!("Label can not start with a +");
                 }
                 match fetch_directive(&maybe_instruction) {
-                    Err(meh) => label = maybe_instruction.to_owned(),
+                    Err(_) => label = maybe_instruction.to_owned(),
                     Ok(def) => {
                         instruction = maybe_instruction.to_owned();
                         instruction_def = def;
@@ -152,7 +136,7 @@ impl FileHandler {
             }
         }
 
-        let mut operands: UnitOrPair<AsmOperand> = parse_operands(words.next(), &is_directive);
+        let operands: UnitOrPair<AsmOperand> = parse_operands(words.next(), &is_directive);
         let mut inst: Instruction = Instruction::new(label, instruction, operands);
 
         if is_format_4 {
@@ -225,7 +209,6 @@ fn parse_operands(operands: Option<&str>, is_directive: &bool) -> UnitOrPair<Asm
         }
         _ => panic!("expected . or newline instead of `{}`", ops[2]),
     }
-    return UnitOrPair::None;
 }
 
 fn parse(op: String, is_directive: &bool) -> AsmOperand {
@@ -240,13 +223,12 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
         _ => (),
     }
 
-    let mut optype = OperandType::None;
+    let mut optype = OperandType::Label;
 
     if CHAR_STREAM.is_match(&op) || HEX_STREAM.is_match(&op) {
         optype = OperandType::Bytes;
     }
 
-    optype = OperandType::Label;
     let mut index_start = 0;
 
     match &op[0..1] {
@@ -275,7 +257,7 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
     }
 
     let val = op[index_start..op.len()].to_owned();
-    let mut x = usize::from_str_radix(&val[0..1], 10);
+    let x = usize::from_str_radix(&val[0..1], 10);
 
     match x {
         Err(_) => {
@@ -284,16 +266,13 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
                 optype = OperandType::Bytes;
                 return AsmOperand::new(optype, Value::Bytes(val));
             } else {
-
                 return AsmOperand::new(optype, Value::Label(val));
             }
-
         }
         Ok(_) => {
             if *is_directive {
                 return AsmOperand::new(optype,
                                        Value::Raw(usize::from_str_radix(&val, 16).unwrap() as u32));
-                return AsmOperand::new(optype, Value::Raw(val.parse().unwrap()));
             } else {
                 return AsmOperand::new(optype, Value::Raw(val.parse().unwrap()));
             }
@@ -344,8 +323,10 @@ mod tests {
         // Without regex
         let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
         let mut instruction_count = 0;
-        let start = asm_file.read_start();
+
+        asm_file.read_start();
         instruction_count = instruction_count + 1;
+
         loop {
             let instruction = asm_file.read_instruction();
             match instruction {
@@ -367,9 +348,9 @@ mod tests {
         let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
 
         // Start and End are not included in parse_file result
-        let mut instruction_count_without_start = lines.len() - 2;
+        let instruction_count_without_start = lines.len() - 2;
 
-        let prog = asm_file.parse_file().unwrap().0;
+        let (prog, _) = asm_file.parse_file().unwrap();
 
         assert_eq!(prog.program.len(), instruction_count_without_start);
 

@@ -4,8 +4,6 @@ use parking_lot::RwLock;
 use std::ops::DerefMut;
 use translator::translate_literal;
 use literal::Literal;
-use instruction::Instruction;
-
 
 lazy_static!{
     /// HashMap -> Keep the stored values unique
@@ -15,27 +13,24 @@ lazy_static!{
 }
 
 pub fn insert_literal(literal: &String, address: u32) {
-    let lit: Literal;
 
     let mut temp = LIT_ID.write();
     let mut lit_table = LITERAL_TABLE.write();
 
-    {
-        let mut literal_id: &mut u32 = temp.deref_mut();
-        let lit_val = translate_literal(&literal);
-        let lit_name = lit = Literal::new(("lit_".to_owned() + &literal_id.to_string()),
-                                          lit_val,
-                                          literal.clone(),
-                                          address);
+    let mut literal_id: &mut u32 = temp.deref_mut();
+    let lit_val = translate_literal(&literal);
+    let lit: Literal = Literal::new(("lit_".to_owned() + &literal_id.to_string()),
+                                    lit_val,
+                                    literal.clone(),
+                                    address);
 
-        *literal_id = *literal_id + 1;
-    }
+    *literal_id = *literal_id + 1;
 
-    {
-        // Ignore the error if insertion returns None,
-        // this means that the literal existed in the table
-        lit_table.insert(lit);
-    }
+
+    // Ignore the error if insertion returns None,
+    // this means that the literal existed in the table
+    lit_table.insert(lit);
+
 }
 
 /// Insert a literal name to the temp literal table
