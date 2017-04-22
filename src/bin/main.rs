@@ -30,10 +30,12 @@ fn main() {
         print_usage(&program, opts);
         return;
     }
+
     let mut output = "a.out".to_string();
     if matches.opt_present("o") {
         output = matches.opt_str("o").expect("missing file name after -o");
     }
+
     let input = if !matches.free.is_empty() {
         matches.free[0].clone()
     } else {

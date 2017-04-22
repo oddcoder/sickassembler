@@ -1,4 +1,3 @@
-use formats::Format;
 use instruction::Instruction;
 //TODO: decide if I need to move these?
 

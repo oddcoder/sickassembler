@@ -14,16 +14,6 @@ use super::super::RawProgram;
 /// Returns the errors
 pub fn pass_two(prog: &mut RawProgram) -> Vec<String> {
 
-    let temp_instructions: Vec<Instruction>;
-
-    // {
-    //     // Move the instructions into a temp storage
-    //     // to allow for adding literals
-    //     temp_objcodes = prog.program
-    //         .into_iter()
-    //         .map(move |t: (_, Instruction)| t.1)
-    //         .collect::<Vec<Instruction>>();
-    // }
     let mut errs: Vec<String> = Vec::new();
 
     for &mut (ref mut obj_code, ref mut instr) in prog.program.iter_mut() {
@@ -88,7 +78,7 @@ fn translate(instruction: &mut Instruction) -> Result<String, String> {
 
     // The operands are numeric if it's a normal instruction, not a directive
     let operands: u32 = u32::from_str_radix(&operands.unwrap(), 16)
-        .map_err(|e| errs.push("Failed to parse operand".to_owned()))
+        .map_err(|e| errs.push("Failed to parse operand ".to_owned() + &e.to_string()))
         .unwrap_or(0);
 
     let numeric_val = op_code.unwrap() + flags.unwrap();
@@ -237,20 +227,20 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, &str
         return Ok(to_hex(sym_addr & 0xFFFF));
     }
 
-    // TODO: check the calculation and range
+    let final_disp: i32;
     let mut disp: i32 = sym_addr - (instruction.locctr + instruction.get_format() as i32);
-    let base = base_table::get_base_at(instruction.locctr as u32);
 
+    let base = base_table::get_base_at(instruction.locctr as u32);
     // PC relative is invalid
     if -2048 <= disp && disp < 2048 {
         instruction.set_pc_relative();
-        return Ok(to_hex(disp & 0xFFFF));
+        final_disp = disp & 0xFFFF;
     } else if base.is_some() {
         disp = sym_addr - (base.unwrap() as i32 + instruction.get_format() as i32);
 
         if (0 < disp && disp < 4096) == true {
             instruction.set_base_relative();
-            return Ok(to_hex(disp & 0xFFF));
+            final_disp = disp & 0xFFF;
         } else {
             println!("Address is out of base relative range {} {}",
                      disp,
@@ -262,6 +252,9 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, &str
         println!("Address is out of range {} {} and no PC", disp, sym_addr);
         return Err("Address is out of PC relative range and no base is specified");
     }
+
+    panic_on_memory_limit(final_disp, instruction.locctr);
+    return Ok(to_hex(final_disp));
 }
 
 

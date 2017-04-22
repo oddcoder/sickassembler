@@ -1,4 +1,4 @@
-use std::collections::hash_map::{Entry, HashMap};
+use std::collections::HashMap;
 use instruction::*;
 use formats::Format;
 use filehandler::*;
@@ -24,8 +24,8 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
                 panic!("BYTE expects only 1 operand");
             }
             match operands[0].val {
-                Value::Raw(x) => return 1,
-                Value::SignedInt(x) => return 1,
+                Value::Raw(_) => return 1,
+                Value::SignedInt(_) => return 1,
                 Value::Bytes(ref x) => {
                     if &x[0..1] == "X" {
                         let len: f32 = ((x.len() as i32 - 3) / 2) as f32;
@@ -70,11 +70,12 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
 
 pub fn pass_one(mut file: FileHandler) -> (HashMap<String, i32>, RawProgram) {
 
-    let mut symbol_table: HashMap<String, i32> = HashMap::new();
+    // TODO: replace the literal in an instruction operand with the literal label
+    // if let Value::Bytes(ref x) = instruction.get_first_operand().val {}
 
-    let (mut prog, mut loc) = file.parse_file().unwrap();
+    let (mut prog, loc) = file.parse_file().unwrap();
     let mut loc = loc as i32;
-    
+
     let temp_instructions: Vec<Instruction>;
 
     {
@@ -92,11 +93,10 @@ pub fn pass_one(mut file: FileHandler) -> (HashMap<String, i32>, RawProgram) {
         instruction.locctr = loc;
 
         if !instruction.label.is_empty() {
-            if symbol_table.contains_key(&instruction.label) {
+            if let Err(_) = insert_symbol(&instruction.label, loc) {
                 panic!("Label {} is defined at more than one location",
                        instruction.label);
-            };
-            insert_symbol(&instruction.label, loc);
+            }
         }
 
         if instruction.mnemonic.to_uppercase() == "LTORG" {
@@ -148,10 +148,6 @@ fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
                                                           Value::Bytes(literal.external_name))));
     lit_instr.locctr = literal.address as i32;
     Box::new(lit_instr)
-}
-
-fn replace_literal(instruction: &mut Instruction) {
-    if let Value::Bytes(ref x) = instruction.get_first_operand().val {}
 }
 
 lazy_static!{

@@ -1,12 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use pass_two::translator::*;
     use instruction::{Instruction, AsmOperand};
     use operands::{OperandType, Value};
     use formats::Format;
-    use flags::Flags;
     use unit_or_pair::UnitOrPair;
-    use register::Register;
+
     #[test]
     fn flag_resolution() {
         let mut instr: Instruction =

@@ -3,7 +3,7 @@
 mod instuction_tests {
 
     use instruction::Instruction;
-    use flags::Flags;
+
     use formats::Format;
 
     #[test]
