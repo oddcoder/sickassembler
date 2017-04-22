@@ -3,6 +3,9 @@ extern crate prettytable;
 extern crate sick_lib;
 extern crate getopts;
 extern crate env_logger;
+extern crate term;
+
+use term::{Attr, color};
 use getopts::Options;
 use prettytable::Table;
 use prettytable::row::Row;
@@ -60,28 +63,31 @@ fn main() {
     sym_tab.sort_by(|a, b| a.1.cmp(&b.1));
     // Create the table
     let mut table = Table::new();
+    table.add_row(Row::new(vec![Cell::new("Address"), Cell::new("Name")]));
     for (name, address) in sym_tab {
-        table.add_row(Row::new(vec![Cell::new(&name), Cell::new(&format!("{:04X}", address))]));
+        table.add_row(Row::new(vec![ 
+        Cell::new(&format!("{:04X}", address)).with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),Cell::new(&name)]));
     }
     table.printstd();
 
     print!("\n\n\n");
 
     let mut table = Table::new();
-    table.add_row(Row::new(vec![Cell::new("Obj"),
-                                Cell::new("Loc"),
+    table.add_row(Row::new(vec![Cell::new("Loc"),
                                 Cell::new("Label"),
                                 Cell::new("Mnemonic"),
-                                Cell::new("Format")]));
+                                Cell::new("Obj")]));
     for (objcode, instr) in raw_program.program {
-        table.add_row(Row::new(vec![Cell::new(&objcode),
-                                    Cell::new(&format!("{:04X}", instr.locctr)),
+        table.add_row(Row::new(vec![Cell::new(&format!("{:04X}", instr.locctr))
+                                        .with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),
                                     Cell::new(&instr.label),
                                     Cell::new(&instr.mnemonic),
-                                    Cell::new(&instr.get_format().to_string())]));
+                                    Cell::new(&objcode)
+                                        .with_style(term::Attr::ForegroundColor(color::BRIGHT_YELLOW))]));
     }
     table.printstd();
 
+    // TODO: don't produce HTME on errors
     for err in errs {
         println!("{}", err);
     }
