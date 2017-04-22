@@ -42,7 +42,6 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
                 }
                 _ => panic!("Unexpected Error {:?}", *inst),
             };
-            println!("BYTE OP: {:?} {}", operands[0], instr_len);
             return instr_len;
         }
         "WORD" => return 3,

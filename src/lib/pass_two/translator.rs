@@ -245,19 +245,17 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
             final_disp = disp & 0xFFF;
 
         } else {
-            println!("Address is out of base relative range {} {}",
-                     disp,
-                     sym_addr);
-            return Err(format!("Address is out of base relative range {} {} {:?}",
+            return Err(format!("Address is out of base relative range disp:{:X} base:{:X} symbol \
+                                addr:{:X} , Instruction:{:?}",
                                disp,
+                               base,
                                sym_addr,
                                instruction));
         }
 
     } else {
-        println!("Address is out of range {} {} and no PC", disp, sym_addr);
         return Err(format!("Address is out of PC relative range and no base is specified, \
-                            PC-DISP {:X} TA{:X} Instruction:{:?}",
+                            PC-DISP:{:X} TA:{:X} Instruction:{:?}",
                            disp,
                            sym_addr,
                            instruction));

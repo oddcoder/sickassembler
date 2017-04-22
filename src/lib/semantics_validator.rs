@@ -21,9 +21,11 @@ pub fn validate_semantics(instr: &mut Instruction) -> Result<(), String> {
         Err(_) => return Err("Isn't an instruction or a directive".to_owned()),
     }
 
-    // if def.has_valid_operands(&instr.operands) == false {
-    //     errs.push("Operands for this mnemonic are invalid".to_owned());
-    // }
+    if def.has_valid_operands(&instr.operands) == false {
+        errs.push(format!("Operands for this instruction are invalid {:?} , expected {:?}",
+                          instr,
+                          def));
+    }
 
     // Check format correctness
     if def.match_format(&instr.get_format()) == false {

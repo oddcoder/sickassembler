@@ -29,7 +29,7 @@ impl AsmOperand {
 
 impl fmt::Debug for AsmOperand {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ {:?} {:?} }}", self.opr_type, self.val)
+        write!(f, " T:{:?} V:{:?} ", self.opr_type, self.val)
     }
 }
 
@@ -100,7 +100,10 @@ impl Instruction {
             let flag: Option<Flags> = match operand.opr_type {
                 OperandType::Immediate => Some(Flags::Immediate),
                 OperandType::Indirect => Some(Flags::Indirect),
-                OperandType::Register => {
+
+                // Indexed isn't with format 1,2
+                OperandType::Register if (instruction_format == Format::Three ||
+                                          instruction_format == Format::Four) => {
                     // If the instruction has 2 operands and the second is register X
                     if operand.val == Value::Register(Register::X) &&
                        self.unwrap_operands().len() == 2 {
@@ -264,7 +267,7 @@ impl Instruction {
 impl fmt::Debug for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               "{:8} {:8} {:8} {:8} {:?}",
+               "{} {} {} {} {:?}",
                self.format,
                self.locctr,
                self.label,
