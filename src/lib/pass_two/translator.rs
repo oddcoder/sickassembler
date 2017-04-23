@@ -233,7 +233,7 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
     if -2048 <= disp && disp < 2048 {
 
         instruction.set_pc_relative();
-        final_disp = disp & 0xFFFF;
+        final_disp = disp & 0xFFF;
 
     } else if base.is_some() {
 
