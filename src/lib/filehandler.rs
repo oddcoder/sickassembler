@@ -240,12 +240,12 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
             optype = OperandType::Indirect;
             index_start = 1;
         }
-        "=" if (CHAR_STREAM.is_match(&op[1..]) || HEX_STREAM.is_match(&op[1..])) => {
-            // Literals will be treated as labels
-            // Add the = sign at the start of name to avoid errors in pass_one
+        // "=" if (CHAR_STREAM.is_match(&op[1..]) || HEX_STREAM.is_match(&op[1..])) => {
+        //     // Literals will be treated as labels
+        //     // Add the = sign at the start of name to avoid errors in pass_one
 
-            insert_unresolved(&(op.to_owned()));
-        }
+        //     insert_unresolved(&(op.to_owned()));
+        // }
         "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => {
             if *is_directive {
                 optype = OperandType::Immediate;
@@ -275,7 +275,9 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
                 return AsmOperand::new(optype,
                                        Value::SignedInt(i32::from_str_radix(&val, 10).unwrap()));
             } else {
-                return AsmOperand::new(optype, Value::Raw(val.parse().unwrap()));
+                // Source file doesn't contain hexadecimal instruction parameters
+                // Only immediate -> Value::SignedInt
+                return AsmOperand::new(optype, Value::SignedInt(val.parse().unwrap()));
             }
         }
     }

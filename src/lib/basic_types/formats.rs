@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug,PartialEq,Copy,Clone)]
+#[derive(Debug,PartialEq,Copy,Clone,Eq,Hash)]
 #[repr(u8)]
 pub enum Format {
     One = 1,

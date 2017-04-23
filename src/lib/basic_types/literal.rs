@@ -21,8 +21,8 @@ impl Literal {
     }
 
     pub fn length_in_bytes(&self) -> i32 {
-        let len: f32 = (self.value.len() / 2) as f32;
-        return len.ceil() as i32;
+        let len: f32 = self.value.len() as f32 / 2.0;
+        return (len.ceil()) as i32;
     }
 }
 

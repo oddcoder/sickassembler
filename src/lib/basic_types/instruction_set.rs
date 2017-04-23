@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashSet, HashMap};
 use instruction::AsmOperand;
 use formats::{Format, get_bit_count};
 use operands::{self, OperandType, Value};
@@ -40,25 +40,50 @@ impl AssemblyDef {
 
     /// Validates the operands of a given instruction
     pub fn has_valid_operands(&self, operands: &UnitOrPair<AsmOperand>) -> bool {
-        // TODO: delete this function, it checks for programmers errors
+
         let others_ops: Vec<Value> = unit_or_pair::unwrap_to_vec(operands)
             .iter()
             .map(|o| o.clone().val)
             .collect::<Vec<Value>>();
-        let def_operands: Vec<OperandType> = unit_or_pair::unwrap_to_vec(&self.operands);
 
-        if others_ops.len() != def_operands.len() {
+        let others_ops_len = others_ops.len();
+
+        let opr_count_check: bool = match self.operands {
+            UnitOrPair::None => others_ops_len == 0,
+            UnitOrPair::Unit(_) => others_ops_len == 1,
+            UnitOrPair::Pair(_, _) => others_ops_len == 2,
+        };
+
+        if opr_count_check == false {
             return false;
         }
 
-        // Merge the 2 collections
-        let zipped = def_operands.iter().zip(others_ops);
+        let opr_type_set: HashSet<Format> = unit_or_pair::unwrap_to_vec(&self.format)
+            .into_iter()
+            .collect::<HashSet<Format>>();
 
-        for (def_operand, inst_op) in zipped {
-            if operands::match_value(&def_operand, &inst_op) == false {
-                return false;
-            }
+        // TODO: check for the value of the operands, format 3/4 operands can take
+        // immediate, indirect and labels
+        for opr in others_ops {
+            // Observing the instruction set, memory addresses are
+            // valid only using F3 , F4 instructions
+            // Registers are valid only on F2 instructions
+            // Raw values are used with F2
+            match opr {
+                Value::Register(_) if !opr_type_set.contains(&Format::Two) => return false,
+
+                Value::Label(_) |
+                Value::SignedInt(_) if !(opr_type_set.contains(&Format::Three) ||
+                                         opr_type_set.contains(&Format::Four)) => return false,
+
+                Value::Raw(_) if !opr_type_set.contains(&Format::Two) => return false,
+                Value::Bytes(_) => return false,   // Valid for directives only
+                Value::None if !(opr_type_set.contains(&Format::One) ||
+                                 self.mnemonic == "RSUB") => return false,
+                _ => (),
+            };
         }
+        // format 2 and 1 takes registers
 
         true
     }
