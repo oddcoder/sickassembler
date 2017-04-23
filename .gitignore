@@ -5,6 +5,7 @@ target
 *.swo
 *.bk
 *.htme
+*~
 tags
 .idea
 .vscode/

@@ -275,7 +275,9 @@ fn parse(op: String, is_directive: &bool) -> AsmOperand {
                 return AsmOperand::new(optype,
                                        Value::SignedInt(i32::from_str_radix(&val, 10).unwrap()));
             } else {
-                return AsmOperand::new(optype, Value::Raw(val.parse().unwrap()));
+                // Source file doesn't contain hexadecimal instruction parameters
+                // Only immediate -> Value::SignedInt
+                return AsmOperand::new(optype, Value::SignedInt(val.parse().unwrap()));
             }
         }
     }

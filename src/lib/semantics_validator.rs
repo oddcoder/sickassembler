@@ -22,7 +22,7 @@ pub fn validate_semantics(instr: &mut Instruction) -> Result<(), String> {
     }
 
     if def.has_valid_operands(&instr.operands) == false {
-        errs.push(format!("Operands for this instruction are invalid {:?} , expected {:?}",
+        errs.push(format!("Operands for this instruction are invalid {{ {:?} }} , \nexpected {{ {:?} }}",
                           instr,
                           def));
     }
