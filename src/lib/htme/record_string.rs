@@ -14,8 +14,8 @@ pub fn text_record_from_program(program: &Vec<(String, Instruction)>) -> String 
     let mut record = String::from("");
 
     //iterate on program (address, code, instruction tuple)
-    for &(ref code, ref instruction) in program.iter() {
-        let address = instruction.locctr;
+    for &(ref code, _) in program.iter() {
+        // let address = instruction.locctr;
         //push string onto record
         record.push_str(&code);
 

@@ -1,11 +1,10 @@
-#[macro_use]
 extern crate prettytable;
 extern crate sick_lib;
 extern crate getopts;
 extern crate env_logger;
 extern crate term;
 
-use term::{Attr, color};
+use term::color;
 use getopts::Options;
 use prettytable::Table;
 use prettytable::row::Row;
@@ -40,10 +39,10 @@ fn main() {
         return;
     }
 
-    let mut output = "a.out".to_string();
-    if matches.opt_present("o") {
-        output = matches.opt_str("o").expect("missing file name after -o");
-    }
+    // let mut output = "a.out".to_string();
+    // if matches.opt_present("o") {
+    //     output = matches.opt_str("o").expect("missing file name after -o");
+    // }
 
     let input = if !matches.free.is_empty() {
         matches.free[0].clone()

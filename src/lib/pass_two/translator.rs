@@ -111,8 +111,7 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, 
                     Some(addr) => sym_addr = addr,
                     None => return Err(format!("Symbol not found {{ {} }}", lbl)),
                 }
-                let locctr = instruction.locctr;
-                let instruction_cp = instruction.clone();
+
                 match get_disp(instruction, sym_addr) {
                     Ok(addr) => addr,
                     Err(e) => {
@@ -226,7 +225,7 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
     }
 
     let final_disp: i32;
-    let mut disp: i32 = sym_addr - (instruction.locctr + instruction.get_format() as i32);
+    let disp: i32 = sym_addr - (instruction.locctr + instruction.get_format() as i32);
     let base = get_base_at(instruction.locctr as u32);
 
     // PC relative is invalid

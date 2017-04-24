@@ -40,21 +40,21 @@ impl RawProgram {
 
         //getting hexacode s from 1st instruction address with right amount of zeros.
         let record_width_in_bytes: u8 = 3;
-        let s = string_from_object_code((*self).first_instruction_address, record_width_in_bytes);
+        let s = string_from_object_code(self.first_instruction_address, record_width_in_bytes);
 
         //returning "E"+Some Hexa
-        return record + &s;
+        return record + s.as_str();
     }
 
 
     //TODO:make this a lot less ugly
     pub fn text_records(&self) -> String {
         //intializing prev_address and prev_format
-        let ref program = (*self).program;
-        let (ref first_code, ref first_instruction) = program[0];
+        let ref program = self.program;
+        let (_, ref first_instruction) = program[0];
         let first_address = first_instruction.locctr;
         let mut prev_address = first_address;
-        let mut prev_format = (*first_instruction).get_format();
+        let mut prev_format = first_instruction.get_format();
         let mut records = String::from("");
 
         //counters
@@ -63,7 +63,7 @@ impl RawProgram {
         let mut bytes_left = 30;
 
         //iterating on program: address, code, instruction tuple.
-        for &(ref code, ref instruction) in program.iter() {
+        for &(_, ref instruction) in program.iter() {
             //I only care about instruction's format
             let format = (*instruction).get_format();
             let address = (*instruction).locctr;
@@ -106,11 +106,11 @@ impl RawProgram {
         let record_width_in_bytes: u8 = 3;
 
         //appending starting address
-        let record = string_from_object_code((*self).starting_address, record_width_in_bytes);
+        let record = string_from_object_code(self.starting_address, record_width_in_bytes);
         header = header + &record;
 
         //appending program length
-        let record = string_from_object_code((*self).program_length, record_width_in_bytes);
+        let record = string_from_object_code(self.program_length, record_width_in_bytes);
         header = header + &record;
 
         return header;
@@ -119,18 +119,17 @@ impl RawProgram {
     pub fn modification_records(&self) -> String {
         let mut records = String::from("");
 
-
-        for &(ref code, ref instruction) in (*self).program.iter() {
-            let format = (*instruction).get_format();
-            let address: u32 = (*instruction).locctr as u32;
+        for &(_, ref instruction) in self.program.iter() {
+            let format = instruction.get_format();
+            let address: u32 = instruction.locctr as u32;
 
             if format == Format::Four {
-                let operands_vector = (*instruction).unwrap_operands();
+                let operands_vector = instruction.unwrap_operands();
                 if operands_vector[0].opr_type == OperandType::Label {
-                    let record = String::from("M") + &string_from_object_code(address + 1, 3) +
-                                 &string_from_object_code(5, 1) +
-                                 "\n";
-                    records = records + &record;
+                    let record =
+                        String::from("M") + string_from_object_code(address + 1, 3).as_str() +
+                        string_from_object_code(5, 1).as_str() + "\n";
+                    records = records + record.as_str();
                 }
             }
         }
@@ -138,20 +137,19 @@ impl RawProgram {
     }
 
     pub fn all_records(&self) -> String {
-        let ref this = *self;
         return format!("{}\n{}\n{}{}",
-                       this.header_record(),
-                       this.text_records(),
-                       this.modification_records(),
-                       this.end_record());
+                       self.header_record(),
+                       self.text_records(),
+                       self.modification_records(),
+                       self.end_record());
     }
 
 
     pub fn output_to_file(&self) {
-        let mut file = match File::create(&(*self).program_name) {
+        let mut file = match File::create(self.program_name.clone()) {
             Ok(file) => file,
             Err(e) => panic!("{}", e),
         };
-        write!(file, "{}", (*self).all_records());
+        write!(file, "{}", self.all_records());
     }
 }
