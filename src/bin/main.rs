@@ -51,7 +51,7 @@ fn main() {
     };
 
     let asm_file = FileHandler::new(input);
-    let (sym_tab, mut raw_program) = sick_lib::pass_one::pass_one::pass_one(asm_file);
+    let (sym_tab, mut raw_program) = sick_lib::pass_one::pass_one::pass_one(asm_file).unwrap();
     let errs = sick_lib::pass_two::translator::pass_two(&mut raw_program);
 
     let mut sym_tab = sym_tab.into_iter()
@@ -76,7 +76,7 @@ fn main() {
                                 Cell::new("Label"),
                                 Cell::new("Mnemonic"),
                                 Cell::new("Obj")]));
-    for (objcode, instr) in raw_program.program {
+    for &(ref objcode, ref instr) in &raw_program.program {
         table.add_row(Row::new(vec![Cell::new(&format!("{:04X}", instr.locctr))
                                         .with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),
                                     Cell::new(&instr.label),
@@ -87,7 +87,11 @@ fn main() {
     table.printstd();
 
     // TODO: don't produce HTME on errors
-    for err in errs {
+    for err in &errs {
         println!("{}", err);
+    }
+
+    if errs.len() == 0 {
+        raw_program.output_to_file();
     }
 }

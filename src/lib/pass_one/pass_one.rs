@@ -6,7 +6,8 @@ use unit_or_pair::*;
 use parking_lot::RwLock;
 use operands::*;
 use literal::Literal;
-use literal_table::*;
+use literal_table::{insert_literal, get_unresolved, get_literal};
+use std::u32;
 use super::super::RawProgram;
 
 fn get_instruction_size(inst: &Instruction) -> i32 {
@@ -70,12 +71,17 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
     return 0;
 }
 
-pub fn pass_one(mut file: FileHandler) -> (HashMap<String, i32>, RawProgram) {
+pub fn pass_one(mut file: FileHandler) -> Result<(HashMap<String, i32>, RawProgram), String> {
 
     // TODO: replace the literal in an instruction operand with the literal label
     // if let Value::Bytes(ref x) = instruction.get_first_operand().val {}
+    let prog_info = file.parse_file();
 
-    let (mut prog, loc) = file.parse_file().unwrap();
+    if let Err(e) = prog_info {
+        return Err(e);
+    }
+
+    let (mut prog, loc) = prog_info.unwrap();
     let mut loc = loc as i32;
 
     let temp_instructions: Vec<Instruction>;
@@ -109,20 +115,27 @@ pub fn pass_one(mut file: FileHandler) -> (HashMap<String, i32>, RawProgram) {
             loc = flush_literals(&mut instructions, loc as u32);
         } else {
             loc += get_instruction_size(&instruction);
-            instructions.push(instruction);
+            instructions.push(instruction.clone());
+        }
+
+        if instruction.mnemonic.to_uppercase() == "END" {
+            prog.program_length = parse_end(prog.starting_address as i32, &instruction);
         }
     }
 
     // Flush remaining literals
     flush_literals(&mut instructions, loc as u32);
 
+    if prog.program_length == u32::MAX {
+        return Err("Couldn't find the END instruction".to_owned());
+    }
 
     // Move the instructions back
     prog.program = instructions.into_iter()
         .map(|i| (String::new(), i))
         .collect::<Vec<(_, Instruction)>>();
 
-    return (get_all_symbols(), prog);
+    Ok((get_all_symbols(), prog))
 }
 
 fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32) -> i32 {
@@ -144,6 +157,32 @@ fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32) -> i32 {
 
     }
     loc as i32
+}
+
+fn parse_end(start_addr: i32, instruction: &Instruction) -> u32 {
+    // TODO: change read_start to read boundary START/END
+    // or replace with is action directive
+    // check for instructions after END ( not applicable )
+    let operands = unwrap_to_vec(&instruction.operands);
+
+    if operands.len() != 0 {
+        if let Value::SignedInt(op_end) = operands[0].val {
+            // Will panic on negative value
+            return (op_end as i32 - start_addr as i32) as u32;
+        } else if let Value::Label(lbl) = operands[0].clone().val {
+            // TODO: fix the end operands
+            let op_end: i32 = get_symbol(&lbl).unwrap();
+            let op_end = 0;
+            let length: i32 = (op_end as i32) - (start_addr as i32);
+            return length as u32;
+        } else {
+            panic!("Invalid END operands");
+        }
+    } else {
+        // End operand isn't specified, default: program start address
+        return start_addr as u32;
+    }
+
 }
 
 fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {

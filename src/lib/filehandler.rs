@@ -36,29 +36,17 @@ impl FileHandler {
             first_instruction_address: u32::MAX,
         };
 
-        let (name, end_address) = self.read_start();
+        let (name, start_addr) = self.read_start();
         prog.program_name = name;
+        prog.starting_address = start_addr as u32;
 
         {
             while let Some(instruction) = self.read_instruction() {
-
-                if instruction.mnemonic.to_uppercase() == "END" {
-                    // TODO: change read_start to read boundary START/END
-                    // or replace with is action directive
-                    // check for instructions after END ( not applicable )
-
-                    if let Value::SignedInt(op_end) = unwrap_to_vec(&instruction.operands)[0].val {
-                        // Will panic on negative value
-                        prog.program_length = (op_end as i32 - end_address as i32) as u32;
-                    }
-                    continue; // Don't add end to instructions
-                }
-
                 prog.program.push((String::new(), instruction));
             }
         };
 
-        Ok((prog, end_address))
+        Ok((prog, start_addr))
     }
 
     fn read_start(&mut self) -> (String, usize) {

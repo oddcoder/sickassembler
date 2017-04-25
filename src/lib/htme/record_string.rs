@@ -46,10 +46,6 @@ pub fn string_from_object_code(code: u32, string_width_in_bytes: u8) -> String {
  * returns u32 minimum number of hexa digits required to store the u32 code.
  */
 
-
-
-
-
 pub fn min_hexa_digits_required(code: u32) -> u32 {
     return (code as f64).log(16.0) as u32 + 1;
 }

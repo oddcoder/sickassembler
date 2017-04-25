@@ -1,4 +1,4 @@
-COPY	START	1000	. Copy file from input to output
+COPAY	START	1000	. Copy file from input to output
 FIRST	STL	RETADR	. save return address
 CLOOP	JSUB	RDREC	. read input record
 	LDA	LENGTH	. test for EOF (LENGTH = 0)
