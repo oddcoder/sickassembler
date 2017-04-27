@@ -27,7 +27,7 @@ pub fn parse_directive_operand(op: &str) -> Result<AsmOperand, String> {
         .or_else(|e| {
             // BASE / NOBASE
             errs = format!("{} , {}", errs, e);
-            parse_label(op)
+            parse_label(op, OperandType::None)
         });
 
     match result {
@@ -58,12 +58,13 @@ fn parse_memory_operand(op: &str) -> Result<AsmOperand, String> {
     let prefix = &op[0..1];
     let content = &op[1..];
     match prefix {
-        "#" => parse_label(content).or_else(|_| parse_singed_int(content)),
-        "@" => parse_label(content),
+        // FIXME:  32000 instr F:Three LOC:3 LBL:"" INST:"LDB" OP:Unit({ Label "LENGTH" })
+        "#" => parse_label(content, OperandType::Immediate).or_else(|_| parse_singed_int(content)),
+        "@" => parse_label(content, OperandType::Immediate),
         "=" => parse_literal(op),
         _ => {
             // Label
-            parse_label(op)
+            parse_label(op, OperandType::Label)
         }
     }
 }
@@ -99,9 +100,9 @@ fn parse_bytes(op: &str) -> Result<AsmOperand, String> {
 }
 
 /// Occurs when: Instruction -> F3 -> memory -> label , Directive -> label i.e BASE/NOBASE
-fn parse_label(op: &str) -> Result<AsmOperand, String> {
+fn parse_label(op: &str, t: OperandType) -> Result<AsmOperand, String> {
     if is_label(op) {
-        return Ok(create_operand(OperandType::Label, Value::Label(op.to_owned())));
+        return Ok(create_operand(t, Value::Label(op.to_owned())));
     }
     Err(format!("{} Isn't a label", op))
 

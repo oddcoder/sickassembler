@@ -59,12 +59,21 @@ fn main() {
     for err in asm_file.errs {
         write!(t, "{}\n", err).unwrap();
     }
-    t.reset().unwrap();
+
 
     let result = sick_lib::pass_one::pass_one::pass_one(result);
     let result = result.map_err(|e| panic!("{}", e));
 
     let (sym_tab, mut raw_program): (_, _) = result.unwrap();
+
+    t.fg(term::color::GREEN).unwrap();
+    write!(t,
+           "Prog name:{}, prog length:{:X}, prog start addr:{}\n",
+           raw_program.program_name,
+           raw_program.program_length,
+           raw_program.first_instruction_address)
+        .unwrap();
+    t.reset().unwrap();
 
     let errs = sick_lib::pass_two::translator::pass_two(&mut raw_program);
 

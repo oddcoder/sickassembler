@@ -150,7 +150,7 @@ impl RawProgram {
             Ok(file) => file,
             Err(e) => panic!("{}", e),
         };
-        write!(file, "{}", self.all_records());
+        write!(file, "{}", self.all_records()).unwrap();
     }
 }
 

@@ -1,7 +1,8 @@
 
 use std::fs::File;
-use std::io::{BufReader, BufRead};
+use std::io::BufReader;
 use std::u32;
+use std::io::BufRead;
 
 use instruction_set::{AssemblyDef, fetch_directive, fetch_instruction};
 use instruction::*;
@@ -40,50 +41,21 @@ impl FileHandler {
             first_instruction_address: u32::MAX,
         };
 
-        let (name, start_addr) = self.read_start();
+        let line = self.process_file().unwrap();
+        let (name, start_addr) = self.read_start(line);
         prog.program_name = name;
         prog.first_instruction_address = start_addr as u32;
 
-        {
-            while let Some(instruction) = self.read_instruction() {
+        while let Some(line) = self.process_file() {
+            if let Some(instruction) = self.read_instruction(line) {
                 prog.program.push((String::new(), instruction));
             }
-        };
+        }
 
         Ok((prog, start_addr))
     }
 
-    // fn process_file(&mut self) -> Result<Vec<String>, String> {
-    //     let mut file: String = String::new();
-    //     if let Err(e) = self.buf.read_to_string(&mut file) {
-    //         return Err(format!("{}", e));
-    //     }
-    //     // Regex reference: http://kbknapp.github.io/doapi-rs/docs/regex/index.html
-    //     // Escape all empty lines or comment lines
-    //     let empty_lines_regex = Regex::new(r"(?m)^\s*\n|^\s+").unwrap();
-    //     let comment_regex = Regex::new(r"(?m)\..+").unwrap();
-    //     let mut file_content: String = String::new();
-    //     match asm_file.buf.read_to_string(&mut file_content) {
-    //         Err(e) => println!("{}", e),
-    //         _ => (),
-    //     };
-
-    //     let empty_lines_cleared = empty_lines_regex.replace_all(&file_content, "");
-    //     let comments_cleared = comment_regex.replace_all(&empty_lines_cleared, "");
-
-    //     let lines = comments_cleared.split("\n")
-    //         .filter(|s: &&str| !s.is_empty())
-    //         .map(|s| s.to_owned())
-    //         .collect::<Vec<String>>();
-    // }
-
-
-    fn read_start(&mut self) -> (String, usize) {
-        let line;
-        match self.scrap_comment() {
-            None => panic!("Excepted START line"),
-            Some(x) => line = x,
-        }
+    fn read_start(&mut self, line: String) -> (String, usize) {
         let words: Vec<&str> = line.trim().split_whitespace().collect();
 
         if words.len() > 3 {
@@ -97,19 +69,12 @@ impl FileHandler {
     }
 
     #[allow(unused_mut)]
-    fn read_instruction(&mut self) -> Option<Instruction> {
-        //TODO refactor later
-
-        let line;
-        match self.scrap_comment() {
-            None => return None,
-            Some(x) => line = x,
-        }
+    fn read_instruction(&mut self, line: String) -> Option<Instruction> {
 
         let mut inst: Instruction;
         let mut def: AssemblyDef;
         match self.parse_line_of_code(line) {
-            None => return None,    // TODO: change to error
+            None => return None,
             Some((instruction, defi)) => {
                 inst = instruction;
                 def = defi;
@@ -181,34 +146,26 @@ impl FileHandler {
         Some((inst, instruction_def))
     }
 
-    /// Removes comments if found in a line, and skips
-    /// empty lines.
-    fn scrap_comment(&mut self) -> Option<String> {
-        let mut line = String::new();
+    /// Reads a line of code, removing the comments and bypassing empty lines
+    fn process_file(&mut self) -> Option<String> {
+        // Returns ->
+        // None -> EOF
+        // Some -> Code
+        // Panic -> I/O error
 
-        loop {
+        let mut line: String = String::new();
+
+        while self.buf.read_line(&mut line).unwrap() > 0 {
             self.line_number = self.line_number + 1;
-            match self.buf.read_line(&mut line) {
-                Ok(num) => {
-                    if num == 0 {
-                        return None;
-                    } else {
-                        line = line.split(".").nth(0).unwrap().trim().to_owned();
-
-                        if line.is_empty() {
-                            continue;
-                        }
-
-                        return Some(line);
-                    }
-                }
-                Err(e) => {
-                    panic!(format!("An OS I/O error occured, this is really bad!, {}",
-                                   e.to_string()))
-                }
+            let temp = (*COMMENT_REGEX.replace_all(line.as_str(), "")).to_owned();
+            let temp = temp.trim();
+            line.clear();
+            if temp.is_empty() {
+                continue;
             }
-
+            return Some(temp.to_owned());
         }
+        None
     }
 }
 
@@ -253,10 +210,6 @@ fn parse_operands(operand_string: String,
     }
 }
 
-
-
-
-
 fn set_format(inst: &mut Instruction, instruction_def: AssemblyDef) {
     if inst.get_format() != Format::None {
         return;
@@ -288,7 +241,7 @@ fn get_def(inst: &mut String) -> Result<(AssemblyDef, bool, bool), String> {
         is_directive = true;
         instruction_def = def;
     } else {
-        return Err(format!("{} isn't an instruction nor directive", inst));
+        return Err(format!("\"{}\" isn't an instruction nor directive", inst));
     }
     return Ok((instruction_def, is_format_4, is_directive));
 }
@@ -321,12 +274,20 @@ mod tests {
         // Without regex
         let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
         let mut instruction_count = 0;
-
-        asm_file.read_start();
+        let line;
+        {
+            line = asm_file.process_file().unwrap();
+        }
+        asm_file.read_start(line);
         instruction_count = instruction_count + 1;
 
         loop {
-            let instruction = asm_file.read_instruction();
+            let line;
+            {
+                line = asm_file.process_file().unwrap();
+            }
+
+            let instruction = asm_file.read_instruction(line);
             match instruction {
                 None => break,
                 Some(ref s) => {

@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use instruction::*;
 use formats::Format;
-use filehandler::*;
 use unit_or_pair::*;
 use parking_lot::RwLock;
 use operands::*;
