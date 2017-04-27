@@ -168,11 +168,11 @@ fn parse_end(instruction: &Instruction) -> u32 {
     let operands = unwrap_to_vec(&instruction.operands);
 
     if operands.len() != 0 {
-        if let Value::SignedInt(op_end) = operands[0].val {
+        if let Value::Raw(op_end) = operands[0].val {
             // Will panic on negative value
-            return (op_end as i32) as u32;
+            return op_end as u32;
         } else {
-            panic!("Invalid END operands");
+            panic!("Invalid END operands, found {:?}", operands);
         }
     } else {
         // End operand isn't specified, default: program start address

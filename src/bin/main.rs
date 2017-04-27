@@ -75,12 +75,14 @@ fn main() {
     table.add_row(Row::new(vec![Cell::new("Loc"),
                                 Cell::new("Label"),
                                 Cell::new("Mnemonic"),
+                                Cell::new("Format"),
                                 Cell::new("Obj")]));
     for &(ref objcode, ref instr) in &raw_program.program {
         table.add_row(Row::new(vec![Cell::new(&format!("{:04X}", instr.locctr))
                                         .with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),
                                     Cell::new(&instr.label),
                                     Cell::new(&instr.mnemonic),
+                                    Cell::new(format!("{:?}",&instr.get_format()).as_str()),
                                     Cell::new(&objcode)
                                         .with_style(term::Attr::ForegroundColor(color::BRIGHT_YELLOW))]));
     }
