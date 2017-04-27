@@ -60,7 +60,7 @@ fn parse_memory_operand(op: &str) -> Result<AsmOperand, String> {
     match prefix {
         // FIXME:  32000 instr F:Three LOC:3 LBL:"" INST:"LDB" OP:Unit({ Label "LENGTH" })
         "#" => parse_label(content, OperandType::Immediate).or_else(|_| parse_singed_int(content)),
-        "@" => parse_label(content, OperandType::Immediate),
+        "@" => parse_label(content, OperandType::Indirect),
         "=" => parse_literal(op),
         _ => {
             // Label

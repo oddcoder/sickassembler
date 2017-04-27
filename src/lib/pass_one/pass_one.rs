@@ -5,9 +5,9 @@ use unit_or_pair::*;
 use parking_lot::RwLock;
 use operands::*;
 use literal::Literal;
-use literal_table::{insert_literal, get_unresolved, get_literal};
+use literal_table::{insert_literal, get_unresolved, get_literal, insert_unresolved};
 use std::u32;
-use super::super::RawProgram;
+use super::super::*;
 
 fn get_instruction_size(inst: &Instruction) -> i32 {
     match inst.get_format() {
@@ -105,6 +105,7 @@ pub fn pass_one(prog_info: Result<(RawProgram, usize), String>)
             }
         }
 
+        // FIXME: check this for literal duplication with parser
         if let Some(op) = has_literal(&instruction) {
             insert_unresolved(&(op.to_owned()));
         }
@@ -162,7 +163,7 @@ fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32) -> i32 {
         instructions.push(lit_decl);
 
         // Add literals to symbol table
-        insert_symbol(&lit, lit_addr);
+        insert_symbol(&lit, lit_addr).unwrap();
 
     }
     loc as i32
@@ -179,6 +180,11 @@ fn parse_end(instruction: &Instruction) -> Result<u32, String> {
         if let Value::Raw(op_end) = operands[0].val {
             // Will panic on negative value
             Ok(op_end as u32)
+        } else if let Value::Label(ref lbl) = operands[0].val {
+            match get_symbol(&lbl) {
+                Some(addr) => Ok(addr as u32),
+                None => Err(format!("Couldn't find symbol {{ {} }}", lbl)),
+            }
         } else {
             Err(format!("Invalid END operands, found {:?}", operands))
         }

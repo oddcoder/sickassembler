@@ -59,6 +59,7 @@ fn main() {
     for err in asm_file.errs {
         write!(t, "{}\n", err).unwrap();
     }
+    t.reset().unwrap();
 
 
     let result = sick_lib::pass_one::pass_one::pass_one(result);

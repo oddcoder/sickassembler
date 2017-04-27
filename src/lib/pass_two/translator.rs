@@ -34,7 +34,7 @@ fn translate(instruction: &mut Instruction) -> Result<String, String> {
     // FIXME: handle base-relative addressing
     {
         if let Err(e) = semantics_validator::validate_semantics(instruction) {
-            panic!("Symantic Error(s): {} \n {:?} \n\n", e, instruction);
+            errs.push(format!("Symantic Error(s): {} \n {:?} \n\n", e, instruction));
         }
     }
 
@@ -244,8 +244,8 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
             final_disp = disp & 0xFFF;
 
         } else {
-            return Err(format!("Address is out of base relative range disp:{:X} base:{:X} symbol \
-                                addr:{:X} , Instruction:{:?}",
+            return Err(format!("Address is out of base relative range disp:{:X} base:{:X} \
+                                symbol addr:{:X} , Instruction:{:?}",
                                disp,
                                base,
                                sym_addr,

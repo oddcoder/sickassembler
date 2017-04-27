@@ -38,12 +38,14 @@ INPUT BYTE X'F1'
 .
 . WRITE RECORD FROM BUFFER
 .
-WRREC CLEAR X 
-LDT LENGTH 
-WLOOP TD OUTPUT
-OUTPUT WORD 3 
-JEQ WLOOP 
-LDCH BUFFER,X 
-WD OUTPUT 
-TIXR T
-    END F
+WRREC    CLEAR   X         
+         LDT     LENGTH    
+WLOOP    TD      OUTPUT    
+         JEQ     WLOOP     
+         LDCH    BUFFER,X  
+         WD      OUTPUT    
+         TIXR    T         
+         JLT     WLOOP     
+         RSUB              
+OUTPUT   BYTE    X'05'     
+         END     FIRST

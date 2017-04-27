@@ -205,6 +205,10 @@ impl Instruction {
         }
 
         info!("Value of flags in {:?} is {:?}", self, total_value);
+        println!("Value of flags in {} -> {:?} is {:?}",
+                 self.mnemonic,
+                 self.flags,
+                 total_value);
         Ok(total_value)
     }
 
