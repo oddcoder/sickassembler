@@ -146,7 +146,6 @@ impl RawProgram {
 
 
     pub fn output_to_file(&self) {
-        println!("length: {:?}", self);
         let mut file = match File::create(self.program_name.clone()) {
             Ok(file) => file,
             Err(e) => panic!("{}", e),

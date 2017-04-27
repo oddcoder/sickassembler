@@ -81,7 +81,7 @@ pub fn pass_one(mut file: FileHandler) -> Result<(HashMap<String, i32>, RawProgr
         return Err(e);
     }
 
-    let (mut prog, loc) = prog_info.unwrap();
+    let (prog, loc) = prog_info.unwrap();
     let mut loc = loc as i32;
     let mut prog: RawProgram = prog;
     let temp_instructions: Vec<Instruction>;
@@ -119,7 +119,7 @@ pub fn pass_one(mut file: FileHandler) -> Result<(HashMap<String, i32>, RawProgr
         }
 
         if instruction.mnemonic.to_uppercase() == "END" {
-            prog.starting_address = parse_end(prog.starting_address as i32, &instruction);
+            prog.starting_address = parse_end(&instruction);
             prog.program_length = (loc as u32) - prog.first_instruction_address;
         }
     }
@@ -135,7 +135,7 @@ pub fn pass_one(mut file: FileHandler) -> Result<(HashMap<String, i32>, RawProgr
     prog.program = instructions.into_iter()
         .map(|i| (String::new(), i))
         .collect::<Vec<(_, Instruction)>>();
-    println!("PROG:  {:?}", prog);
+
     Ok((get_all_symbols(), prog))
 }
 
@@ -161,7 +161,7 @@ fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32) -> i32 {
 }
 
 /// Gets the address of the first executable isntruction
-fn parse_end(start_addr: i32, instruction: &Instruction) -> u32 {
+fn parse_end(instruction: &Instruction) -> u32 {
     // TODO: change read_start to read boundary START/END
     // or replace with is action directive
     // check for instructions after END ( not applicable )
