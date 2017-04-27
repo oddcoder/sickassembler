@@ -72,7 +72,7 @@ fn translate(instruction: &mut Instruction) -> Result<String, String> {
     let flags = raw_flags.map_err(|e| errs.push(e));
 
     if errs.len() > 0 {
-        return Err(errs.join(", "));
+        return Err(errs.join("\n "));
     }
 
     // The operands are numeric if it's a normal instruction, not a directive
@@ -105,7 +105,7 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, 
             }
             // Get from symtab
             Value::Label(ref lbl) => {
-
+                let instr_immut = instruction.clone();
                 let sym_addr;
                 match get_symbol(&lbl.to_owned()) {
                     Some(addr) => sym_addr = addr,
@@ -115,7 +115,7 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, 
                 match get_disp(instruction, sym_addr) {
                     Ok(addr) => addr,
                     Err(e) => {
-                        return Err(e.to_string());
+                        return Err(format!("Error in {:?} , {}", instr_immut, e.to_string()));
                     }
                 }
 

@@ -1,0 +1,130 @@
+/// This code is composed accroding to the parse decision tree
+/// of the SIC/XE
+/// The code coould've been better i.e -thing(x).or_else(|_| another_thing(x))-
+/// but for the sake of error aggregation
+
+use operands::{OperandType, Value};
+use register::Register;
+use instruction::AsmOperand;
+use literal_table::insert_unresolved;
+use super::*;
+use std::i32;
+
+
+pub fn parse_directive_operand(op: &str) -> Result<AsmOperand, String> {
+    let mut errs: String = String::new();
+    let result = parse_bytes(op)
+        .or_else(|e| {
+            // RESW/B
+            errs = format!("{}", e);
+            parse_singed_int(op)
+        })
+        .or_else(|e| {
+            // START / END
+            errs = format!("{} , {}", errs, e);
+            parse_hex(op)
+        })
+        .or_else(|e| {
+            // BASE / NOBASE
+            errs = format!("{} , {}", errs, e);
+            parse_label(op)
+        });
+
+    match result {
+        Ok(r) => return Ok(r),
+        Err(_) => return Err(errs),
+    };
+}
+
+pub fn parse_instruction_operand(op: &str) -> Result<AsmOperand, String> {
+    let mut errs: String = String::new();
+    let result = parse_register(op)
+        .or_else(|e| {
+            errs = format!("{}", e);
+            parse_hex(op)
+        })
+        .or_else(|e| {
+            errs = format!("{} , {}", errs, e);
+            parse_memory_operand(op)
+        });
+    match result {
+        Ok(r) => return Ok(r),
+        Err(_) => return Err(errs),
+    };
+}
+
+/// Occurs when: Instruction -> F3 / F4
+fn parse_memory_operand(op: &str) -> Result<AsmOperand, String> {
+    let prefix = &op[0..1];
+    let content = &op[1..];
+    match prefix {
+        "#" => parse_label(content).or_else(|_| parse_singed_int(content)),
+        "@" => parse_label(content),
+        "=" => parse_literal(op),
+        _ => {
+            // Label
+            parse_label(op)
+        }
+    }
+}
+
+/// Occurs when: Instruction -> F3 / F2 / F1
+fn parse_register(op: &str) -> Result<AsmOperand, String> {
+    match op {
+        "A" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::A))),
+        "X" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::X))),
+        "L" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::L))),
+        "B" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::B))),
+        "S" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::S))),
+        "T" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::T))),
+        "F" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::F))),
+        _ => Err(format!("{} is not a register", op)),
+    }
+}
+
+/// Occurs when: Inst-> F3 Immediate
+fn parse_singed_int(op: &str) -> Result<AsmOperand, String> {
+    match i32::from_str_radix(&op, 10) {
+        Ok(hex) => Ok(AsmOperand::new(OperandType::Immediate, Value::SignedInt(hex))),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+/// Occurs when: Directive -> C
+fn parse_bytes(op: &str) -> Result<AsmOperand, String> {
+    if is_ascii_or_word_operand(op) {
+        return Ok(create_operand(OperandType::Bytes, Value::Bytes(op.to_owned())));
+    }
+    Err(format!("{} isn't on the form of C|X'...'", op))
+}
+
+/// Occurs when: Instruction -> F3 -> memory -> label , Directive -> label i.e BASE/NOBASE
+fn parse_label(op: &str) -> Result<AsmOperand, String> {
+    if is_label(op) {
+        return Ok(create_operand(OperandType::Label, Value::Label(op.to_owned())));
+    }
+    Err(format!("{} Isn't a label", op))
+
+}
+
+/// Occurs when: Directive -> Start/End OR F2 with n -> Shl / Shr / SVC
+fn parse_hex(op: &str) -> Result<AsmOperand, String> {
+    match u32::from_str_radix(&op, 16) {
+        Ok(hex) => Ok(create_operand(OperandType::Raw, Value::Raw(hex))),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+/// Occurs when: Inst -> F3 , i.e =(X|C)'...'
+fn parse_literal(op: &str) -> Result<AsmOperand, String> {
+    if !is_literal(op) {
+        return Err(format!("Invalid literal {}", op));
+    }
+    insert_unresolved(&op.to_owned());
+    // TODO: check translator if it removes the =
+    Ok(create_operand(OperandType::Label, Value::Bytes(op.to_owned())))
+}
+
+fn create_operand(t: OperandType, v: Value) -> AsmOperand {
+    AsmOperand::new(t, v)
+}

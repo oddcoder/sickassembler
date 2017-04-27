@@ -26,7 +26,7 @@ BUFFER	RESB	4096
 . Whole line comment
 RDREC	LDX	ZERO	. CLEAR LOOP COUNTER
 	LDA	ZERO
-RLOOP	TD	INPUT
+RLOOP	TD	INPUT as asdas   asd
 	JEQ	RLOOP
 	RD	INPUT
 	COMP	ZERO
@@ -51,4 +51,4 @@ WLOOP	TD	OUTPUT
 OUTPUT	BYTE	X'05'
 	RSUB
 LDL	=C'AERETARDS'	. get return address
-	END	FIRST
+	END	F5 .END doesn't accept a label

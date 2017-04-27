@@ -50,8 +50,22 @@ fn main() {
         panic!("Error No input File selected");
     };
 
-    let asm_file = FileHandler::new(input);
-    let (sym_tab, mut raw_program) = sick_lib::pass_one::pass_one::pass_one(asm_file).unwrap();
+    let mut asm_file = FileHandler::new(input);
+    let result = asm_file.parse_file();
+
+    let mut t = term::stdout().unwrap();
+    t.fg(term::color::BRIGHT_CYAN).unwrap();
+    t.attr(term::Attr::Bold).unwrap();
+    for err in asm_file.errs {
+        write!(t, "{}\n", err).unwrap();
+    }
+    t.reset().unwrap();
+
+    let result = sick_lib::pass_one::pass_one::pass_one(result);
+    let result = result.map_err(|e| panic!("{}", e));
+
+    let (sym_tab, mut raw_program): (_, _) = result.unwrap();
+
     let errs = sick_lib::pass_two::translator::pass_two(&mut raw_program);
 
     let mut sym_tab = sym_tab.into_iter()

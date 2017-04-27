@@ -1,20 +1,18 @@
-use regex::Regex;
+
 use std::fs::File;
 use std::io::{BufReader, BufRead};
 use std::u32;
 
-use instruction_set::*;
+use instruction_set::{AssemblyDef, fetch_directive, fetch_instruction};
 use instruction::*;
 use unit_or_pair::*;
-use register::*;
-use operands::*;
 use formats::*;
-use literal_table::insert_unresolved;
-use super::RawProgram;
+use operand_parsing::{parse_directive_operand, parse_instruction_operand};
+use super::*;
 
 pub struct FileHandler {
     buf: BufReader<File>,
-    errs: Vec<String>,
+    pub errs: Vec<String>,
     line_number: i32,
 }
 
@@ -41,7 +39,7 @@ impl FileHandler {
             program: Vec::new(),
             first_instruction_address: u32::MAX,
         };
-        let mut line_number: i32 = 1;
+
         let (name, start_addr) = self.read_start();
         prog.program_name = name;
         prog.first_instruction_address = start_addr as u32;
@@ -55,13 +53,38 @@ impl FileHandler {
         Ok((prog, start_addr))
     }
 
+    // fn process_file(&mut self) -> Result<Vec<String>, String> {
+    //     let mut file: String = String::new();
+    //     if let Err(e) = self.buf.read_to_string(&mut file) {
+    //         return Err(format!("{}", e));
+    //     }
+    //     // Regex reference: http://kbknapp.github.io/doapi-rs/docs/regex/index.html
+    //     // Escape all empty lines or comment lines
+    //     let empty_lines_regex = Regex::new(r"(?m)^\s*\n|^\s+").unwrap();
+    //     let comment_regex = Regex::new(r"(?m)\..+").unwrap();
+    //     let mut file_content: String = String::new();
+    //     match asm_file.buf.read_to_string(&mut file_content) {
+    //         Err(e) => println!("{}", e),
+    //         _ => (),
+    //     };
+
+    //     let empty_lines_cleared = empty_lines_regex.replace_all(&file_content, "");
+    //     let comments_cleared = comment_regex.replace_all(&empty_lines_cleared, "");
+
+    //     let lines = comments_cleared.split("\n")
+    //         .filter(|s: &&str| !s.is_empty())
+    //         .map(|s| s.to_owned())
+    //         .collect::<Vec<String>>();
+    // }
+
+
     fn read_start(&mut self) -> (String, usize) {
         let line;
         match self.scrap_comment() {
             None => panic!("Excepted START line"),
             Some(x) => line = x,
         }
-        let words: Vec<&str> = line.split_whitespace().collect();
+        let words: Vec<&str> = line.trim().split_whitespace().collect();
 
         if words.len() > 3 {
             panic!("Unexpected \"{}\"", words[3]);
@@ -73,6 +96,7 @@ impl FileHandler {
         }
     }
 
+    #[allow(unused_mut)]
     fn read_instruction(&mut self) -> Option<Instruction> {
         //TODO refactor later
 
@@ -97,10 +121,12 @@ impl FileHandler {
         return Some(inst);
     }
 
+    #[allow(unused_mut)]
+    #[allow(unused_assignments)]
     fn parse_line_of_code(&mut self, line: String) -> Option<(Instruction, AssemblyDef)> {
 
         let mut words: Vec<String> = line.split_whitespace()
-            .map(|x| x.to_owned())
+            .map(|x| x.trim().to_owned())
             .collect::<Vec<String>>();
 
         let mut label: String = String::new();
@@ -109,21 +135,20 @@ impl FileHandler {
         let mut is_format_4 = false;
         let mut is_directive = false;
 
-        // TODO: this method of splitting is ruined, splitting by white_space can cause
+        // FIXME: this method of splitting is ruined, splitting by white_space can cause
         // errors easily
         let mut operands: UnitOrPair<AsmOperand> = UnitOrPair::None;
-        let mut inst: Instruction;
 
         if words.len() > 3 || words.is_empty() {
-            self.errs.push(format!("Invalid code at line {}", self.line_number));
+            self.errs.push(format!("Invalid code at line #{}", self.line_number));
         }
 
         if words.len() == 3 {
             let temp: String = words.drain(0..1).collect();
-            if let Ok(true) = is_label(&temp) {
+            if is_label(&temp) {
                 label = temp;
             } else {
-                self.errs.push(format!("Invalid label token at line {}", self.line_number));
+                self.errs.push(format!("Invalid label token at line #{}", self.line_number));
                 return None;
             }
         }
@@ -136,13 +161,16 @@ impl FileHandler {
                 is_directive = is_dir;
             }
             Err(e) => {
-                self.errs.push(format!("Error at line {}, {}", e, self.line_number));
+                self.errs.push(format!("{}", e));
                 return None;
             }
         }
 
         if !words.is_empty() {
-            operands = parse_operands(words.drain(0..1).collect(), is_directive);
+            match parse_operands(words.drain(0..1).collect(), is_directive) {
+                Ok(e) => operands = e,
+                Err(e) => self.errs.push(e),
+            };
         }
 
         let mut inst = Instruction::new(label, instruction, operands);
@@ -184,116 +212,50 @@ impl FileHandler {
     }
 }
 
-fn parse_operands(operand_string: String, is_directive: bool) -> UnitOrPair<AsmOperand> {
+fn parse_operands(operand_string: String,
+                  is_directive: bool)
+                  -> Result<UnitOrPair<AsmOperand>, String> {
     let ops: Vec<&str> = operand_string.split(",").collect();
+    let mut errs: Vec<String> = Vec::new();
 
     match ops.len() {
-        0 => return UnitOrPair::None,
+        0 => return Ok(UnitOrPair::None),
         1 => {
-            let op = parse(ops[0].to_owned(), is_directive);
-            return UnitOrPair::Unit(op);
+            let op = if is_directive {
+                parse_directive_operand(ops[0])
+            } else {
+                parse_instruction_operand(ops[0])
+            };
+            match op {
+                Ok(o) => return Ok(UnitOrPair::Unit(o)),
+                Err(e) => {
+                    errs.push(e);
+                    return Err(errs.join("\n"));
+                }
+            }
         }
         2 => {
             if is_directive {
                 panic!("Assembler directives can't have 2 Operands");
             }
-            let op1 = parse(ops[0].to_owned(), false);
-            let op2 = parse(ops[1].to_owned(), false);
-            return UnitOrPair::Pair(op1, op2);
+            let op1 = parse_instruction_operand(ops[0]);
+            let op2 = parse_instruction_operand(ops[1]);
+            if op1.is_ok() && op2.is_ok() {
+                return Ok(UnitOrPair::Pair(op1.unwrap(), op2.unwrap()));
+            } else {
+                let _ = op1.map_err(|e| errs.push(e));
+                let _ = op2.map_err(|e| errs.push(e));
+                return Err(errs.join("\n"));
+            }
+
         }
         _ => panic!("expected . or newline instead of `{}`", ops[2]),
     }
 }
 
-fn parse(op: String, is_directive: bool) -> AsmOperand {
-    if !is_directive {
-        match parse_register(&op) {
-            Some(x) => return x,
-            None => (),
-        };
-    }
 
-    let mut optype = OperandType::Label;
 
-    // TODO: possibly redundant
-    if is_ascii_or_word_operand(&op) {
-        optype = OperandType::Bytes;
-    }
 
-    let mut index_start = 0;
-
-    match &op[0..1] {
-        "#" => {
-            optype = OperandType::Immediate;
-            index_start = 1;
-        }
-        "@" => {
-            optype = OperandType::Indirect;
-            index_start = 1;
-        }
-        "=" if is_literal(&op) => {
-            // Literals will be treated as labels
-            // Add the = sign at the start of name to avoid errors in pass_one
-
-        //     insert_unresolved(&(op.to_owned()));
-        // }
-        "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => {
-            if is_directive {
-                // Directives are used with decimal values
-                optype = OperandType::Immediate;
-            } else {
-                // Shift operations
-                optype = OperandType::Raw;
-            }
-        }
-        // TODO: fix this SUPER ugly code
-        "A" | "B" | "C" | "D" | "E" | "F" if is_directive && !is_literal(&op) &&
-                                             !is_ascii_or_word_operand(&op) => {
-            optype = OperandType::Raw; // Start / End
-            return AsmOperand::new(optype, Value::Raw(u32::from_str_radix(&op, 16).unwrap()));
-        }
-        _ => (),
-    }
-
-    let val = op[index_start..op.len()].to_owned();
-    let x = usize::from_str_radix(&val[0..1], 10);
-
-    match x {
-        Err(_) => {
-            // Isn't a number -> label or literal
-            if is_ascii_or_word_operand(&op) {
-                optype = OperandType::Bytes;
-                return AsmOperand::new(optype, Value::Bytes(val));
-            } else {
-                return AsmOperand::new(optype, Value::Label(val));
-            }
-        }
-        Ok(_) => {
-            if is_directive {
-                // Directive operands are in decimal
-                return AsmOperand::new(optype,
-                                       Value::SignedInt(i32::from_str_radix(&val, 10).unwrap()));
-            } else {
-                // Source file doesn't contain hexadecimal instruction parameters
-                // Only immediate -> Value::SignedInt
-                return AsmOperand::new(optype, Value::SignedInt(val.parse().unwrap()));
-            }
-        }
-    }
-}
-
-fn parse_register(op: &String) -> Option<AsmOperand> {
-    match &op as &str {
-        "A" => Some(AsmOperand::new(OperandType::Register, Value::Register(Register::A))),
-        "X" => Some(AsmOperand::new(OperandType::Register, Value::Register(Register::X))),
-        "L" => Some(AsmOperand::new(OperandType::Register, Value::Register(Register::L))),
-        "B" => Some(AsmOperand::new(OperandType::Register, Value::Register(Register::B))),
-        "S" => Some(AsmOperand::new(OperandType::Register, Value::Register(Register::S))),
-        "T" => Some(AsmOperand::new(OperandType::Register, Value::Register(Register::T))),
-        "F" => Some(AsmOperand::new(OperandType::Register, Value::Register(Register::F))),
-        _ => None,
-    }
-}
 
 fn set_format(inst: &mut Instruction, instruction_def: AssemblyDef) {
     if inst.get_format() != Format::None {
@@ -309,6 +271,7 @@ fn set_format(inst: &mut Instruction, instruction_def: AssemblyDef) {
     }
 }
 
+#[allow(unused_mut)] // Compiler generates false warnings
 fn get_def(inst: &mut String) -> Result<(AssemblyDef, bool, bool), String> {
     let mut instruction_def: AssemblyDef;
     let mut is_format_4 = false;
@@ -325,46 +288,12 @@ fn get_def(inst: &mut String) -> Result<(AssemblyDef, bool, bool), String> {
         is_directive = true;
         instruction_def = def;
     } else {
-        return Err("supplied code isn't an instruction nor directive".to_owned());
+        return Err(format!("{} isn't an instruction nor directive", inst));
     }
     return Ok((instruction_def, is_format_4, is_directive));
 }
 
-/// Tells whether a token is a valid label or an instruction
-/// returns:
-/// Err -> invalid token (Not a label nor instruction)
-/// Result ->
-///     - true : label
-///     - false : instruction
-fn is_label(suspect: &String) -> Result<bool, String> {
-    // TODO: replace with existing matching in above functions
-    let not_decodable = fetch_directive(suspect).is_err() && fetch_instruction(suspect).is_err();
-    let is_valid_name = LABEL_STREAM.is_match(suspect);
-    if suspect.is_empty() {
-        return Ok(false);
-    }
-    if not_decodable && !is_valid_name {
-        Err(format!("Invalid token {}", suspect))
-    } else {
-        Ok(is_valid_name)
-    }
-}
 
-/// A literal is a byte/chars preceeded by an '=' sign
-fn is_literal(op: &String) -> bool {
-    return op.starts_with("=") && is_ascii_or_word_operand(op.trim_left_matches("="));
-}
-
-/// An ascii operand is on the form  (C|X)'...'
-fn is_ascii_or_word_operand(op: &str) -> bool {
-    return CHAR_STREAM.is_match(&op) || HEX_STREAM.is_match(&op);
-}
-
-lazy_static!{
-    static ref CHAR_STREAM:Regex = Regex::new(r"^C'[[:alnum:]]+'$").unwrap();
-    static ref HEX_STREAM:Regex = Regex::new(r"^X'[[:xdigit:]]+'$").unwrap();
-    static ref LABEL_STREAM:Regex = Regex::new(r"^[a-zA-Z_$][a-zA-Z_$0-9]*$").unwrap();
-}
 
 #[cfg(test)]
 mod tests {
@@ -376,6 +305,13 @@ mod tests {
     #[should_panic]
     fn test_file_opening() {
         FileHandler::new("God Damn long file name that should never exit.asm".to_string());
+    }
+
+    #[test]
+    fn test_literals() {
+        assert!(is_literal("=C'EOF'"));
+        assert!(is_literal("=X'1EF'"));
+        assert!(is_literal("=X'10'"));
     }
 
     #[test]

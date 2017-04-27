@@ -63,7 +63,7 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
             }
             match operands[0].val {
                 Value::SignedInt(x) => return x * 3,
-                _ => panic!("Unexpected Error"),
+                _ => panic!("Unexpected Error - find_instr_length {:?}", operands),
             }
         }
         _ => (),
@@ -71,16 +71,16 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
     return 0;
 }
 
-pub fn pass_one(mut file: FileHandler) -> Result<(HashMap<String, i32>, RawProgram), String> {
+pub fn pass_one(prog_info: Result<(RawProgram, usize), String>)
+                -> Result<(HashMap<String, i32>, RawProgram), String> {
 
     // TODO: replace the literal in an instruction operand with the literal label
     // if let Value::Bytes(ref x) = instruction.get_first_operand().val {}
-    let prog_info = file.parse_file();
 
     if let Err(e) = prog_info {
         return Err(e);
     }
-
+    let mut errs: Vec<String> = Vec::new();
     let (prog, loc) = prog_info.unwrap();
     let mut loc = loc as i32;
     let mut prog: RawProgram = prog;
@@ -101,9 +101,8 @@ pub fn pass_one(mut file: FileHandler) -> Result<(HashMap<String, i32>, RawProgr
         instruction.locctr = loc;
 
         if !instruction.label.is_empty() {
-            if let Err(_) = insert_symbol(&instruction.label, loc) {
-                panic!("Label {} is defined at more than one location",
-                       instruction.label);
+            if let Err(e) = insert_symbol(&instruction.label, loc) {
+                errs.push(format!("{}", e));
             }
         }
 
@@ -119,8 +118,14 @@ pub fn pass_one(mut file: FileHandler) -> Result<(HashMap<String, i32>, RawProgr
         }
 
         if instruction.mnemonic.to_uppercase() == "END" {
-            prog.starting_address = parse_end(&instruction);
-            prog.program_length = (loc as u32) - prog.first_instruction_address;
+            match parse_end(&instruction) {
+                Ok(end) => {
+                    prog.starting_address = end;
+                    prog.program_length = (loc as u32) - prog.first_instruction_address;
+                }
+                Err(e) => errs.push(e),
+            }
+
         }
     }
 
@@ -128,13 +133,17 @@ pub fn pass_one(mut file: FileHandler) -> Result<(HashMap<String, i32>, RawProgr
     flush_literals(&mut instructions, loc as u32);
 
     if prog.program_length == u32::MAX {
-        return Err("Couldn't find the END instruction".to_owned());
+        errs.push(format!("Couldn't find the END instruction"));
     }
 
     // Move the instructions back
     prog.program = instructions.into_iter()
         .map(|i| (String::new(), i))
         .collect::<Vec<(_, Instruction)>>();
+
+    if errs.len() != 0 {
+        return Err(errs.join("\n "));
+    }
 
     Ok((get_all_symbols(), prog))
 }
@@ -161,7 +170,7 @@ fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32) -> i32 {
 }
 
 /// Gets the address of the first executable isntruction
-fn parse_end(instruction: &Instruction) -> u32 {
+fn parse_end(instruction: &Instruction) -> Result<u32, String> {
     // TODO: change read_start to read boundary START/END
     // or replace with is action directive
     // check for instructions after END ( not applicable )
@@ -170,13 +179,13 @@ fn parse_end(instruction: &Instruction) -> u32 {
     if operands.len() != 0 {
         if let Value::Raw(op_end) = operands[0].val {
             // Will panic on negative value
-            return op_end as u32;
+            Ok(op_end as u32)
         } else {
-            panic!("Invalid END operands, found {:?}", operands);
+            Err(format!("Invalid END operands, found {:?}", operands))
         }
     } else {
         // End operand isn't specified, default: program start address
-        return (instruction.locctr) as u32;
+        Ok((instruction.locctr) as u32)
     }
 
 }
