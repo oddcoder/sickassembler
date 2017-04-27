@@ -105,7 +105,7 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, 
             }
             // Get from symtab
             Value::Label(ref lbl) => {
-                let instr_immut = instruction.clone();
+
                 let sym_addr;
                 match get_symbol(&lbl.to_owned()) {
                     Some(addr) => sym_addr = addr,
@@ -115,7 +115,7 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, 
                 match get_disp(instruction, sym_addr) {
                     Ok(addr) => addr,
                     Err(e) => {
-                        return Err(format!("Error in {:?} , {}", instr_immut, e.to_string()));
+                        return Err(format!("{}", e.to_string()));
                     }
                 }
 
@@ -254,10 +254,11 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
 
     } else {
         return Err(format!("Address is out of PC relative range and no base is specified, \
-                            PC-DISP:{:X} TA:{:X} Instruction:{:?}",
+                            Displacement:{:X} Target Address:{:X} {} Loc:{:X}",
                            disp,
                            sym_addr,
-                           instruction));
+                           instruction.mnemonic,
+                           instruction.locctr));
     }
 
     panic_on_memory_limit(final_disp, instruction.locctr);

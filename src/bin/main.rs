@@ -54,7 +54,7 @@ fn main() {
     let result = asm_file.parse_file();
 
     let mut t = term::stdout().unwrap();
-    t.fg(term::color::BRIGHT_CYAN).unwrap();
+    t.fg(term::color::RED).unwrap();
     t.attr(term::Attr::Bold).unwrap();
     for err in asm_file.errs {
         write!(t, "{}\n", err).unwrap();
@@ -67,7 +67,7 @@ fn main() {
 
     let (sym_tab, mut raw_program): (_, _) = result.unwrap();
 
-    t.fg(term::color::GREEN).unwrap();
+    t.fg(term::color::YELLOW).unwrap();
     write!(t,
            "Prog name:{}, prog length:{:X}, prog start addr:{}\n",
            raw_program.program_name,
@@ -82,6 +82,17 @@ fn main() {
         .map(|e| (e.0, e.1))
         .collect::<Vec<(String, i32)>>();
 
+    // TODO: don't produce HTME on errors
+    t.fg(term::color::BRIGHT_RED).unwrap();
+    t.attr(term::Attr::Bold).unwrap();
+    for err in &errs {
+        println!("{}", err);
+    }
+    t.reset().unwrap();
+    if errs.len() > 0 {
+        return;
+    }
+
     // Sort by address
     sym_tab.sort_by(|a, b| a.1.cmp(&b.1));
     // Create the table
@@ -89,7 +100,8 @@ fn main() {
     table.add_row(Row::new(vec![Cell::new("Address"), Cell::new("Name")]));
     for (name, address) in sym_tab {
         table.add_row(Row::new(vec![ 
-        Cell::new(&format!("{:04X}", address)).with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),Cell::new(&name)]));
+        Cell::new(&format!("{:04X}", address))
+        .with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),Cell::new(&name)]));
     }
     table.printstd();
 
@@ -111,13 +123,5 @@ fn main() {
                                         .with_style(term::Attr::ForegroundColor(color::BRIGHT_YELLOW))]));
     }
     table.printstd();
-
-    // TODO: don't produce HTME on errors
-    for err in &errs {
-        println!("{}", err);
-    }
-
-    if errs.len() == 0 {
-        raw_program.output_to_file();
-    }
+    raw_program.output_to_file();
 }

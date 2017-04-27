@@ -1,7 +1,8 @@
 
 use std::fs::File;
 use std::io::BufReader;
-use std::u32;
+use std::{u32, usize};
+
 use std::io::BufRead;
 
 use instruction_set::{AssemblyDef, fetch_directive, fetch_instruction};
@@ -42,7 +43,10 @@ impl FileHandler {
         };
 
         let line = self.process_file().unwrap();
-        let (name, start_addr) = self.read_start(line);
+        let (name, start_addr) = self.read_start(line)
+            .map_err(|e| self.errs.push(e))
+            .unwrap_or((String::new(), usize::MAX));
+
         prog.program_name = name;
         prog.first_instruction_address = start_addr as u32;
 
@@ -55,16 +59,16 @@ impl FileHandler {
         Ok((prog, start_addr))
     }
 
-    fn read_start(&mut self, line: String) -> (String, usize) {
+    fn read_start(&mut self, line: String) -> Result<(String, usize), String> {
         let words: Vec<&str> = line.trim().split_whitespace().collect();
 
         if words.len() > 3 {
-            panic!("Unexpected \"{}\"", words[3]);
+            return Err(format!("Unexpected \"{}\"", words[3]));
         }
 
         match words[1] {
-            "START" => return (words[0].to_owned(), words[2].parse().unwrap()),
-            _ => panic!("Expected \"START\" found \"{}\"", words[1]),
+            "START" => return Ok((words[0].to_owned(), words[2].parse().unwrap())),
+            _ => return Err(format!("Expected \"START\" found \"{}\"", words[1])),
         }
     }
 
@@ -206,7 +210,10 @@ fn parse_operands(operand_string: String,
             }
 
         }
-        _ => panic!("expected . or newline instead of `{}`", ops[2]),
+        _ => {
+            errs.push(format!("expected . or newline instead of `{}`", ops[2]));
+            return Err(errs.join("\n"));
+        } 
     }
 }
 
@@ -267,38 +274,6 @@ mod tests {
         assert!(is_literal("=X'10'"));
     }
 
-    #[test]
-    fn line_count_correct() {
-        let lines = with_regex();
-
-        // Without regex
-        let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
-        let mut instruction_count = 0;
-        let line;
-        {
-            line = asm_file.process_file().unwrap();
-        }
-        asm_file.read_start(line);
-        instruction_count = instruction_count + 1;
-
-        loop {
-            let line;
-            {
-                line = asm_file.process_file().unwrap();
-            }
-
-            let instruction = asm_file.read_instruction(line);
-            match instruction {
-                None => break,
-                Some(ref s) => {
-                    println!("{:?} {:?}", instruction_count, s);
-                    instruction_count += 1;
-                }
-            }
-        }
-        println!("{:?} --> {}", lines, lines.len());
-        assert_eq!(instruction_count, lines.len());
-    }
 
     #[test]
     fn test_parse_file() {
