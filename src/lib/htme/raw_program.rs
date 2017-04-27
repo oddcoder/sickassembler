@@ -4,8 +4,8 @@ use formats::Format;
 use instruction::Instruction;
 use operands::*;
 use htme::record_string::*;
+use std::fmt;
 
-#[derive(Debug)]
 pub struct RawProgram {
     pub program_name: String,
     pub starting_address: u32,
@@ -146,10 +146,22 @@ impl RawProgram {
 
 
     pub fn output_to_file(&self) {
+        println!("length: {:?}", self);
         let mut file = match File::create(self.program_name.clone()) {
             Ok(file) => file,
             Err(e) => panic!("{}", e),
         };
         write!(file, "{}", self.all_records());
+    }
+}
+
+impl fmt::Debug for RawProgram {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f,
+               "START Operand: {:?} Name: {:?}, Length: {:?}, First execution Address: {:?}",
+               self.first_instruction_address,
+               self.program_name,
+               self.program_length,
+               self.starting_address)
     }
 }

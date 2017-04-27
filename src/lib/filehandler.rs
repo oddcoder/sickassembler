@@ -38,7 +38,7 @@ impl FileHandler {
 
         let (name, start_addr) = self.read_start();
         prog.program_name = name;
-        prog.starting_address = start_addr as u32;
+        prog.first_instruction_address = start_addr as u32;
 
         {
             while let Some(instruction) = self.read_instruction() {

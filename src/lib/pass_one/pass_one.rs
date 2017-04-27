@@ -83,7 +83,7 @@ pub fn pass_one(mut file: FileHandler) -> Result<(HashMap<String, i32>, RawProgr
 
     let (mut prog, loc) = prog_info.unwrap();
     let mut loc = loc as i32;
-
+    let mut prog: RawProgram = prog;
     let temp_instructions: Vec<Instruction>;
 
     {
@@ -119,7 +119,8 @@ pub fn pass_one(mut file: FileHandler) -> Result<(HashMap<String, i32>, RawProgr
         }
 
         if instruction.mnemonic.to_uppercase() == "END" {
-            prog.program_length = parse_end(prog.starting_address as i32, &instruction);
+            prog.starting_address = parse_end(prog.starting_address as i32, &instruction);
+            prog.program_length = (loc as u32) - prog.first_instruction_address;
         }
     }
 
@@ -134,7 +135,7 @@ pub fn pass_one(mut file: FileHandler) -> Result<(HashMap<String, i32>, RawProgr
     prog.program = instructions.into_iter()
         .map(|i| (String::new(), i))
         .collect::<Vec<(_, Instruction)>>();
-
+    println!("PROG:  {:?}", prog);
     Ok((get_all_symbols(), prog))
 }
 
@@ -159,6 +160,7 @@ fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32) -> i32 {
     loc as i32
 }
 
+/// Gets the address of the first executable isntruction
 fn parse_end(start_addr: i32, instruction: &Instruction) -> u32 {
     // TODO: change read_start to read boundary START/END
     // or replace with is action directive
@@ -168,19 +170,13 @@ fn parse_end(start_addr: i32, instruction: &Instruction) -> u32 {
     if operands.len() != 0 {
         if let Value::SignedInt(op_end) = operands[0].val {
             // Will panic on negative value
-            return (op_end as i32 - start_addr as i32) as u32;
-        } else if let Value::Label(lbl) = operands[0].clone().val {
-            // TODO: fix the end operands
-            let op_end: i32 = get_symbol(&lbl).unwrap();
-            let op_end = 0;
-            let length: i32 = (op_end as i32) - (start_addr as i32);
-            return length as u32;
+            return (op_end as i32) as u32;
         } else {
             panic!("Invalid END operands");
         }
     } else {
         // End operand isn't specified, default: program start address
-        return start_addr as u32;
+        return (instruction.locctr) as u32;
     }
 
 }
