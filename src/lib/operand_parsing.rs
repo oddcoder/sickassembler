@@ -58,7 +58,6 @@ fn parse_memory_operand(op: &str) -> Result<AsmOperand, String> {
     let prefix = &op[0..1];
     let content = &op[1..];
     match prefix {
-        // FIXME:  32000 instr F:Three LOC:3 LBL:"" INST:"LDB" OP:Unit({ Label "LENGTH" })
         "#" => parse_label(content, OperandType::Immediate).or_else(|_| parse_singed_int(content)),
         "@" => parse_label(content, OperandType::Indirect),
         "=" => parse_literal(op),
@@ -122,7 +121,6 @@ fn parse_literal(op: &str) -> Result<AsmOperand, String> {
         return Err(format!("Invalid literal {}", op));
     }
     insert_unresolved(&op.to_owned());
-    // TODO: check translator if it removes the =
     Ok(create_operand(OperandType::Label, Value::Bytes(op.to_owned())))
 }
 

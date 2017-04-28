@@ -105,11 +105,6 @@ pub fn pass_one(prog_info: Result<(RawProgram, usize), String>)
             }
         }
 
-        // FIXME: check this for literal duplication with parser
-        if let Some(op) = has_literal(&instruction) {
-            insert_unresolved(&(op.to_owned()));
-        }
-
         if instruction.mnemonic.to_uppercase() == "LTORG" {
             loc = flush_literals(&mut instructions, loc as u32);
         } else {
@@ -149,8 +144,7 @@ pub fn pass_one(prog_info: Result<(RawProgram, usize), String>)
 }
 
 fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32) -> i32 {
-    // TODO: fix literals
-    // TODO: insert in instruction vector
+
     let mut loc = start_loc;
     for lit in get_unresolved() {
         insert_literal(&lit, loc);
@@ -196,30 +190,19 @@ fn parse_end(instruction: &Instruction) -> Result<u32, String> {
 }
 
 fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
-    //Instruction::new(lit.name,lit.external_name)
+
     insert_literal(lit, locctr as u32);
     let literal: Literal = get_literal(lit).unwrap();
 
+    // Ad the literal definition, as normal byte/word
+    let operand = AsmOperand::new(OperandType::Bytes,
+                                  Value::Bytes(literal.external_name[1..].to_owned()));
+    
     let mut lit_instr =
-        Instruction::new(literal.label,
-                         "BYTE".to_owned(),
-                         UnitOrPair::Unit(AsmOperand::new(OperandType::Bytes,
-                                                          Value::Bytes(literal.external_name))));
+        Instruction::new(literal.label, "BYTE".to_owned(), UnitOrPair::Unit(operand));
+    
     lit_instr.locctr = literal.address as i32;
     Box::new(lit_instr)
-}
-
-fn has_literal(instr: &Instruction) -> Option<String> {
-
-    for opr in instr.unwrap_operands() {
-        let opr: AsmOperand = opr;
-        if let Value::Label(lbl) = opr.val {
-            if is_literal(&lbl) {
-                return Some(lbl);
-            }
-        }
-    }
-    None
 }
 
 lazy_static!{

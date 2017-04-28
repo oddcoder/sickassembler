@@ -6,7 +6,7 @@ use std::f32;
 pub struct Literal {
     pub label: String, // Label chosen by the assembler
     pub value: String, // Object code value
-    pub external_name: String, // Value in code, ex. C'EOF'
+    pub external_name: String, // Value in code, ex. =C'EOF'
     pub address: u32,
 }
 

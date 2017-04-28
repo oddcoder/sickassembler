@@ -77,7 +77,8 @@ impl AssemblyDef {
                                          opr_type_set.contains(&Format::Four)) => return false,
 
                 Value::Raw(_) if !opr_type_set.contains(&Format::Two) => return false,
-                Value::Bytes(_) => return false,   // Valid for directives only
+                Value::Bytes(_) if !opr_type_set.contains(&Format::Three) ||
+                                   !opr_type_set.contains(&Format::Four) => return false,   // Valid for literals
                 Value::None if !(opr_type_set.contains(&Format::One) ||
                                  self.mnemonic == "RSUB") => return false,
                 _ => (),
