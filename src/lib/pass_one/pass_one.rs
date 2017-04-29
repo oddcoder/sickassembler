@@ -5,7 +5,7 @@ use unit_or_pair::*;
 use parking_lot::RwLock;
 use operands::*;
 use literal::Literal;
-use literal_table::{insert_literal, get_unresolved, get_literal, insert_unresolved};
+use literal_table::{insert_literal, get_unresolved, get_literal};
 use std::u32;
 use super::super::*;
 
@@ -197,10 +197,10 @@ fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
     // Ad the literal definition, as normal byte/word
     let operand = AsmOperand::new(OperandType::Bytes,
                                   Value::Bytes(literal.external_name[1..].to_owned()));
-    
+
     let mut lit_instr =
         Instruction::new(literal.label, "BYTE".to_owned(), UnitOrPair::Unit(operand));
-    
+
     lit_instr.locctr = literal.address as i32;
     Box::new(lit_instr)
 }
@@ -240,7 +240,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_literal_def() {
-        let instr: Instruction = *create_from_literal(&("C'BOX'".to_owned()), 1025);
+        let instr: Instruction = *create_from_literal(&("=C'BOX'".to_owned()), 1025);
         println!("{:?}", instr);
         assert_eq!(instr.mnemonic, "BYTE");
         assert_eq!(instr.locctr, 1025);

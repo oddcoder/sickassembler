@@ -92,6 +92,7 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, 
     let op_vec = instruction.unwrap_operands();
 
     for operand in &op_vec {
+        // TODO: do the same with this as the operand_parser
         let mut raw: String = match operand.val {
             Value::None => String::new(),
             Value::SignedInt(x) => {

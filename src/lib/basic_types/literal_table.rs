@@ -70,12 +70,12 @@ pub fn is_literal(st: &String) -> bool {
 
 #[test]
 fn add_get_literal() {
-    insert_unresolved(&"C'EOF'".to_owned());
+    insert_unresolved(&"=C'EOF'".to_owned());
 
     for s in get_unresolved().iter() {
         insert_literal(&s.clone(), 45);
     }
 
-    assert!(get_literal(&"C'EOF'".to_owned()).is_some());
-    assert!(get_literal(&"X'454F46'".to_owned()).is_some());
+    assert!(get_literal(&"=C'EOF'".to_owned()).is_some());
+    assert!(get_literal(&"=X'454F46'".to_owned()).is_some());
 }
