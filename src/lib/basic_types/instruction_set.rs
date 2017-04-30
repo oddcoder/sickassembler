@@ -1,8 +1,8 @@
 use std::collections::{HashSet, HashMap};
 use instruction::AsmOperand;
 use formats::{Format, get_bit_count};
-use operands::{self, OperandType, Value};
-use unit_or_pair::{self, UnitOrPair};
+use operands::{OperandType, Value};
+use unit_or_pair::{UnitOrPair, unwrap_to_vec};
 
 // The operands of the instruction will be indicated as a bit vector
 // as inferred from the instruction set operands can be classified to
@@ -41,7 +41,7 @@ impl AssemblyDef {
     /// Validates the operands of a given instruction
     pub fn has_valid_operands(&self, operands: &UnitOrPair<AsmOperand>) -> bool {
 
-        let others_ops: Vec<Value> = unit_or_pair::unwrap_to_vec(operands)
+        let others_ops: Vec<Value> = unwrap_to_vec(operands)
             .iter()
             .map(|o| o.clone().val)
             .collect::<Vec<Value>>();
@@ -58,7 +58,7 @@ impl AssemblyDef {
             return false;
         }
 
-        let opr_type_set: HashSet<Format> = unit_or_pair::unwrap_to_vec(&self.format)
+        let opr_type_set: HashSet<Format> = unwrap_to_vec(&self.format)
             .into_iter()
             .collect::<HashSet<Format>>();
 
@@ -77,7 +77,8 @@ impl AssemblyDef {
                                          opr_type_set.contains(&Format::Four)) => return false,
 
                 Value::Raw(_) if !opr_type_set.contains(&Format::Two) => return false,
-                Value::Bytes(_) => return false,   // Valid for directives only
+                Value::Bytes(_) if !opr_type_set.contains(&Format::Three) ||
+                                   !opr_type_set.contains(&Format::Four) => return false,   // Valid for literals
                 Value::None if !(opr_type_set.contains(&Format::One) ||
                                  self.mnemonic == "RSUB") => return false,
                 _ => (),

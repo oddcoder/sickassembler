@@ -1,4 +1,4 @@
-COPY	START	1000	. Copy file from input to output
+COPAY	START	1000	. Copy file from input to output
 FIRST	STL	RETADR	. save return address
 CLOOP	JSUB	RDREC	. read input record
 	LDA	LENGTH	. test for EOF (LENGTH = 0)
@@ -26,7 +26,7 @@ BUFFER	RESB	4096
 . Whole line comment
 RDREC	LDX	ZERO	. CLEAR LOOP COUNTER
 	LDA	ZERO
-RLOOP	TD	INPUT
+RLOOP	TD	INPUT as asdas   asd
 	JEQ	RLOOP
 	RD	INPUT
 	COMP	ZERO
@@ -51,4 +51,4 @@ WLOOP	TD	OUTPUT
 OUTPUT	BYTE	X'05'
 	RSUB
 LDL	=C'AERETARDS'	. get return address
-	END	FIRST
+	END	F5 .END doesn't accept a label

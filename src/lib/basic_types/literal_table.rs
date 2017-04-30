@@ -22,7 +22,8 @@ pub fn insert_literal(literal: &String, address: u32) {
     let mut lit_table = LITERAL_TABLE.write();
 
     let mut literal_id: &mut u32 = temp.deref_mut();
-    let lit_val = translate_literal(&literal);
+    let lit_val = translate_literal(&literal[1..]); // Don't translate using the = sign
+
     let lit: Literal = Literal::new(("lit_".to_owned() + &literal_id.to_string()),
                                     lit_val,
                                     literal.clone(),
@@ -51,11 +52,8 @@ pub fn get_unresolved() -> Vec<String> {
 }
 
 pub fn get_literal(name: &String) -> Option<Literal> {
-    let val: String;
-    {
-        val = translate_literal(name);
-    }
 
+    let val: String = translate_literal(&name[1..]); // Remove the = sign
     let table = LITERAL_TABLE.read();
 
     for lit in table.iter() {
@@ -72,12 +70,12 @@ pub fn is_literal(st: &String) -> bool {
 
 #[test]
 fn add_get_literal() {
-    insert_unresolved(&"C'EOF'".to_owned());
+    insert_unresolved(&"=C'EOF'".to_owned());
 
     for s in get_unresolved().iter() {
         insert_literal(&s.clone(), 45);
     }
 
-    assert!(get_literal(&"C'EOF'".to_owned()).is_some());
-    assert!(get_literal(&"X'454F46'".to_owned()).is_some());
+    assert!(get_literal(&"=C'EOF'".to_owned()).is_some());
+    assert!(get_literal(&"=X'454F46'".to_owned()).is_some());
 }

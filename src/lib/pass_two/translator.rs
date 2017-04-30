@@ -6,6 +6,7 @@ use formats::*;
 use semantics_validator;
 use base_table::{set_base, end_base, get_base_at};
 use pass_one::pass_one::get_symbol;
+use literal_table::get_literal;
 use std::u32;
 use regex::Regex;
 use super::super::RawProgram;
@@ -34,7 +35,7 @@ fn translate(instruction: &mut Instruction) -> Result<String, String> {
     // FIXME: handle base-relative addressing
     {
         if let Err(e) = semantics_validator::validate_semantics(instruction) {
-            panic!("Symantic Error(s): {} \n {:?} \n\n", e, instruction);
+            errs.push(format!("Symantic Error(s): {} \n {:?} \n\n", e, instruction));
         }
     }
 
@@ -72,7 +73,7 @@ fn translate(instruction: &mut Instruction) -> Result<String, String> {
     let flags = raw_flags.map_err(|e| errs.push(e));
 
     if errs.len() > 0 {
-        return Err(errs.join(", "));
+        return Err(errs.join("\n "));
     }
 
     // The operands are numeric if it's a normal instruction, not a directive
@@ -91,6 +92,7 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, 
     let op_vec = instruction.unwrap_operands();
 
     for operand in &op_vec {
+        // TODO: do the same with this as the operand_parser
         let mut raw: String = match operand.val {
             Value::None => String::new(),
             Value::SignedInt(x) => {
@@ -111,19 +113,31 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, 
                     Some(addr) => sym_addr = addr,
                     None => return Err(format!("Symbol not found {{ {} }}", lbl)),
                 }
-                let locctr = instruction.locctr;
-                let instruction_cp = instruction.clone();
+
                 match get_disp(instruction, sym_addr) {
                     Ok(addr) => addr,
                     Err(e) => {
-                        return Err(e.to_string());
+                        return Err(format!("{}", e.to_string()));
                     }
                 }
 
             }
             Value::Raw(x) => to_hex(x),
             // Used by WORD / BYTE -> Generate hex codes for operand
-            Value::Bytes(ref text) => translate_literal(text),
+            Value::Bytes(ref text) => {
+                if text.starts_with("=") {
+                    // Return the address of the literal, not its value
+                    let sym_addr = get_literal(text).unwrap().address as i32;
+                    match get_disp(instruction, sym_addr) {
+                        Ok(addr) => addr,
+                        Err(e) => {
+                            return Err(format!("{}", e.to_string()));
+                        }
+                    }
+                } else {
+                    translate_literal(text)
+                }
+            }
         };
         raws.push_str(&mut raw);
     }
@@ -173,21 +187,16 @@ fn resolve_label(label: &str) -> Result<i32, &str> {
 }
 
 /// Converts the literal of the WORD/BYTE directive to object code
-pub fn translate_literal(lit: &String) -> String {
-    let mut literal = lit.clone();
-    // TODO: cleanase the design of the string parser
-    if literal.starts_with("=") {
-        literal.drain(0..1);
-    }
+pub fn translate_literal(literal: &str) -> String {
 
     if literal.starts_with('X') || literal.starts_with('x') {
         // ex. INPUT BYTE X’F1’ -> F1
-        let captures = HEX_REGEX.captures(literal.as_str()).unwrap();
+        let captures = HEX_REGEX.captures(literal).unwrap();
         let mut operand_match: String = captures.get(0).unwrap().as_str().to_owned();
         remove_container(&mut operand_match);
         return operand_match;
     } else if literal.starts_with('C') || literal.starts_with('c') {
-        let captures = STR_REGEX.captures(literal.as_str()).unwrap();
+        let captures = STR_REGEX.captures(literal).unwrap();
         let mut operand_match: String = captures.get(0).unwrap().as_str().to_owned();
         remove_container(&mut operand_match);
 
@@ -226,7 +235,7 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
     }
 
     let final_disp: i32;
-    let mut disp: i32 = sym_addr - (instruction.locctr + instruction.get_format() as i32);
+    let disp: i32 = sym_addr - (instruction.locctr + instruction.get_format() as i32);
     let base = get_base_at(instruction.locctr as u32);
 
     // PC relative is invalid
@@ -245,8 +254,8 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
             final_disp = disp & 0xFFF;
 
         } else {
-            return Err(format!("Address is out of base relative range disp:{:X} base:{:X} symbol \
-                                addr:{:X} , Instruction:{:?}",
+            return Err(format!("Address is out of base relative range disp:{:X} base:{:X} \
+                                symbol addr:{:X} , Instruction:{:?}",
                                disp,
                                base,
                                sym_addr,
@@ -255,10 +264,11 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
 
     } else {
         return Err(format!("Address is out of PC relative range and no base is specified, \
-                            PC-DISP:{:X} TA:{:X} Instruction:{:?}",
+                            Displacement:{:X} Target Address:{:X} {} Loc:{:X}",
                            disp,
                            sym_addr,
-                           instruction));
+                           instruction.mnemonic,
+                           instruction.locctr));
     }
 
     panic_on_memory_limit(final_disp, instruction.locctr);

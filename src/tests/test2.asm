@@ -24,9 +24,9 @@ RDREC CLEAR X
 CLEAR A 
 CLEAR S 
 +LDT #4096 
-RLOOP TD INPUT 
+RLOOP TD =X'F1' 
 JEQ RLOOP 
-RD INPUT 
+RD =X'F1'  
 COMPR A,S 
 JEQ EXIT 
 STCH BUFFER,X 
@@ -34,14 +34,18 @@ TIXR T
 JLT RLOOP 
 EXIT STX LENGTH 
 RSUB 
-INPUT BYTE X'F1' 
+LTORG
 .
 . WRITE RECORD FROM BUFFER
 .
-WRREC CLEAR X 
-LDT LENGTH 
-WLOOP TD OUTPUT 
-JEQ WLOOP 
-LDCH BUFFER,X 
-WD OUTPUT 
-TIXR T
+WRREC    CLEAR   X         
+         LDT     LENGTH    
+WLOOP    TD      OUTPUT    
+         JEQ     WLOOP     
+         LDCH    BUFFER,X  
+         WD      OUTPUT    
+         TIXR    T         
+         JLT     WLOOP     
+         RSUB              
+OUTPUT   BYTE    X'05'     
+         END     FIRST
