@@ -99,7 +99,7 @@ fn main() {
     let mut table = Table::new();
     table.add_row(Row::new(vec![Cell::new("Address"), Cell::new("Name")]));
     for (name, address) in sym_tab {
-        table.add_row(Row::new(vec![ 
+        table.add_row(Row::new(vec![
         Cell::new(&format!("{:04X}", address))
         .with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),Cell::new(&name)]));
     }
