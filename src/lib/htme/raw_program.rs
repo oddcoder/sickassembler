@@ -73,10 +73,13 @@ impl RawProgram {
                 let mut vec = vec![];
                 vec.extend_from_slice(&program[begin..i]);
                 let record = text_record_from_program(&vec);
-                if begin != 0 {
-                    records.push_str("\n");
+                //TODO: make Hamdy handle his own errors
+                if record.to_owned() != "T"{
+                    if begin != 0 {
+                        records.push_str("\n");
+                    }
+                    records.push_str(&record);
                 }
-                records.push_str(&record);
                 begin = i;
                 bytes_left = 30;
             }
@@ -101,6 +104,9 @@ impl RawProgram {
     pub fn header_record(&self) -> String {
         let record_type = String::from("H");
         let mut header = record_type;
+        let ref name = self.program_name;
+
+        header = header +&name;
 
         //6 columns
         let record_width_in_bytes: u8 = 3;

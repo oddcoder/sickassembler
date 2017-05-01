@@ -213,7 +213,7 @@ fn parse_operands(operand_string: String,
         _ => {
             errs.push(format!("expected . or newline instead of `{}`", ops[2]));
             return Err(errs.join("\n"));
-        } 
+        }
     }
 }
 
