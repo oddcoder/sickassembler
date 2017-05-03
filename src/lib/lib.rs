@@ -37,7 +37,7 @@ pub use basic_types::base_table;
 
 pub use pass_two::translator;
 
-pub fn to_hex<T>(num: T) -> String
+pub fn to_hex_string<T>(num: T) -> String
     where T: UpperHex + Sized
 {
     format!("{:X}", num)

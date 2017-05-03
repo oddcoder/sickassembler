@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::iter::Iterator;
 use parking_lot::RwLock;
 use std::ops::DerefMut;
-use translator::translate_literal;
+use pass_two::operand_translator::translate_literal;
 use literal::Literal;
 use regex::RegexSet;
 
@@ -39,8 +39,8 @@ pub fn insert_literal(literal: &String, address: u32) {
 }
 
 /// Insert a literal name to the temp literal table
-pub fn insert_unresolved(literal_name: &String) {
-    TEMP_LITERALS.write().insert(literal_name.clone());
+pub fn insert_unresolved(literal_name: &str) {
+    TEMP_LITERALS.write().insert(literal_name.to_owned());
 }
 
 /// Called when encountering LTORG or end of file
@@ -51,7 +51,7 @@ pub fn get_unresolved() -> Vec<String> {
     ret
 }
 
-pub fn get_literal(name: &String) -> Option<Literal> {
+pub fn get_literal(name: &str) -> Option<Literal> {
 
     let val: String = translate_literal(&name[1..]); // Remove the = sign
     let table = LITERAL_TABLE.read();
@@ -64,7 +64,7 @@ pub fn get_literal(name: &String) -> Option<Literal> {
     None
 }
 
-pub fn is_literal(st: &String) -> bool {
+pub fn is_literal(st: &str) -> bool {
     LIT_REGEX.is_match(st)
 }
 

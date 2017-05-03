@@ -176,8 +176,8 @@ fn parse_end(instruction: &Instruction) -> Result<u32, String> {
             Ok(op_end as u32)
         } else if let Value::Label(ref lbl) = operands[0].val {
             match get_symbol(&lbl) {
-                Some(addr) => Ok(addr as u32),
-                None => Err(format!("Couldn't find symbol {{ {} }}", lbl)),
+                Ok(addr) => Ok(addr as u32),
+                Err(e) => Err(e),
             }
         } else {
             Err(format!("Invalid END operands, found {:?}", operands))
@@ -219,11 +219,11 @@ fn insert_symbol(symbol: &String, address: i32) -> Result<(), String> {
     Ok(())
 }
 
-pub fn get_symbol(symbol: &String) -> Option<i32> {
-    if exists(symbol) == false {
-        None
+pub fn get_symbol(symbol: &str) -> Result<i32, String> {
+    if exists(symbol) {
+        Ok(SYMBOL_TABLE.read().get(symbol).unwrap().to_owned())
     } else {
-        Some(SYMBOL_TABLE.read().get(symbol).unwrap().clone())
+        Err(format!("Couldn't find symbol {{ {} }}", symbol))
     }
 }
 
@@ -231,7 +231,7 @@ pub fn get_all_symbols() -> HashMap<String, i32> {
     SYMBOL_TABLE.read().clone()
 }
 
-fn exists(symbol: &String) -> bool {
+fn exists(symbol: &str) -> bool {
     return SYMBOL_TABLE.read().contains_key(symbol);
 }
 

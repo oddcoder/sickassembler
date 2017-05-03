@@ -72,7 +72,7 @@ fn parse_memory_operand(op: &str) -> Result<AsmOperand, String> {
 fn parse_register(op: &str) -> Result<AsmOperand, String> {
     match op {
         "A" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::A))),
-        "X" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::0X))),
+        "X" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::X))),
         "L" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::L))),
         "B" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::B))),
         "S" => Ok(AsmOperand::new(OperandType::Register, Value::Register(Register::S))),
@@ -127,4 +127,3 @@ fn parse_literal(op: &str) -> Result<AsmOperand, String> {
 fn create_operand(t: OperandType, v: Value) -> AsmOperand {
     AsmOperand::new(t, v)
 }
-parse_hex

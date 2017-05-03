@@ -1,14 +1,14 @@
-use super::super::{to_hex, string_from_object_code};
+use super::super::string_from_object_code;
 use instruction::Instruction;
 use operands::Value;
 use instruction_set::{self, AssemblyDef, is_base_mode_directive, is_decodable_directive};
-use formats::*;
 use semantics_validator;
-use base_table::{set_base, end_base, get_base_at};
+use base_table::{set_base, end_base};
 use pass_one::pass_one::get_symbol;
-use literal_table::get_literal;
+use pass_two::operand_translator::parse_operand;
 use std::u32;
-use regex::Regex;
+
+
 use super::super::RawProgram;
 
 /// Returns the errors
@@ -33,25 +33,21 @@ fn translate(instruction: &mut Instruction) -> Result<String, String> {
     // TODO: check for action directives in the caller of this function
     // TODO: Check the flags for options
     // FIXME: handle base-relative addressing
-    {
-        if let Err(e) = semantics_validator::validate_semantics(instruction) {
-            errs.push(format!("Symantic Error(s): {} \n {:?} \n\n", e, instruction));
-        }
+    if let Err(e) = semantics_validator::validate_semantics(instruction) {
+        errs.push(format!("Semantic Error(s): {} \n {:?} \n\n", e, instruction));
     }
 
     // Resolve operands first, in case of a directive, this function will return early
-
     if is_base_mode_directive(&instruction.mnemonic).is_some() {
         // Add the base entry
-        resolve_base_directive(instruction);
-        return Ok(String::new());
+        match resolve_base_directive(instruction) {
+            Ok(_) => return Ok(String::new()),
+            Err(e) => return Err(e),
+        }
     }
 
     let raw_operands: Result<String, String>;
-    {
-        raw_operands = resolve_incomplete_operands(instruction);
-    }
-
+    raw_operands = resolve_incomplete_operands(instruction);
 
     if is_decodable_directive(&instruction.mnemonic) {
         return raw_operands;
@@ -89,58 +85,21 @@ fn translate(instruction: &mut Instruction) -> Result<String, String> {
 fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, String> {
     // Convert immediate and indirect operands to a basic forms -> Raw
     let mut raws: String = String::new();
+    let mut errs: Vec<String> = Vec::new();
     let op_vec = instruction.unwrap_operands();
 
     for operand in &op_vec {
         // TODO: do the same with this as the operand_parser
-        let mut raw: String = match operand.val {
-            Value::None => String::new(),
-            Value::SignedInt(x) => {
-                if x > 0x7FFFFF {
-                    return Err("Value out of 23-bit range".to_string());
-                }
-                to_hex(x)
-            }
-            Value::Register(ref x) => {
-                let reg_num = *x as u8;
-                to_hex(reg_num as u32)
-            }
-            // Get from symtab
-            Value::Label(ref lbl) => {
-
-                let sym_addr;
-                match get_symbol(&lbl.to_owned()) {
-                    Some(addr) => sym_addr = addr,
-                    None => return Err(format!("Symbol not found {{ {} }}", lbl)),
-                }
-
-                match get_disp(instruction, sym_addr) {
-                    Ok(addr) => addr,
-                    Err(e) => {
-                        return Err(format!("{}", e.to_string()));
-                    }
-                }
-
-            }
-            Value::Raw(x) => to_hex(x),
-            // Used by WORD / BYTE -> Generate hex codes for operand
-            Value::Bytes(ref text) => {
-                if text.starts_with("=") {
-                    // Return the address of the literal, not its value
-                    let sym_addr = get_literal(text).unwrap().address as i32;
-                    match get_disp(instruction, sym_addr) {
-                        Ok(addr) => addr,
-                        Err(e) => {
-                            return Err(format!("{}", e.to_string()));
-                        }
-                    }
-                } else {
-                    translate_literal(text)
-                }
-            }
-        };
-        raws.push_str(&mut raw);
+        match parse_operand(instruction, &operand.val) {
+            Ok(mut raw) => raws.push_str(&mut raw),
+            Err(e) => errs.push(e),
+        }
     }
+
+    if errs.len() > 0 {
+        return Err(format!("Found error while parsing operands {}", errs.join(", ")));
+    }
+
     Ok(raws)
 }
 
@@ -158,54 +117,27 @@ fn resolve_opcode(instr: &Instruction) -> Result<u32, &str> {
     Ok(op_code as u32)
 }
 
-fn resolve_base_directive(instr: &Instruction) {
+fn resolve_base_directive(instr: &Instruction) -> Result<(), String> {
     let mnemonic = instr.mnemonic.to_uppercase();
     let locctr = instr.locctr;
 
     if mnemonic == "BASE" {
         if let Value::Label(val) = instr.get_first_operand().val {
-            match resolve_label(&val) {
+
+            /// Returns the location of the symbol from the
+            /// symtab, the result is returned as i32 (it'll be envolved in subtraction)
+            ///  as it'll be subtracted from the locctr
+            match get_symbol(&val) {
                 Ok(addr) => set_base(locctr, addr),
-                Err(e) => panic!("Invalid base {}", e),
+                Err(e) => return Err(format!("Invalid base {} {}", val, e)),
             }
         }
     } else if mnemonic == "NOBASE" {
         end_base(locctr);
     } else {
-        panic!("Unknown instruction {:?}", instr);
+        return Err(format!("Unknown instruction {:?}", instr));
     }
-}
-
-/// Returns the location of the symbol from the
-/// symtab, the result is returned as i32 (it'll be envolved in subtraction)
-///  as it'll be subtracted from the locctr
-fn resolve_label(label: &str) -> Result<i32, &str> {
-    match get_symbol(&label.to_owned()) {
-        Some(addr) => Ok(addr),
-        None => Err("Symbol not found"),
-    }
-}
-
-/// Converts the literal of the WORD/BYTE directive to object code
-pub fn translate_literal(literal: &str) -> String {
-
-    if literal.starts_with('X') || literal.starts_with('x') {
-        // ex. INPUT BYTE X’F1’ -> F1
-        let captures = HEX_REGEX.captures(literal).unwrap();
-        let mut operand_match: String = captures.get(0).unwrap().as_str().to_owned();
-        remove_container(&mut operand_match);
-        return operand_match;
-    } else if literal.starts_with('C') || literal.starts_with('c') {
-        let captures = STR_REGEX.captures(literal).unwrap();
-        let mut operand_match: String = captures.get(0).unwrap().as_str().to_owned();
-        remove_container(&mut operand_match);
-
-        return parse_str_operand(operand_match);
-    } else {
-        panic!("Invalid literal to translate {}, expected C|X'...' ",
-               literal);
-    }
-
+    Ok(())
 }
 
 fn is_directive(instr: &Instruction) -> bool {
@@ -215,96 +147,15 @@ fn is_directive(instr: &Instruction) -> bool {
     return false;
 }
 
-fn parse_str_operand(operand_match: String) -> String {
-    // EOF BYTE C’EOF’ -> 454F46
-    operand_match.chars()
-        .map(|c| to_hex(c as u32))
-        .collect::<Vec<String>>()
-        .join("")
-}
-
-fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, String> {
-
-    // TODO: move to the instruction itself
-    // If the instruction is format 4, return the address
-    if instruction.get_format() == Format::Four {
-        if sym_addr > 0xFFFFF {
-            return Err("Address is out of 20-bit range".to_owned());
-        }
-        return Ok(to_hex(sym_addr & 0xFFFF));
-    }
-
-    let final_disp: i32;
-    let disp: i32 = sym_addr - (instruction.locctr + instruction.get_format() as i32);
-    let base = get_base_at(instruction.locctr as u32);
-
-    // PC relative is invalid
-    if -2048 <= disp && disp < 2048 {
-
-        instruction.set_pc_relative();
-        final_disp = disp & 0xFFF;
-
-    } else if base.is_some() {
-
-        let base = base.unwrap() as i32;
-        let disp = sym_addr - base;
-
-        if 0 <= disp && disp < 4096 {
-            instruction.set_base_relative();
-            final_disp = disp & 0xFFF;
-
-        } else {
-            return Err(format!("Address is out of base relative range disp:{:0X} base:{:0X} \
-                                symbol addr:{:0X} , Instruction:{:?}",
-                               disp,
-                               base,
-                               sym_addr,
-                               instruction));
-        }
-
-    } else {
-        return Err(format!("Address is out of PC relative range and no base is specified, \
-                            Displacement:{:0X} Target Address:{:0X} {} Loc:{:0X}",
-                           disp,
-                           sym_addr,
-                           instruction.mnemonic,
-                           instruction.locctr));
-    }
-
-    panic_on_memory_limit(final_disp, instruction.locctr);
-    return Ok(to_hex(final_disp));
-}
-
-
-
-fn panic_on_memory_limit(disp: i32, locctr: i32) {
-    if disp + locctr >= (1 << 20) {
-        panic!("Out of range address {}", disp + locctr)
-    }
-}
-
-/// Removes the container of a WORD/BYTE oeprand, the prefix, the '
-/// X'asdas' -> asdas ,and so on
-fn remove_container(byte_operand: &mut String) {
-    byte_operand.remove(0);
-    byte_operand.remove(0);
-    byte_operand.pop();
-}
-
-lazy_static!{
-    // lazy_static regex to avoid recompilation on each function call -> read the docs
-    static ref HEX_REGEX:Regex = Regex::new(r"^(x|X)'[0-9a-fA-F]+'").unwrap();
-    static ref STR_REGEX: Regex = Regex::new(r"^(c|C)'.+'").unwrap();
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use formats;
+    use formats::{self, Format};
     use unit_or_pair::UnitOrPair;
     use operands::{Value, OperandType};
     use register::Register;
     use instruction::AsmOperand;
+
     #[test]
     fn test_resolve_op_code() {
         let mut inst = Instruction::new_simple("ldx".to_owned());
@@ -329,28 +180,6 @@ mod tests {
 
         let opr: String = resolve_incomplete_operands(&mut inst).unwrap();
         assert_eq!(opr, "3");
-    }
-
-    #[test]
-    fn test_byte_operand_parsing() {
-
-        check_str_operand("x'0A'", "0A");
-        check_str_operand("x'FF'", "FF");
-
-        check_str_operand("C'cab'", "636162");
-        check_str_operand("C'EOF'", "454F46");
-    }
-
-    fn check_str_operand(x: &str, v: &str) {
-        let result = translate_literal(&x.to_owned());
-        assert_eq!(result.to_uppercase(), v.to_uppercase());
-    }
-
-    #[test]
-    fn check_string_convert_to_vec() {
-        let test_str: String = "abc".to_owned();
-        let result = parse_str_operand(test_str);
-        assert_eq!(result, "616263");
     }
 
     #[test]
