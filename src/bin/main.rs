@@ -69,7 +69,7 @@ fn main() {
 
     t.fg(term::color::YELLOW).unwrap();
     write!(t,
-           "Prog name:{}, prog length:{:X}, prog start addr:{}\n",
+           "Prog name:{}, prog length:{:0X}, prog start addr:{}\n",
            raw_program.program_name,
            raw_program.program_length,
            raw_program.first_instruction_address)

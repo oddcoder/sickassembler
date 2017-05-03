@@ -249,13 +249,13 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
         let base = base.unwrap() as i32;
         let disp = sym_addr - base;
 
-        if 0 <= base && base < 4096 {
+        if 0 <= disp && disp < 4096 {
             instruction.set_base_relative();
             final_disp = disp & 0xFFF;
 
         } else {
-            return Err(format!("Address is out of base relative range disp:{:X} base:{:X} \
-                                symbol addr:{:X} , Instruction:{:?}",
+            return Err(format!("Address is out of base relative range disp:{:0X} base:{:0X} \
+                                symbol addr:{:0X} , Instruction:{:?}",
                                disp,
                                base,
                                sym_addr,
@@ -264,7 +264,7 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
 
     } else {
         return Err(format!("Address is out of PC relative range and no base is specified, \
-                            Displacement:{:X} Target Address:{:X} {} Loc:{:X}",
+                            Displacement:{:0X} Target Address:{:0X} {} Loc:{:0X}",
                            disp,
                            sym_addr,
                            instruction.mnemonic,

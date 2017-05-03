@@ -13,7 +13,7 @@ lazy_static!{
 pub fn get_base_at(locctr: u32) -> Option<u32> {
     // Return the available base at locctr
     for base in BASE_VEC.read().iter() {
-        if base.start < locctr && base.end > locctr {
+        if base.start <= locctr && base.end > locctr {
             return Some(base.value);
         }
     }
