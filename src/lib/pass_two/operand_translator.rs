@@ -100,7 +100,7 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
         }
         return Ok(to_hex_string(sym_addr & 0xFFFF));
     }
-    // FIXME: double check the calculations
+
     let final_disp: i32;
     let disp: i32 = sym_addr - (instruction.locctr + instruction.get_format() as i32);
     let base = get_base_at(instruction.locctr as u32);
