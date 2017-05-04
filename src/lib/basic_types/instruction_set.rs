@@ -1,7 +1,7 @@
 use std::collections::{HashSet, HashMap};
 use instruction::AsmOperand;
 use formats::{Format, get_bit_count};
-use operands::{OperandType, Value};
+use operands::OperandType;
 use unit_or_pair::{UnitOrPair, unwrap_to_vec};
 
 // The operands of the instruction will be indicated as a bit vector
@@ -41,10 +41,10 @@ impl AssemblyDef {
     /// Validates the operands of a given instruction
     pub fn has_valid_operands(&self, operands: &UnitOrPair<AsmOperand>) -> bool {
 
-        let others_ops: Vec<Value> = unwrap_to_vec(operands)
+        let others_ops: Vec<OperandType> = unwrap_to_vec(operands)
             .iter()
-            .map(|o| o.clone().val)
-            .collect::<Vec<Value>>();
+            .map(|o| o.clone().opr_type)
+            .collect::<Vec<OperandType>>();
 
         let others_ops_len = others_ops.len();
 
@@ -62,30 +62,59 @@ impl AssemblyDef {
             .into_iter()
             .collect::<HashSet<Format>>();
 
+        let mut is_instruction: bool = true;
+        if fetch_directive(&self.mnemonic).is_ok() {
+            is_instruction = false;
+        }
+
+        for opr_type in others_ops {
+            if is_instruction && !self.validate_instruction_operands(&opr_type, &opr_type_set) {
+                return false;
+            } else if !is_instruction && !self.validate_directive_operands(&opr_type) {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    fn validate_directive_operands(&self, opr: &OperandType) -> bool {
+        // FIXME: incomplete
+        let mnemonic = self.mnemonic.to_uppercase();
+        match *opr {
+            _ => true,
+        }
+    }
+
+    fn validate_instruction_operands(&self,
+                                     opr: &OperandType,
+                                     opr_type_set: &HashSet<Format>)
+                                     -> bool {
         // TODO: check for the value of the operands, format 3/4 operands can take
         // immediate, indirect and labels
-        for opr in others_ops {
-            // Observing the instruction set, memory addresses are
-            // valid only using F3 , F4 instructions
-            // Registers are valid only on F2 instructions
-            // Raw values are used with F2
-            match opr {
-                Value::Register(_) if !opr_type_set.contains(&Format::Two) => return false,
+        // Observing the instruction set, memory addresses are
+        // valid only using F3 , F4 instructions
+        // Registers are valid only on F2 instructions
+        // Raw values are used with F2
+        // format 2 takes registers
+        match *opr {
 
-                Value::Label(_) |
-                Value::SignedInt(_) if !(opr_type_set.contains(&Format::Three) ||
-                                         opr_type_set.contains(&Format::Four)) => return false,
+            OperandType::Register if !opr_type_set.contains(&Format::Two) => return false,
 
-                Value::Raw(_) if !opr_type_set.contains(&Format::Two) => return false,
-                Value::Bytes(_) if !opr_type_set.contains(&Format::Three) ||
-                                   !opr_type_set.contains(&Format::Four) => return false,   // Valid for literals
-                Value::None if !(opr_type_set.contains(&Format::One) ||
-                                 self.mnemonic == "RSUB") => return false,
-                _ => (),
-            };
-        }
-        // format 2 and 1 takes registers
+            OperandType::Immediate | OperandType::Indirect | OperandType::Label
+                if !(opr_type_set.contains(&Format::Three) ||
+                     opr_type_set.contains(&Format::Four)) => return false,
 
+            OperandType::Raw if !opr_type_set.contains(&Format::Two) => return false,
+
+            // For literals
+            OperandType::Bytes if !opr_type_set.contains(&Format::Three) ||
+                                  !opr_type_set.contains(&Format::Four) => return false,
+
+            OperandType::None if !(opr_type_set.contains(&Format::One) ||
+                                   self.mnemonic == "RSUB") => return false,
+            _ => (),
+        };
         true
     }
 
@@ -116,12 +145,16 @@ impl AssemblyDef {
 /// to the number of operands, and so
 pub fn fetch_instruction<'a>(instr_mnemonic: &String) -> Result<AssemblyDef, &'a str> {
     let mnemonic = &instr_mnemonic.to_uppercase().to_owned();
-    if INSTRUCTION_SET.contains_key(mnemonic) == false {
+    if is_instruction(mnemonic) == false {
         warn!("Failed to find mnemonic {:?}", instr_mnemonic.as_str());
         return Err("Mnemonic isn't defined in the instruction set");
     }
 
     Ok(INSTRUCTION_SET.get(mnemonic).unwrap().clone())
+}
+
+pub fn is_instruction(mnemonic: &str) -> bool {
+    INSTRUCTION_SET.contains_key(mnemonic)
 }
 
 lazy_static!{
@@ -195,16 +228,20 @@ lazy_static!{
 /// if the mnemonic doesn't exist
 /// NOTE: The caller should check for complaince with the directory table with respect
 /// to the number of operands, and so
-pub fn fetch_directive<'a>(instr_mnemonic: &String) -> Result<AssemblyDef, &'a str> {
+pub fn fetch_directive<'a>(instr_mnemonic: &str) -> Result<AssemblyDef, &'a str> {
 
     let mnemonic = &instr_mnemonic.to_uppercase().to_owned();
-    if ASSEMBLER_DIRECTIVES.contains_key(mnemonic) == false {
-        warn!("Failed to find directive {:?}", instr_mnemonic.as_str());
+    if is_directive(mnemonic) == false {
+        warn!("Failed to find directive {:?}", instr_mnemonic);
 
         return Err("Directive isn't defined in the instruction set");
     }
 
     Ok(ASSEMBLER_DIRECTIVES.get(mnemonic).unwrap().clone())
+}
+
+pub fn is_directive(mnemonic: &str) -> bool {
+    ASSEMBLER_DIRECTIVES.contains_key(mnemonic)
 }
 
 /// Assembler directives that will trigger a special action
@@ -229,6 +266,10 @@ pub fn is_decodable_directive(mnemonic: &str) -> bool {
 lazy_static!{
     static ref ASSEMBLER_DIRECTIVES: HashMap<String,AssemblyDef > = {
             let assembler_directives :HashMap <String, AssemblyDef> = [
+             ("START".to_owned(),
+                  AssemblyDef::new("START".to_owned(),
+                  UnitOrPair::Unit(Format::None),
+                  UnitOrPair::Unit(OperandType::Immediate),0xFF)),
             ("END".to_owned(),
                   AssemblyDef::new("END".to_owned(),
                   UnitOrPair::Unit(Format::None),

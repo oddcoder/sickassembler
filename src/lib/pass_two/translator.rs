@@ -97,7 +97,7 @@ fn resolve_incomplete_operands(instruction: &mut Instruction) -> Result<String, 
     }
 
     if errs.len() > 0 {
-        return Err(format!("Found error while parsing operands {}", errs.join(", ")));
+        return Err(format!("Found error while parsing operands {}", errs.join("\n ")));
     }
 
     Ok(raws)

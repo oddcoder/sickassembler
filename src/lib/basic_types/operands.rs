@@ -49,9 +49,9 @@ impl fmt::Debug for Value {
         let to_print;
 
         to_print = match self.clone() {
-            Value::Register(x) => format!("Register {:#04X}", (x as u8)),
-            Value::Raw(x) => format!("Raw {:#04X}", x),
-            Value::SignedInt(x) => format!("Immediate {:#04X}", x),
+            Value::Register(x) => format!("Register {:#4X}", (x as u8)),
+            Value::Raw(x) => format!("Raw {:#4X}", x),
+            Value::SignedInt(x) => format!("Immediate {}", x),
             Value::Label(x) => format!("Label {}", x),
             Value::Bytes(x) => format!("Literal/Bytes {}", x),
             _ => String::new(),

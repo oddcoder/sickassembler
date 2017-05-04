@@ -11,25 +11,35 @@ use super::*;
 use std::i32;
 
 
-pub fn parse_directive_operand(op: &str) -> Result<AsmOperand, String> {
+pub fn parse_directive_operand(op: &str, instruction: &str) -> Result<AsmOperand, String> {
     let mut errs: String = String::new();
+    let inst = instruction.to_uppercase();
+
     let result = parse_bytes(op)
         .or_else(|e| {
-            // RESW/B
             errs = format!("{}", e);
-            parse_singed_int(op)
+            // RESW/B
+            if inst == "RESB" || inst == "RESW" {
+                parse_singed_int(op)
+            } else {
+                Err("Not RESB/W".to_owned())
+            }
+
         })
         .or_else(|e| {
             // START / END
-            errs = format!("{} , {}", errs, e);
-            parse_hex(op)
+            errs = format!("{}\n{}", errs, e);
+            if inst == "START" || inst == "END" {
+                parse_hex(op)
+            } else {
+                Err("Not START/END".to_owned())
+            }
         })
         .or_else(|e| {
             // BASE / NOBASE
-            errs = format!("{} , {}", errs, e);
+            errs = format!("{}\n{}", errs, e);
             parse_label(op, OperandType::None)
         });
-
     match result {
         Ok(r) => return Ok(r),
         Err(_) => return Err(errs),
@@ -44,7 +54,7 @@ pub fn parse_instruction_operand(op: &str) -> Result<AsmOperand, String> {
             parse_hex(op)
         })
         .or_else(|e| {
-            errs = format!("{} , {}", errs, e);
+            errs = format!("{}\n{}", errs, e);
             parse_memory_operand(op)
         });
     match result {
@@ -100,14 +110,31 @@ fn parse_bytes(op: &str) -> Result<AsmOperand, String> {
 
 /// Occurs when: Instruction -> F3 -> memory -> label , Directive -> label i.e BASE/NOBASE
 fn parse_label(op: &str, t: OperandType) -> Result<AsmOperand, String> {
-    if is_label(op) {
+
+    if op.starts_with("X'") && op.ends_with("'") {
+
+        // Immediate hex -> #X'F1' ( the # is removed by the caller )
+        // FIXME: Convert to immediate decimal as the type Raw isn't supported by F3/F4 instructions
+        let op = &mut op.to_owned();
+        remove_literal_container(op);
+
+        match u32::from_str_radix(&op, 16) {
+            Ok(decimal) => {
+                return Ok(create_operand(OperandType::Immediate, Value::SignedInt(decimal as i32)))
+            }
+
+            Err(e) => return Err(e.to_string()),
+        }
+
+    } else if is_label(op) {
         return Ok(create_operand(t, Value::Label(op.to_owned())));
     }
-    Err(format!("{} Isn't a label", op))
 
+    Err(format!("{} Isn't a label", op))
 }
 
 /// Occurs when: Directive -> Start/End OR F2 with n -> Shl / Shr / SVC
+/// Converts a hexadecimal string to a raw operand
 fn parse_hex(op: &str) -> Result<AsmOperand, String> {
     match u32::from_str_radix(&op, 16) {
         Ok(hex) => Ok(create_operand(OperandType::Raw, Value::Raw(hex))),

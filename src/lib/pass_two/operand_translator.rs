@@ -6,7 +6,7 @@ use pass_one::pass_one::get_symbol;
 use base_table::get_base_at;
 use regex::Regex;
 use literal_table::get_literal;
-use super::super::to_hex_string;
+use super::super::{to_hex_string, remove_literal_container};
 
 pub fn parse_operand(instruction: &mut Instruction, val: &Value) -> Result<String, String> {
     match *val {
@@ -69,12 +69,12 @@ pub fn translate_literal(literal: &str) -> String {
         // ex. INPUT BYTE X’F1’ -> F1
         let captures = HEX_REGEX.captures(literal).unwrap();
         let mut operand_match: String = captures.get(0).unwrap().as_str().to_owned();
-        remove_container(&mut operand_match);
+        remove_literal_container(&mut operand_match);
         return operand_match;
     } else if literal.starts_with('C') || literal.starts_with('c') {
         let captures = STR_REGEX.captures(literal).unwrap();
         let mut operand_match: String = captures.get(0).unwrap().as_str().to_owned();
-        remove_container(&mut operand_match);
+        remove_literal_container(&mut operand_match);
 
         return parse_str_operand(operand_match);
     } else {
@@ -121,8 +121,8 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
             final_disp = disp & 0xFFF;
 
         } else {
-            return Err(format!("Address is out of base relative range disp:{:0X} base:{:0X} \
-                                symbol addr:{:0X} , Instruction:{:?}",
+            return Err(format!("Address is out of base relative range disp:{:#X} base:{:#X} \
+                                symbol addr:{:#X} , Instruction:{:?}",
                                disp,
                                base,
                                sym_addr,
@@ -131,7 +131,7 @@ fn get_disp(instruction: &mut Instruction, sym_addr: i32) -> Result<String, Stri
 
     } else {
         return Err(format!("Address is out of PC relative range and no base is specified, \
-                            Displacement:{:0X} Target Address:{:0X} {} Loc:{:0X}",
+                            Displacement:{:#X} Target Address:{:#X} {} Loc:{:#X}",
                            disp,
                            sym_addr,
                            instruction.mnemonic,
@@ -148,14 +148,6 @@ fn panic_on_memory_limit(disp: i32, locctr: i32) {
     if disp + locctr >= (1 << 20) {
         panic!("Out of range address {}", disp + locctr)
     }
-}
-
-/// Removes the container of a WORD/BYTE oeprand, the prefix, the '
-/// X'asdas' -> asdas ,and so on
-fn remove_container(byte_operand: &mut String) {
-    byte_operand.remove(0);
-    byte_operand.remove(0);
-    byte_operand.pop();
 }
 
 lazy_static!{
