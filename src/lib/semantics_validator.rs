@@ -10,8 +10,12 @@ use unit_or_pair::*;
 pub fn validate_semantics(instr: &mut Instruction) -> Result<(), String> {
     let mut errs: Vec<String> = Vec::new();
 
-    if let Ok(_) = fetch_directive(&instr.mnemonic) {
+    if let Ok(def) = fetch_directive(&instr.mnemonic) {
         // Directives are matched while reading the source code
+        // FIXME: check operands of directives
+        if def.has_valid_operands(&instr.operands) {
+            return Ok(());
+        }
         return Ok(());
     }
 
@@ -22,7 +26,8 @@ pub fn validate_semantics(instr: &mut Instruction) -> Result<(), String> {
     }
 
     if def.has_valid_operands(&instr.operands) == false {
-        errs.push(format!("Operands for this instruction are invalid {{ {:?} }} , \nexpected {{ {:?} }}",
+        errs.push(format!("Operands for this instruction are invalid {{ {:?} }} , \nexpected {{ \
+                           {:?} }}",
                           instr,
                           def));
     }
@@ -43,7 +48,7 @@ pub fn validate_semantics(instr: &mut Instruction) -> Result<(), String> {
     }
 
     if errs.len() > 0 {
-        return Err(errs.join(", "));
+        return Err(errs.join("\n"));
     }
 
     Ok(())

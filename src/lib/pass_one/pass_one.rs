@@ -9,6 +9,7 @@ use literal_table::{insert_literal, get_unresolved, get_literal};
 use std::u32;
 use super::super::*;
 
+// FIXME: get instruction size shouldn't check for errors
 fn get_instruction_size(inst: &Instruction) -> i32 {
     match inst.get_format() {
         Format::One => return 1,
@@ -70,18 +71,14 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
     return 0;
 }
 
-pub fn pass_one(prog_info: Result<(RawProgram, usize), String>)
-                -> Result<(HashMap<String, i32>, RawProgram), String> {
+pub fn pass_one(prog_info: RawProgram) -> Result<(HashMap<String, i32>, RawProgram), String> {
 
     // TODO: replace the literal in an instruction operand with the literal label
     // if let Value::Bytes(ref x) = instruction.get_first_operand().val {}
 
-    if let Err(e) = prog_info {
-        return Err(e);
-    }
     let mut errs: Vec<String> = Vec::new();
-    let (prog, loc) = prog_info.unwrap();
-    let mut loc = loc as i32;
+    let prog = prog_info;
+    let mut loc = 0;
     let mut prog: RawProgram = prog;
     let temp_instructions: Vec<Instruction>;
 
@@ -96,8 +93,28 @@ pub fn pass_one(prog_info: Result<(RawProgram, usize), String>)
 
     let mut instructions: Vec<Instruction> = Vec::new();
 
-    for mut instruction in temp_instructions {
+    for instruction in temp_instructions {
+        let mut instruction: Instruction = instruction;
         instruction.locctr = loc;
+
+        // Comes after label to add the program name to the labels
+        if instruction.mnemonic.to_uppercase() == "START" {
+            // Duplicate start instruction
+            if !prog.program_name.is_empty() {
+                errs.push(format!("Invalid START instruction {:?} , old prog name: {}",
+                                  instruction,
+                                  prog.program_name));
+            }
+
+            match parse_start(&instruction) {
+                Err(e) => errs.push(e),
+                Ok((name, start)) => {
+                    prog.program_name = name;
+                    prog.first_instruction_address = start;
+                    loc = start as i32
+                }
+            };
+        }
 
         if !instruction.label.is_empty() {
             if let Err(e) = insert_symbol(&instruction.label, loc) {
@@ -112,15 +129,16 @@ pub fn pass_one(prog_info: Result<(RawProgram, usize), String>)
             instructions.push(instruction.clone());
         }
 
+        // This must come after the location increment to calculate the correct
+        // length of the program and not skip the last instruction
         if instruction.mnemonic.to_uppercase() == "END" {
             match parse_end(&instruction) {
                 Ok(end) => {
-                    prog.starting_address = end;
+                    prog.first_instruction_address = end;
                     prog.program_length = (loc as u32) - prog.first_instruction_address;
                 }
                 Err(e) => errs.push(e),
             }
-
         }
     }
 
@@ -173,11 +191,11 @@ fn parse_end(instruction: &Instruction) -> Result<u32, String> {
     if operands.len() != 0 {
         if let Value::Raw(op_end) = operands[0].val {
             // Will panic on negative value
-            Ok(op_end as u32)
+            Ok(op_end)
         } else if let Value::Label(ref lbl) = operands[0].val {
             match get_symbol(&lbl) {
-                Some(addr) => Ok(addr as u32),
-                None => Err(format!("Couldn't find symbol {{ {} }}", lbl)),
+                Ok(addr) => Ok(addr as u32),
+                Err(e) => Err(e),
             }
         } else {
             Err(format!("Invalid END operands, found {:?}", operands))
@@ -187,6 +205,21 @@ fn parse_end(instruction: &Instruction) -> Result<u32, String> {
         Ok((instruction.locctr) as u32)
     }
 
+}
+
+
+fn parse_start(instruction: &Instruction) -> Result<(String, u32), String> {
+
+    let start_addr: u32;
+    let prog_name: String;
+    if let Value::Raw(adr) = instruction.get_first_operand().val {
+        start_addr = adr as u32;
+    } else {
+        start_addr = 0;
+    }
+    prog_name = instruction.label.clone();
+
+    Ok((prog_name, start_addr))
 }
 
 fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
@@ -219,11 +252,11 @@ fn insert_symbol(symbol: &String, address: i32) -> Result<(), String> {
     Ok(())
 }
 
-pub fn get_symbol(symbol: &String) -> Option<i32> {
-    if exists(symbol) == false {
-        None
+pub fn get_symbol(symbol: &str) -> Result<i32, String> {
+    if exists(symbol) {
+        Ok(SYMBOL_TABLE.read().get(symbol).unwrap().to_owned())
     } else {
-        Some(SYMBOL_TABLE.read().get(symbol).unwrap().clone())
+        Err(format!("Couldn't find symbol {{ {} }}", symbol))
     }
 }
 
@@ -231,7 +264,7 @@ pub fn get_all_symbols() -> HashMap<String, i32> {
     SYMBOL_TABLE.read().clone()
 }
 
-fn exists(symbol: &String) -> bool {
+fn exists(symbol: &str) -> bool {
     return SYMBOL_TABLE.read().contains_key(symbol);
 }
 

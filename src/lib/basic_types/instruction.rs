@@ -29,7 +29,7 @@ impl AsmOperand {
 
 impl fmt::Debug for AsmOperand {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, " T:{:?} V:{:?} ", self.opr_type, self.val)
+        write!(f, " Type:{:?} Value:{:?} ", self.opr_type, self.val)
     }
 }
 
@@ -271,9 +271,9 @@ impl Instruction {
 impl fmt::Debug for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               "{} {} {} {} {:?}",
-               self.format,
+               "{:#X} {} {} {} {:?}",
                self.locctr,
+               self.format,
                self.label,
                self.mnemonic,
                self.operands)

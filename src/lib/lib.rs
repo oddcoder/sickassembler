@@ -37,7 +37,7 @@ pub use basic_types::base_table;
 
 pub use pass_two::translator;
 
-pub fn to_hex<T>(num: T) -> String
+pub fn to_hex_string<T>(num: T) -> String
     where T: UpperHex + Sized
 {
     format!("{:X}", num)
@@ -73,12 +73,23 @@ pub fn is_hex(op: &str) -> bool {
     return HEX_STREAM.is_match(&op);
 }
 
+/// Removes the container of a WORD/BYTE oeprand, the prefix, the '
+/// X'asdas' -> asdas ,and so on
+/// This doesn't take a reference just to save copying the string
+fn remove_literal_container(byte_operand: &mut String) {
+    byte_operand.remove(0);
+    byte_operand.remove(0);
+    byte_operand.pop();
+}
+
 lazy_static!{
     // Regex reference: http://kbknapp.github.io/doapi-rs/docs/regex/index.html
     static ref CHAR_OPERAND_STREAM:Regex = Regex::new(r"^C'[[:alnum:]]+'$").unwrap();
     static ref HEX_OPERAND_STREAM:Regex = Regex::new(r"^X'[[:xdigit:]]+'$").unwrap();
     static ref DECIMAL_STREAM:Regex = Regex::new(r"^-?[[:digit:]]+$").unwrap();
     static ref HEX_STREAM:Regex = Regex::new(r"^[[:xdigit:]]+$").unwrap();
-    static ref LABEL_STREAM:Regex = Regex::new(r"^[a-zA-Z_$][a-zA-Z_$0-9]*$").unwrap();
+    static ref LABEL_STREAM:Regex = Regex::new(r"^[a-zA-Z_][a-zA-Z_0-9]*$").unwrap();
     static ref COMMENT_REGEX:Regex = Regex::new(r"\.(\s|.)+").unwrap();
+    static ref COMMA_WHITESPACE_REGEX:Regex = Regex::new(r",\s+").unwrap();
+    static ref SPLIT_SOURCE_LINE_SPLIT_REGEX:Regex = Regex::new(r"(\s+|\n+|\t+)").unwrap();
 }

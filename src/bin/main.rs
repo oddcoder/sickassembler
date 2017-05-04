@@ -20,7 +20,7 @@ fn print_usage(program: &str, opts: Options) {
 }
 
 fn main() {
-
+    let exit_on_error: bool = true;
     env_logger::init().unwrap();
     // credits goes to here:-
     // https://doc.rust-lang.org/getopts/getopts/index.html
@@ -54,22 +54,20 @@ fn main() {
     let result = asm_file.parse_file();
 
     let mut t = term::stdout().unwrap();
-    t.fg(term::color::RED).unwrap();
-    t.attr(term::Attr::Bold).unwrap();
-    for err in asm_file.errs {
-        write!(t, "{}\n", err).unwrap();
+    print_errs(&asm_file.errs, exit_on_error);
+
+
+    let result = sick_lib::pass_one::pass_one::pass_one(result.unwrap());
+    let result = result.map_err(|e| print_error(&e, exit_on_error));
+    if result.is_err() {
+        return;
     }
-    t.reset().unwrap();
-
-
-    let result = sick_lib::pass_one::pass_one::pass_one(result);
-    let result = result.map_err(|e| panic!("{}", e));
 
     let (sym_tab, mut raw_program): (_, _) = result.unwrap();
 
     t.fg(term::color::YELLOW).unwrap();
     write!(t,
-           "Prog name:{}, prog length:{:X}, prog start addr:{}\n",
+           "Prog name:{}, prog length:{:#X}, prog start addr:{:#X}\n",
            raw_program.program_name,
            raw_program.program_length,
            raw_program.first_instruction_address)
@@ -82,16 +80,7 @@ fn main() {
         .map(|e| (e.0, e.1))
         .collect::<Vec<(String, i32)>>();
 
-    // TODO: don't produce HTME on errors
-    t.fg(term::color::BRIGHT_RED).unwrap();
-    t.attr(term::Attr::Bold).unwrap();
-    for err in &errs {
-        println!("{}", err);
-    }
-    t.reset().unwrap();
-    if errs.len() > 0 {
-        return;
-    }
+    print_errs(&errs, exit_on_error);
 
     // Sort by address
     sym_tab.sort_by(|a, b| a.1.cmp(&b.1));
@@ -124,4 +113,34 @@ fn main() {
     }
     table.printstd();
     raw_program.output_to_file();
+}
+
+fn print_error(err: &String, exit_on_error: bool) {
+    if err.len() == 0 {
+        return;
+    }
+    let mut t = term::stdout().unwrap();
+    t.fg(term::color::BRIGHT_RED).unwrap();
+    t.attr(term::Attr::Bold).unwrap();
+    println!("{}", err);
+    t.reset().unwrap();
+    if exit_on_error {
+        std::process::exit(-1);
+    }
+}
+
+fn print_errs(errs: &Vec<String>, exit_on_error: bool) {
+    if errs.len() == 0 {
+        return;
+    }
+    let mut t = term::stdout().unwrap();
+    t.fg(term::color::BRIGHT_RED).unwrap();
+    t.attr(term::Attr::Bold).unwrap();
+    for err in errs {
+        println!("{}", err);
+    }
+    t.reset().unwrap();
+    if exit_on_error {
+        std::process::exit(-1);
+    }
 }

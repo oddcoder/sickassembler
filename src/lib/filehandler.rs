@@ -1,11 +1,10 @@
-
 use std::fs::File;
 use std::io::BufReader;
-use std::{u32, usize};
+use std::u32;
 
 use std::io::BufRead;
 
-use instruction_set::{AssemblyDef, fetch_directive, fetch_instruction};
+use instruction_set::{AssemblyDef, fetch_directive, fetch_instruction, is_directive, is_instruction};
 use instruction::*;
 use unit_or_pair::*;
 use formats::*;
@@ -29,11 +28,8 @@ impl FileHandler {
         };
     }
 
-    /// Returns:
-    ///     - the program instructions
-    ///     - address in START instruction
-    ///     - address in END instruction
-    pub fn parse_file(&mut self) -> Result<(RawProgram, usize), String> {
+    pub fn parse_file(&mut self) -> Result<RawProgram, String> {
+
         let mut prog: RawProgram = RawProgram {
             program_name: String::new(),
             starting_address: u32::MAX,
@@ -42,38 +38,17 @@ impl FileHandler {
             first_instruction_address: u32::MAX,
         };
 
-        let line = self.process_file().unwrap();
-        let (name, start_addr) = self.read_start(line)
-            .map_err(|e| self.errs.push(e))
-            .unwrap_or((String::new(), usize::MAX));
-
-        prog.program_name = name;
-        prog.first_instruction_address = start_addr as u32;
-
         while let Some(line) = self.process_file() {
             if let Some(instruction) = self.read_instruction(line) {
                 prog.program.push((String::new(), instruction));
             }
         }
 
-        Ok((prog, start_addr))
-    }
-
-    fn read_start(&mut self, line: String) -> Result<(String, usize), String> {
-        let words: Vec<&str> = line.trim().split_whitespace().collect();
-
-        if words.len() > 3 {
-            return Err(format!("Unexpected \"{}\"", words[3]));
-        }
-
-        match words[1] {
-            "START" => return Ok((words[0].to_owned(), words[2].parse().unwrap())),
-            _ => return Err(format!("Expected \"START\" found \"{}\"", words[1])),
-        }
+        Ok(prog)
     }
 
     #[allow(unused_mut)]
-    fn read_instruction(&mut self, line: String) -> Option<Instruction> {
+    fn read_instruction(&mut self, line: Vec<String>) -> Option<Instruction> {
 
         let mut inst: Instruction;
         let mut def: AssemblyDef;
@@ -92,42 +67,41 @@ impl FileHandler {
 
     #[allow(unused_mut)]
     #[allow(unused_assignments)]
-    fn parse_line_of_code(&mut self, line: String) -> Option<(Instruction, AssemblyDef)> {
-
-        let mut words: Vec<String> = line.split_whitespace()
-            .map(|x| x.trim().to_owned())
-            .collect::<Vec<String>>();
+    fn parse_line_of_code(&mut self, mut words: Vec<String>) -> Option<(Instruction, AssemblyDef)> {
 
         let mut label: String = String::new();
         let mut instruction: String;
         let mut instruction_def: AssemblyDef = AssemblyDef::dummy();
         let mut is_format_4 = false;
-        let mut is_directive = false;
-
-        // FIXME: this method of splitting is ruined, splitting by white_space can cause
-        // errors easily
+        let mut is_asm_directive = false;
         let mut operands: UnitOrPair<AsmOperand> = UnitOrPair::None;
 
         if words.len() > 3 || words.is_empty() {
-            self.errs.push(format!("Invalid code at line #{}", self.line_number));
+            self.errs.push(format!("Invalid code at line #{}, {:?}", self.line_number, words));
         }
 
-        if words.len() == 3 {
-            let temp: String = words.drain(0..1).collect();
-            if is_label(&temp) {
-                label = temp;
-            } else {
-                self.errs.push(format!("Invalid label token at line #{}", self.line_number));
-                return None;
+        // for format four instructions
+        let mut temp = words[0].clone();
+        if temp.starts_with("+") {
+            temp = temp[1..].to_owned();
+        }
+
+        // Allow for labels that have the same name as mnemonics (words.len()==3)
+        if (!is_instruction(&temp) && !is_directive(&temp)) || words.len() == 3 {
+            if !is_label(&temp) {
+                self.errs.push(format!("Invalid label token at line #{} : {}",
+                                       self.line_number,
+                                       words[0]));
             }
+            label = words.remove(0);
         }
 
-        instruction = words.drain(0..1).collect();
+        instruction = words.remove(0);
         match get_def(&mut instruction) {
             Ok((def, is_4, is_dir)) => {
                 instruction_def = def;
                 is_format_4 = is_4;
-                is_directive = is_dir;
+                is_asm_directive = is_dir;
             }
             Err(e) => {
                 self.errs.push(format!("{}", e));
@@ -136,7 +110,7 @@ impl FileHandler {
         }
 
         if !words.is_empty() {
-            match parse_operands(words.drain(0..1).collect(), is_directive) {
+            match parse_operands(words.remove(0), is_asm_directive, &instruction) {
                 Ok(e) => operands = e,
                 Err(e) => self.errs.push(e),
             };
@@ -151,7 +125,7 @@ impl FileHandler {
     }
 
     /// Reads a line of code, removing the comments and bypassing empty lines
-    fn process_file(&mut self) -> Option<String> {
+    fn process_file(&mut self) -> Option<Vec<String>> {
         // Returns ->
         // None -> EOF
         // Some -> Code
@@ -161,8 +135,18 @@ impl FileHandler {
 
         while self.buf.read_line(&mut line).unwrap() > 0 {
             self.line_number = self.line_number + 1;
-            let temp = (*COMMENT_REGEX.replace_all(line.as_str(), "")).to_owned();
-            let temp = temp.trim();
+            let temp: String = (*COMMENT_REGEX.replace_all(line.as_str(), "")).to_owned();
+
+            // Remove whitespace on right, whitespace on the left will be
+            // used to extract the labels
+            let temp = temp.trim_right();
+            // Remove space after commas, more flexible code style
+            let temp = &(*COMMA_WHITESPACE_REGEX.replace(temp, ","));
+            // Split the source code lines to label, instruciton and operands
+            let temp = SPLIT_SOURCE_LINE_SPLIT_REGEX.split(temp)
+                .filter(|ref x| !x.replace(" ", "").is_empty())
+                .map(|x| x.to_owned())
+                .collect::<Vec<String>>();
             line.clear();
             if temp.is_empty() {
                 continue;
@@ -174,7 +158,8 @@ impl FileHandler {
 }
 
 fn parse_operands(operand_string: String,
-                  is_directive: bool)
+                  is_directive: bool,
+                  instruction: &str)
                   -> Result<UnitOrPair<AsmOperand>, String> {
     let ops: Vec<&str> = operand_string.split(",").collect();
     let mut errs: Vec<String> = Vec::new();
@@ -183,7 +168,7 @@ fn parse_operands(operand_string: String,
         0 => return Ok(UnitOrPair::None),
         1 => {
             let op = if is_directive {
-                parse_directive_operand(ops[0])
+                parse_directive_operand(ops[0], instruction)
             } else {
                 parse_instruction_operand(ops[0])
             };
@@ -272,6 +257,8 @@ mod tests {
         assert!(is_literal("=C'EOF'"));
         assert!(is_literal("=X'1EF'"));
         assert!(is_literal("=X'10'"));
+        assert!(!is_literal("=X'10"));
+        assert!(!is_literal("='10'"));
     }
 
 
@@ -280,13 +267,13 @@ mod tests {
         let lines = with_regex();
         // Without regex
         let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
+        let prog = asm_file.parse_file().unwrap();
 
-        // Start and End are not included in parse_file result
-        let instruction_count_without_start = lines.len() - 2;
+        for i in 0..prog.program.len() {
+            println!("{:?} -- {:?}\n", prog.program[i], lines[i]);
+        }
 
-        let (prog, _) = asm_file.parse_file().unwrap();
-
-        assert_eq!(prog.program.len(), instruction_count_without_start);
+        assert_eq!(prog.program.len(), lines.len());
 
     }
 
