@@ -18,6 +18,10 @@ lazy_static!{
 
 pub fn insert_literal(literal: &String, address: u32) {
 
+    if get_literal(literal).is_some() {
+        return;
+    }
+
     let mut temp = LIT_ID.write();
     let mut lit_table = LITERAL_TABLE.write();
 
@@ -52,7 +56,6 @@ pub fn get_unresolved() -> Vec<String> {
 }
 
 pub fn get_literal(name: &str) -> Option<Literal> {
-
     let val: String = translate_literal(&name[1..]); // Remove the = sign
     let table = LITERAL_TABLE.read();
 

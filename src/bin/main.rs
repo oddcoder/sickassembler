@@ -20,7 +20,7 @@ fn print_usage(program: &str, opts: Options) {
 }
 
 fn main() {
-    let exit_on_error: bool = false;
+    let exit_on_error: bool = true;
     env_logger::init().unwrap();
     // credits goes to here:-
     // https://doc.rust-lang.org/getopts/getopts/index.html
@@ -80,7 +80,6 @@ fn main() {
         .map(|e| (e.0, e.1))
         .collect::<Vec<(String, i32)>>();
 
-    // TODO: don't produce HTME on errors
     print_errs(&errs, exit_on_error);
 
     // Sort by address

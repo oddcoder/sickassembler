@@ -84,9 +84,15 @@ impl FileHandler {
             self.errs.push(format!("Invalid code at line #{}, {:?}", self.line_number, words));
         }
 
+        // for format four instructions
+        let mut temp = words[0].clone();
+        if temp.starts_with("+") {
+            temp = temp[1..].to_owned();
+        }
+
         // Allow for labels that have the same name as mnemonics (words.len()==3)
-        if (!is_instruction(&words[0]) && !is_directive(&words[0])) || words.len() == 3 {
-            if !is_label(&words[0]) {
+        if (!is_instruction(&temp) && !is_directive(&temp)) || words.len() == 3 {
+            if !is_label(&temp) {
                 self.errs.push(format!("Invalid label token at line #{} : {}",
                                        self.line_number,
                                        words[0]));
@@ -255,6 +261,8 @@ mod tests {
         assert!(is_literal("=C'EOF'"));
         assert!(is_literal("=X'1EF'"));
         assert!(is_literal("=X'10'"));
+        assert!(!is_literal("=X'10"));
+        assert!(!is_literal("='10'"));
     }
 
 
@@ -263,13 +271,13 @@ mod tests {
         let lines = with_regex();
         // Without regex
         let mut asm_file = FileHandler::new("src/tests/test1.asm".to_owned());
+        let prog = asm_file.parse_file().unwrap();
 
-        // Start and End are not included in parse_file result
-        let instruction_count_without_start = lines.len() - 2;
+        for i in 0..prog.program.len() {
+            println!("{:?} -- {:?}\n", prog.program[i], lines[i]);
+        }
 
-        let (prog, _) = asm_file.parse_file().unwrap();
-
-        assert_eq!(prog.program.len(), instruction_count_without_start);
+        assert_eq!(prog.program.len(), lines.len());
 
     }
 
