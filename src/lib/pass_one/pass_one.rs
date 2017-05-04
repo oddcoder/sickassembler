@@ -76,7 +76,6 @@ pub fn pass_one(prog_info: RawProgram) -> Result<(HashMap<String, i32>, RawProgr
     // TODO: replace the literal in an instruction operand with the literal label
     // if let Value::Bytes(ref x) = instruction.get_first_operand().val {}
 
-    // FIXME: read the start instruction to set the locctr
     let mut errs: Vec<String> = Vec::new();
     let prog = prog_info;
     let mut loc = 0;

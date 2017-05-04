@@ -75,10 +75,6 @@ impl FileHandler {
         let mut is_format_4 = false;
         let mut is_asm_directive = false;
         let mut operands: UnitOrPair<AsmOperand> = UnitOrPair::None;
-        // FIXME: this method of splitting is ruined, splitting by white_space can cause
-        // errors easily
-        // FIXME: hex immediate operands #X'F1' -> convert to immediate ( signed int ) / Raw
-        // FIXME: label rsub
 
         if words.len() > 3 || words.is_empty() {
             self.errs.push(format!("Invalid code at line #{}, {:?}", self.line_number, words));

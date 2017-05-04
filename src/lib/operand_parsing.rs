@@ -114,7 +114,7 @@ fn parse_label(op: &str, t: OperandType) -> Result<AsmOperand, String> {
     if op.starts_with("X'") && op.ends_with("'") {
 
         // Immediate hex -> #X'F1' ( the # is removed by the caller )
-        // FIXME: Convert to immediate decimal as the type Raw isn't supported by F3/F4 instructions
+        // Convert to immediate decimal as the type Raw isn't supported by F3/F4 instructions
         let op = &mut op.to_owned();
         remove_literal_container(op);
 

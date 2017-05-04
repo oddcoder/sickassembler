@@ -30,9 +30,7 @@ pub fn pass_two(prog: &mut RawProgram) -> Vec<String> {
 fn translate(instruction: &mut Instruction) -> Result<String, String> {
 
     let mut errs: Vec<String> = Vec::new();
-    // TODO: check for action directives in the caller of this function
-    // TODO: Check the flags for options
-    // FIXME: handle base-relative addressing
+
     if let Err(e) = semantics_validator::validate_semantics(instruction) {
         errs.push(format!("Semantic Error(s): {} \n {:?} \n\n", e, instruction));
     }
