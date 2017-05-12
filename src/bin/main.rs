@@ -20,7 +20,7 @@ fn print_usage(program: &str, opts: Options) {
 }
 
 fn main() {
-    let exit_on_error: bool = true;
+    let exit_on_error: bool = false;
     env_logger::init().unwrap();
     // credits goes to here:-
     // https://doc.rust-lang.org/getopts/getopts/index.html

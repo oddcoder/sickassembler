@@ -9,6 +9,10 @@ use literal_table::{insert_literal, get_unresolved, get_literal};
 use std::u32;
 use super::super::*;
 
+lazy_static!{
+    static ref SYMBOL_TABLE: RwLock<HashMap<String,i32>> = RwLock::new(HashMap::new());
+}
+
 // FIXME: get instruction size shouldn't check for errors
 fn get_instruction_size(inst: &Instruction) -> i32 {
     match inst.get_format() {
@@ -76,79 +80,22 @@ pub fn pass_one(prog_info: RawProgram) -> Result<(HashMap<String, i32>, RawProgr
     // TODO: replace the literal in an instruction operand with the literal label
     // if let Value::Bytes(ref x) = instruction.get_first_operand().val {}
 
-    let mut errs: Vec<String> = Vec::new();
+
     let prog = prog_info;
-    let mut loc = 0;
     let mut prog: RawProgram = prog;
     let temp_instructions: Vec<Instruction>;
 
-    {
-        // Move the instructions into a temp storage
-        // to allow for adding literals
-        temp_instructions = prog.program
-            .into_iter()
-            .map(move |t: (_, Instruction)| t.1)
-            .collect::<Vec<Instruction>>();
-    }
+    // Move the instructions into a temp storage
+    // to allow for adding literals
+    temp_instructions = prog.program
+        .into_iter()
+        .map(move |t: (_, Instruction)| t.1)
+        .collect::<Vec<Instruction>>();
 
-    let mut instructions: Vec<Instruction> = Vec::new();
+    prog.program = Vec::new(); // To cancel the move effect
 
-    for instruction in temp_instructions {
-        let mut instruction: Instruction = instruction;
-        instruction.locctr = loc;
-
-        // Comes after label to add the program name to the labels
-        if instruction.mnemonic.to_uppercase() == "START" {
-            // Duplicate start instruction
-            if !prog.program_name.is_empty() {
-                errs.push(format!("Invalid START instruction {:?} , old prog name: {}",
-                                  instruction,
-                                  prog.program_name));
-            }
-
-            match parse_start(&instruction) {
-                Err(e) => errs.push(e),
-                Ok((name, start)) => {
-                    prog.program_name = name;
-                    prog.first_instruction_address = start;
-                    loc = start as i32
-                }
-            };
-        }
-
-        if !instruction.label.is_empty() {
-            if let Err(e) = insert_symbol(&instruction.label, loc) {
-                errs.push(format!("{}", e));
-            }
-        }
-
-        if instruction.mnemonic.to_uppercase() == "LTORG" {
-            loc = flush_literals(&mut instructions, loc as u32);
-        } else {
-            loc += get_instruction_size(&instruction);
-            instructions.push(instruction.clone());
-        }
-
-        // This must come after the location increment to calculate the correct
-        // length of the program and not skip the last instruction
-        if instruction.mnemonic.to_uppercase() == "END" {
-            match parse_end(&instruction) {
-                Ok(end) => {
-                    prog.first_instruction_address = end;
-                    prog.program_length = (loc as u32) - prog.first_instruction_address;
-                }
-                Err(e) => errs.push(e),
-            }
-        }
-    }
-
-    // Flush remaining literals
-    flush_literals(&mut instructions, loc as u32);
-
-    if prog.program_length == u32::MAX {
-        errs.push(format!("Couldn't find the END instruction"));
-    }
-
+    // TODO: return here
+    let (errs, instructions) = process_instructions(temp_instructions, &mut prog);
     // Move the instructions back
     prog.program = instructions.into_iter()
         .map(|i| (String::new(), i))
@@ -176,50 +123,108 @@ fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32) -> i32 {
 
         // Add literals to symbol table
         insert_symbol(&lit, lit_addr).unwrap();
-
     }
     loc as i32
 }
 
+fn process_instructions(temp_instructions: Vec<Instruction>,
+                        mut prog: &mut RawProgram)
+                        -> (Vec<String>, Vec<Instruction>) {
+    let mut loc = 0;
+    let mut errs: Vec<String> = Vec::new();
+    let mut instructions: Vec<Instruction> = Vec::new();
+    for instruction in temp_instructions {
+        let mut instruction: Instruction = instruction;
+        instruction.locctr = loc;
+
+        if !instruction.label.is_empty() {
+            if let Err(e) = insert_symbol(&instruction.label, loc) {
+                errs.push(format!("{}", e));
+            }
+        }
+
+        if instruction.mnemonic.to_uppercase() == "START" {
+            match parse_start(&instruction, &mut prog) {
+                Err(e) => errs.push(e),
+                Ok(start) => loc = start as i32,
+            };
+        }
+
+        if instruction.mnemonic.to_uppercase() == "LTORG" {
+            loc = flush_literals(&mut instructions, loc as u32);
+        } else {
+            loc += get_instruction_size(&instruction);
+            instructions.push(instruction.clone());
+        }
+
+        // This must come after the location increment to calculate the correct
+        // length of the program and not skip the last instruction
+        if instruction.mnemonic.to_uppercase() == "END" {
+            match parse_end(&instruction, &mut prog) {
+                Ok(_) => (),
+                Err(e) => errs.push(e),
+            }
+        }
+    }
+
+    // Flush remaining literals
+    flush_literals(&mut instructions, loc as u32);
+
+    if prog.program_length == u32::MAX {
+        errs.push(format!("Couldn't find the END instruction"));
+    }
+    (errs, instructions)
+}
+
 /// Gets the address of the first executable isntruction
-fn parse_end(instruction: &Instruction) -> Result<u32, String> {
+fn parse_end(instruction: &Instruction, prog: &mut RawProgram) -> Result<(), String> {
     // TODO: change read_start to read boundary START/END
     // or replace with is action directive
-    // check for instructions after END ( not applicable )
+    // FIXME: check for instructions after END
     let operands = unwrap_to_vec(&instruction.operands);
-
+    let end_loc: i32;
     if operands.len() != 0 {
         if let Value::Raw(op_end) = operands[0].val {
             // Will panic on negative value
-            Ok(op_end)
+            end_loc = op_end as i32;
         } else if let Value::Label(ref lbl) = operands[0].val {
             match get_symbol(&lbl) {
-                Ok(addr) => Ok(addr as u32),
-                Err(e) => Err(e),
+                Ok(addr) => end_loc = addr,
+                Err(e) => return Err(e),
             }
         } else {
-            Err(format!("Invalid END operands, found {:?}", operands))
+            return Err(format!("Invalid END operands, found {:?}", operands));
         }
     } else {
         // End operand isn't specified, default: program start address
-        Ok((instruction.locctr) as u32)
+        end_loc = prog.first_instruction_address as i32;
     }
 
+    prog.starting_address = end_loc as u32;
+    prog.program_length = (instruction.locctr - end_loc) as u32;
+    Ok(())
 }
 
 
-fn parse_start(instruction: &Instruction) -> Result<(String, u32), String> {
+fn parse_start(instruction: &Instruction, prog: &mut RawProgram) -> Result<i32, String> {
+
+    // Duplicate start instruction
+    if !prog.program_name.is_empty() {
+        return Err(format!("Invalid START instruction {:?} , old prog name: {}",
+                           instruction,
+                           prog.program_name));
+    }
 
     let start_addr: u32;
-    let prog_name: String;
     if let Value::Raw(adr) = instruction.get_first_operand().val {
         start_addr = adr as u32;
     } else {
         start_addr = 0;
     }
-    prog_name = instruction.label.clone();
 
-    Ok((prog_name, start_addr))
+    prog.program_name = instruction.label.clone();
+    prog.first_instruction_address = start_addr;
+    Ok(start_addr as i32)
 }
 
 fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
@@ -236,10 +241,6 @@ fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
 
     lit_instr.locctr = literal.address as i32;
     Box::new(lit_instr)
-}
-
-lazy_static!{
-    static ref SYMBOL_TABLE: RwLock<HashMap<String,i32>> = RwLock::new(HashMap::new());
 }
 
 fn insert_symbol(symbol: &String, address: i32) -> Result<(), String> {
