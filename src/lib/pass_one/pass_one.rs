@@ -133,38 +133,39 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
     let mut loc = 0;
     let mut errs: Vec<String> = Vec::new();
     let mut instructions: Vec<Instruction> = Vec::new();
+
     for instruction in temp_instructions {
         let mut instruction: Instruction = instruction;
-        instruction.locctr = loc;
+        let isntruction_size: i32 = get_instruction_size(&instruction);
 
+        instruction.locctr = loc;
         if !instruction.label.is_empty() {
             if let Err(e) = insert_symbol(&instruction.label, loc) {
                 errs.push(format!("{}", e));
             }
         }
 
-        if instruction.mnemonic.to_uppercase() == "START" {
-            match parse_start(&instruction, &mut prog) {
-                Err(e) => errs.push(e),
-                Ok(start) => loc = start as i32,
-            };
-        }
-
-        if instruction.mnemonic.to_uppercase() == "LTORG" {
-            loc = flush_literals(&mut instructions, loc as u32);
-        } else {
-            loc += get_instruction_size(&instruction);
-            instructions.push(instruction.clone());
-        }
-
-        // This must come after the location increment to calculate the correct
-        // length of the program and not skip the last instruction
-        if instruction.mnemonic.to_uppercase() == "END" {
-            match parse_end(&instruction, &mut prog) {
-                Ok(_) => (),
-                Err(e) => errs.push(e),
+        match instruction.mnemonic.to_uppercase().as_str() {
+            "START" => {
+                match parse_start(&instruction, &mut prog) {
+                    Err(e) => errs.push(e),
+                    Ok(start) => loc = start as i32,
+                };
             }
-        }
+            "LTORG" => {
+                loc = flush_literals(&mut instructions, loc as u32);
+            }
+            "END" => {
+                match parse_end(&instruction, &mut prog, loc + isntruction_size) {
+                    Ok(_) => instructions.push(instruction.clone()),
+                    Err(e) => errs.push(e),
+                }
+            }
+            _ => {
+                loc += isntruction_size;
+                instructions.push(instruction.clone());
+            }
+        };
     }
 
     // Flush remaining literals
@@ -177,7 +178,10 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
 }
 
 /// Gets the address of the first executable isntruction
-fn parse_end(instruction: &Instruction, prog: &mut RawProgram) -> Result<(), String> {
+fn parse_end(instruction: &Instruction,
+             prog: &mut RawProgram,
+             end_instr_addr: i32)
+             -> Result<(), String> {
     // TODO: change read_start to read boundary START/END
     // or replace with is action directive
     // FIXME: check for instructions after END
@@ -201,7 +205,7 @@ fn parse_end(instruction: &Instruction, prog: &mut RawProgram) -> Result<(), Str
     }
 
     prog.starting_address = end_loc as u32;
-    prog.program_length = (instruction.locctr - end_loc) as u32;
+    prog.program_length = (end_instr_addr - end_loc) as u32;
     Ok(())
 }
 
