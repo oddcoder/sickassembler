@@ -50,7 +50,7 @@ pub fn to_hex_string<T>(num: T) -> String
 ///     - true : label
 ///     - false : instruction
 pub fn is_label(suspect: &str) -> bool {
-    return LABEL_STREAM.is_match(suspect);
+    return LABEL_STREAM.is_match(suspect) && suspect.len() < 7;
 }
 
 /// A literal is a byte/chars preceeded by an '=' sign

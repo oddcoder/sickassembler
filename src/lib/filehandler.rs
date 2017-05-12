@@ -89,7 +89,8 @@ impl FileHandler {
         // Allow for labels that have the same name as mnemonics (words.len()==3)
         if (!is_instruction(&temp) && !is_directive(&temp)) || words.len() == 3 {
             if !is_label(&temp) {
-                self.errs.push(format!("Invalid label token at line #{} : {}",
+                self.errs.push(format!("Invalid label token at line #{} or might've exceeded \
+                                        the allowed length : {}",
                                        self.line_number,
                                        words[0]));
             }
