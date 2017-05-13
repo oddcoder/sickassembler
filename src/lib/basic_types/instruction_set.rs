@@ -305,7 +305,7 @@ lazy_static!{
             ("EQU".to_owned(),
                   AssemblyDef::new("EQU".to_owned(),
                   UnitOrPair::Unit(Format::None),
-                  UnitOrPair::Unit(OperandType::Immediate), 0xFF))
+                  UnitOrPair::Unit(OperandType::None), 0xFF))
                     ].iter().cloned().collect();
             return assembler_directives;
         };
