@@ -169,12 +169,9 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
             }
 
             "EQU" => {
-                match equ_val(&instruction){
-                    Err(e)  => errs.push(e),
-                    Ok(val) => if let Err(e) = insert_symbol(&instruction.label, val){
-                        errs.push(format!("{}", e));
-                    }
-                };
+                if let Err(e) = parse_equ(&instruction){
+                    errs.push(format!("{}", e));
+                }
             }
 
             "END" => {
@@ -287,10 +284,17 @@ fn parse_end(instruction: &Instruction,
 }
 
 
-fn equ_val(instruction:&Instruction)->Result<i32, String>{
+fn parse_equ(instruction:&Instruction)->Result<(), String>{
     //get symbol value from Raw val inside operand
     if let Value::Raw(val) = instruction.get_first_operand().val{
-        return Ok(val as i32);
+        return insert_symbol(&instruction.label, val as i32)
+    }
+
+    else if let Value::Label(ref lbl) = instruction.get_first_operand().val{
+        return match get_symbol(&lbl) {
+            Ok(addr) => insert_symbol(&instruction.label, addr),
+            Err(e) => Err(e)
+        }
     }
     //TODO: is there other cases?
 

@@ -4,8 +4,7 @@ FIRST    STL     RETADR
          BASE    LENGTH
 CLOOP    +JSUB   RDREC
          LDA     LENGTH
-ZERO     EQU     0
-         COMP    #ZERO
+         COMP    #0
          JEQ     ENDFIL
          +JSUB   WRREC
          J       CLOOP
@@ -27,7 +26,8 @@ RDREC    CLEAR   X
          CLEAR   S
          +LDT    #4096
 RLOOP    TD      INPUT
-         JEQ     RLOOP
+R        EQU     RLOOP
+         JEQ     R
          RD      INPUT
          COMPR   A,S
          JEQ     EXIT
