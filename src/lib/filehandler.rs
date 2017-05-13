@@ -291,7 +291,7 @@ mod tests {
         let comment_regex = Regex::new(r"(?m)\..+").unwrap();
         let mut file_content: String = String::new();
         match asm_file.buf.read_to_string(&mut file_content) {
-            Err(e) => println!("{}", e),
+            Err(e) => println!("error: {}", e),
             _ => (),
         };
 

@@ -138,14 +138,18 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
         let mut instruction: Instruction = instruction;
         let isntruction_size: i32 = get_instruction_size(&instruction);
 
-        instruction.locctr = loc;
-        if !instruction.label.is_empty() {
+        let mnemonic =  instruction.mnemonic.to_uppercase();
+
+        if mnemonic != "EQU"{
+            instruction.locctr = loc;
+        }
+        if !instruction.label.is_empty() && &mnemonic != "EQU" {
             if let Err(e) = insert_symbol(&instruction.label, loc) {
                 errs.push(format!("{}", e));
             }
         }
 
-        match instruction.mnemonic.to_uppercase().as_str() {
+        match mnemonic.as_ref(){
             "START" => {
                 match parse_start(&instruction, &mut prog) {
                     Err(e) => errs.push(e),
@@ -155,6 +159,16 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
             "LTORG" => {
                 loc = flush_literals(&mut instructions, loc as u32);
             }
+
+            "EQU" => {
+                match equ_val(&instruction){
+                    Err(e)  => errs.push(e),
+                    Ok(val) => if let Err(e) = insert_symbol(&instruction.label, val){
+                        errs.push(format!("{}", e));
+                    }
+                };
+            }
+
             "END" => {
                 match parse_end(&instruction, &mut prog, loc + isntruction_size) {
                     Ok(_) => instructions.push(instruction.clone()),
@@ -210,6 +224,19 @@ fn parse_end(instruction: &Instruction,
 }
 
 
+fn equ_val(instruction:&Instruction)->Result<i32, String>{
+    //get symbol value from Raw val inside operand
+    if let Value::Raw(val) = instruction.get_first_operand().val{
+        return Ok(val as i32);
+    }
+    //TODO: is there other cases?
+
+    else{
+        return Err(format!("Invalid EQU operands, found {:?}", unwrap_to_vec(&instruction.operands)));
+    }
+}
+
+
 fn parse_start(instruction: &Instruction, prog: &mut RawProgram) -> Result<i32, String> {
 
     // Duplicate start instruction
@@ -230,6 +257,7 @@ fn parse_start(instruction: &Instruction, prog: &mut RawProgram) -> Result<i32, 
     prog.first_instruction_address = start_addr;
     Ok(start_addr as i32)
 }
+
 
 fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
 
