@@ -144,14 +144,39 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
         let mut instruction: Instruction = instruction;
         let instruction_size: i32 = get_instruction_size(&instruction);
 
-        instruction.locctr = loc;
-        instruction.csect = current_csect.clone();
+        let mnemonic =  instruction.mnemonic.to_uppercase();
 
-        match instruction.mnemonic.to_uppercase().as_str() {
+        if mnemonic != "EQU"{
+            instruction.locctr = loc;
+            instruction.csect = current_csect.clone();
+        }
+        if !instruction.label.is_empty() && &mnemonic != "EQU" {
+            if let Err(e) = insert_symbol(&instruction.label, loc) {
+                errs.push(format!("{}", e));
+            }
+        }
+
+        match mnemonic.as_ref(){
+            //XXX I am not sure
+            //"START" => {
+            //    match parse_start(&instruction, &mut prog) {
+            //        Err(e) => errs.push(e),
+            //        Ok(start) => loc = start as i32,
+            //    }
             "START" => errs.push("Duplicate START instruction".to_owned()),
             "LTORG" => {
                 loc = flush_literals(&mut instructions, loc as u32, &current_csect);
             }
+
+            "EQU" => {
+                match equ_val(&instruction){
+                    Err(e)  => errs.push(e),
+                    Ok(val) => if let Err(e) = insert_symbol(&instruction.label, val){
+                        errs.push(format!("{}", e));
+                    }
+                };
+            }
+
             "END" => {
                 match parse_end(&instruction, &mut prog, loc + instruction_size) {
                     Ok(_) => instructions.push(instruction.clone()),
@@ -262,6 +287,19 @@ fn parse_end(instruction: &Instruction,
 }
 
 
+fn equ_val(instruction:&Instruction)->Result<i32, String>{
+    //get symbol value from Raw val inside operand
+    if let Value::Raw(val) = instruction.get_first_operand().val{
+        return Ok(val as i32);
+    }
+    //TODO: is there other cases?
+
+    else{
+        return Err(format!("Invalid EQU operands, found {:?}", unwrap_to_vec(&instruction.operands)));
+    }
+}
+
+
 fn parse_start(instruction: &Instruction, prog: &mut RawProgram) -> Result<i32, String> {
 
     // Duplicate start instruction
@@ -293,6 +331,7 @@ fn parse_start(instruction: &Instruction, prog: &mut RawProgram) -> Result<i32, 
 
     Ok(start_addr as i32)
 }
+
 
 fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
 
