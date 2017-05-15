@@ -233,6 +233,22 @@ fn parse_equ(instruction:&Instruction)->Result<(), String>{
             Err(e) => Err(e)
         }
     }
+
+    else if let Value::Bytes(val) = instruction.get_first_operand().val{
+        if val.starts_with("X'") && val.ends_with("'"){
+            let val = &mut val.to_owned();
+            remove_literal_container(val);
+            match i32::from_str_radix(&val, 16) {
+                Ok(decimal) => {
+                    return insert_symbol(&instruction.label, decimal)
+                },
+                Err(e) => Err(e.to_string()),
+            }
+        }
+        else{
+            return Err(format!("Invalid EQU operands, found {:?}", unwrap_to_vec(&instruction.operands)));
+        }
+    }
     //TODO: is there other cases?
 
     else{
