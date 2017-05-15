@@ -4,7 +4,8 @@ FIRST    STL     RETADR
          BASE    LENGTH
 CLOOP    +JSUB   RDREC
          LDA     LENGTH
-         COMP    #0
+FONE     EQU     X'F1'
+         COMP    #ZERO
          JEQ     ENDFIL
          +JSUB   WRREC
          J       CLOOP
