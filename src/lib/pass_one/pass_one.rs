@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use instruction::*;
 use formats::Format;
 use unit_or_pair::*;
@@ -7,10 +7,11 @@ use operands::*;
 use literal::Literal;
 use literal_table::{insert_literal, get_unresolved, get_literal};
 use std::u32;
+use symbol::Symbol;
 use super::super::*;
 
 lazy_static!{
-    static ref SYMBOL_TABLE: RwLock<HashMap<String,i32>> = RwLock::new(HashMap::new());
+    static ref SYMBOL_TABLE: RwLock<HashMap<String, Symbol>> = RwLock::new(HashMap::new());
 }
 
 // FIXME: get instruction size shouldn't check for errors
@@ -75,7 +76,7 @@ fn get_instruction_size(inst: &Instruction) -> i32 {
     return 0;
 }
 
-pub fn pass_one(prog_info: RawProgram) -> Result<(HashMap<String, i32>, RawProgram), String> {
+pub fn pass_one(prog_info: RawProgram) -> Result<(HashSet<Symbol>, RawProgram), String> {
 
     // TODO: replace the literal in an instruction operand with the literal label
     // if let Value::Bytes(ref x) = instruction.get_first_operand().val {}
@@ -108,7 +109,7 @@ pub fn pass_one(prog_info: RawProgram) -> Result<(HashMap<String, i32>, RawProgr
     Ok((get_all_symbols(), prog))
 }
 
-fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32) -> i32 {
+fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32, current_csect: &str) -> i32 {
 
     let mut loc = start_loc;
     for lit in get_unresolved() {
@@ -122,7 +123,7 @@ fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32) -> i32 {
         instructions.push(lit_decl);
 
         // Add literals to symbol table
-        insert_symbol(&lit, lit_addr).unwrap();
+        insert_symbol(&lit, lit_addr, current_csect).unwrap();
     }
     loc as i32
 }
@@ -133,6 +134,7 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
     let mut loc = 0;
     let mut errs: Vec<String> = Vec::new();
     let mut instructions: Vec<Instruction> = Vec::new();
+    let current_csect: String = String::new();
 
     for instruction in temp_instructions {
         let mut instruction: Instruction = instruction;
@@ -140,7 +142,7 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
 
         instruction.locctr = loc;
         if !instruction.label.is_empty() {
-            if let Err(e) = insert_symbol(&instruction.label, loc) {
+            if let Err(e) = insert_symbol(&instruction.label, loc, &current_csect) {
                 errs.push(format!("{}", e));
             }
         }
@@ -153,13 +155,22 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
                 };
             }
             "LTORG" => {
-                loc = flush_literals(&mut instructions, loc as u32);
+                loc = flush_literals(&mut instructions, loc as u32, &current_csect);
             }
             "END" => {
                 match parse_end(&instruction, &mut prog, loc + isntruction_size) {
                     Ok(_) => instructions.push(instruction.clone()),
                     Err(e) => errs.push(e),
                 }
+            }
+            "EXTREF" => {
+                // TODO: do
+            }
+            "EXTDEF" => {
+                // TODO: do
+            }
+            "CSECT" => {
+                // TODO: do
             }
             _ => {
                 loc += isntruction_size;
@@ -169,7 +180,7 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
     }
 
     // Flush remaining literals
-    flush_literals(&mut instructions, loc as u32);
+    flush_literals(&mut instructions, loc as u32, &current_csect);
 
     if prog.program_length == u32::MAX {
         errs.push(format!("Couldn't find the END instruction"));
@@ -247,26 +258,33 @@ fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
     Box::new(lit_instr)
 }
 
-fn insert_symbol(symbol: &String, address: i32) -> Result<(), String> {
+fn insert_symbol(symbol: &String, address: i32, csect: &str) -> Result<(), String> {
 
     if exists(symbol) {
         return Err(format!("Label {} is defined at more than one location", symbol));
     }
-
-    SYMBOL_TABLE.write().insert(symbol.clone(), address);
+    // TODO: in extref, put the address as 0. something like literal
+    let sym = Symbol::new(symbol.clone(), address, csect.to_owned());
+    // It's kep this way to avoid breaking the outer interface
+    SYMBOL_TABLE.write().insert(symbol.clone(), sym);
     Ok(())
 }
 
 pub fn get_symbol(symbol: &str) -> Result<i32, String> {
     if exists(symbol) {
-        Ok(SYMBOL_TABLE.read().get(symbol).unwrap().to_owned())
+        Ok(SYMBOL_TABLE.read().get(symbol).unwrap().get_address())
     } else {
         Err(format!("Couldn't find symbol {{ {} }}", symbol))
     }
 }
 
-pub fn get_all_symbols() -> HashMap<String, i32> {
-    SYMBOL_TABLE.read().clone()
+pub fn get_all_symbols() -> HashSet<Symbol> {
+    let mut result: HashSet<Symbol> = HashSet::new();
+    for val in SYMBOL_TABLE.read().values() {
+        result.insert(val.clone());
+    }
+
+    result
 }
 
 fn exists(symbol: &str) -> bool {

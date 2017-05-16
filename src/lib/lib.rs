@@ -36,6 +36,7 @@ pub use basic_types::literal;
 pub use basic_types::base_table;
 
 pub use pass_two::translator;
+pub use basic_types::symbol;
 
 pub fn to_hex_string<T>(num: T) -> String
     where T: UpperHex + Sized
