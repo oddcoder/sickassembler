@@ -4,7 +4,7 @@ use operands::Value;
 use instruction_set::{self, AssemblyDef, is_base_mode_directive, is_decodable_directive};
 use semantics_validator;
 use base_table::{set_base, end_base};
-use pass_one::pass_one::get_symbol;
+use symbol_tables::get_symbol;
 use pass_two::operand_translator::parse_operand;
 use std::u32;
 
@@ -125,7 +125,7 @@ fn resolve_base_directive(instr: &Instruction) -> Result<(), String> {
             /// Returns the location of the symbol from the
             /// symtab, the result is returned as i32 (it'll be envolved in subtraction)
             ///  as it'll be subtracted from the locctr
-            match get_symbol(&val) {
+            match get_symbol(&val, instr.csect) {
                 Ok(addr) => set_base(locctr, addr),
                 Err(e) => return Err(format!("Invalid base {} {}", val, e)),
             }

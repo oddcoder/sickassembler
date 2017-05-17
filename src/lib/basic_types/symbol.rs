@@ -1,6 +1,8 @@
 use std::hash::{Hash, Hasher};
 use std::cmp::{PartialEq, Eq};
 
+pub const DEFAULT_CSECT: String = "#DEFUALT#".to_owned();
+
 #[derive(Debug)]
 pub struct Symbol {
     name: String,
@@ -12,12 +14,20 @@ impl Symbol {
     pub fn new(name: String, addr: i32, csect: String) -> Symbol {
         let mut csect = csect;
         if csect.is_empty() {
-            csect = "#DEFAULT#".to_owned();
+            csect = DEFAULT_CSECT;
         }
         Symbol {
             name: name,
             address: addr,
             control_section: csect,
+        }
+    }
+
+    pub fn new_uninitialized(name: String) -> Symbol {
+        Symbol {
+            name: name,
+            address: -1,
+            control_section: DEFAULT_CSECT,
         }
     }
 

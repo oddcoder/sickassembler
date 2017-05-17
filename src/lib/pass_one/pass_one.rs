@@ -2,17 +2,14 @@ use std::collections::{HashMap, HashSet};
 use instruction::*;
 use formats::Format;
 use unit_or_pair::*;
-use parking_lot::RwLock;
 use operands::*;
 use literal::Literal;
 use literal_table::{insert_literal, get_unresolved, get_literal};
 use std::u32;
 use symbol::Symbol;
 use super::super::*;
-
-lazy_static!{
-    static ref SYMBOL_TABLE: RwLock<HashMap<String, Symbol>> = RwLock::new(HashMap::new());
-}
+use symbol_tables::{resolve_symbol, define_imported_symbol, define_exported_symbol,
+                    define_local_symbol};
 
 // FIXME: get instruction size shouldn't check for errors
 fn get_instruction_size(inst: &Instruction) -> i32 {
@@ -81,7 +78,6 @@ pub fn pass_one(prog_info: RawProgram) -> Result<(HashSet<Symbol>, RawProgram), 
     // TODO: replace the literal in an instruction operand with the literal label
     // if let Value::Bytes(ref x) = instruction.get_first_operand().val {}
 
-
     let prog = prog_info;
     let mut prog: RawProgram = prog;
     let temp_instructions: Vec<Instruction>;
@@ -134,47 +130,40 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
     let mut loc = 0;
     let mut errs: Vec<String> = Vec::new();
     let mut instructions: Vec<Instruction> = Vec::new();
-    let current_csect: String = String::new();
+    let mut current_csect: String = String::new();
 
+
+    match parse_start(&temp_instructions[0], &mut prog) {
+        Err(e) => errs.push(e),
+        Ok(start) => loc = start as i32,
+    }
+
+    // Skip the first instruction
+    let temp_instructions = temp_instructions.into_iter().skip(1);
     for instruction in temp_instructions {
         let mut instruction: Instruction = instruction;
-        let isntruction_size: i32 = get_instruction_size(&instruction);
+        let instruction_size: i32 = get_instruction_size(&instruction);
 
         instruction.locctr = loc;
-        if !instruction.label.is_empty() {
-            if let Err(e) = insert_symbol(&instruction.label, loc, &current_csect) {
-                errs.push(format!("{}", e));
-            }
-        }
 
         match instruction.mnemonic.to_uppercase().as_str() {
-            "START" => {
-                match parse_start(&instruction, &mut prog) {
-                    Err(e) => errs.push(e),
-                    Ok(start) => loc = start as i32,
-                };
-            }
+            "START" => errs.push("Duplicate START instruction".to_owned()),
             "LTORG" => {
                 loc = flush_literals(&mut instructions, loc as u32, &current_csect);
             }
             "END" => {
-                match parse_end(&instruction, &mut prog, loc + isntruction_size) {
+                match parse_end(&instruction, &mut prog, loc + instruction_size) {
                     Ok(_) => instructions.push(instruction.clone()),
                     Err(e) => errs.push(e),
                 }
             }
-            "EXTREF" => {
-                // TODO: do
-            }
-            "EXTDEF" => {
-                // TODO: do
-            }
-            "CSECT" => {
-                // TODO: do
-            }
             _ => {
-                loc += isntruction_size;
-                instructions.push(instruction.clone());
+                loc = consume_instruction(&instruction,
+                                          loc,
+                                          &mut current_csect,
+                                          instruction_size,
+                                          &mut errs,
+                                          &mut instructions)
             }
         };
     }
@@ -186,6 +175,42 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
         errs.push(format!("Couldn't find the END instruction"));
     }
     (errs, instructions)
+}
+
+fn consume_instruction(instruction: &Instruction,
+                       mut loc: i32,
+                       mut csect: &mut String,
+                       instruction_size: i32,
+                       errs: &mut Vec<String>,
+                       instructions: &mut Vec<Instruction>)
+                       -> i32 {
+    // This function exists just to improve testability
+
+    if !instruction.label.is_empty() && instruction.mnemonic != "CSECT" {
+        if let Err(e) = insert_symbol(&instruction.label, loc, &csect) {
+            errs.push(format!("{}", e));
+        }
+    }
+
+    match instruction.mnemonic.to_uppercase().as_str() {
+        "EXTREF" => {
+            // TODO: do
+        }
+        "EXTDEF" => {
+            // TODO: do
+        }
+        "CSECT" => {
+            // TODO: do
+            *csect = instruction.label.clone();
+            loc = 0;
+        }
+        _ => {
+            loc += instruction_size;
+            instructions.push(instruction.clone());
+        }
+    }
+
+    loc
 }
 
 /// Gets the address of the first executable isntruction
@@ -203,7 +228,7 @@ fn parse_end(instruction: &Instruction,
             // Will panic on negative value
             end_loc = op_end as i32;
         } else if let Value::Label(ref lbl) = operands[0].val {
-            match get_symbol(&lbl) {
+            match get_symbol_for_end(&lbl) {
                 Ok(addr) => end_loc = addr,
                 Err(e) => return Err(e),
             }
@@ -224,10 +249,14 @@ fn parse_end(instruction: &Instruction,
 fn parse_start(instruction: &Instruction, prog: &mut RawProgram) -> Result<i32, String> {
 
     // Duplicate start instruction
-    if !prog.program_name.is_empty() {
+    if instruction.mnemonic.to_uppercase() != "START" {
+        return Err(format!("Program must have its first instrution as START"));
+    } else if !prog.program_name.is_empty() {
         return Err(format!("Invalid START instruction {:?} , old prog name: {}",
                            instruction,
                            prog.program_name));
+    } else if instruction.label.is_empty() {
+        return Err(format!("Program doesn't have a name specified in START"));
     }
 
     let start_addr: u32;
@@ -239,6 +268,13 @@ fn parse_start(instruction: &Instruction, prog: &mut RawProgram) -> Result<i32, 
 
     prog.program_name = instruction.label.clone();
     prog.first_instruction_address = start_addr;
+
+    // Program name goes to sym_tab
+    if let Err(e) = insert_symbol(&instruction.label, start_addr as i32, &String::new()) {
+        // Add prog name to symtab
+        return Err(format!("{}", e));
+    }
+
     Ok(start_addr as i32)
 }
 
@@ -258,37 +294,22 @@ fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
     Box::new(lit_instr)
 }
 
-fn insert_symbol(symbol: &String, address: i32, csect: &str) -> Result<(), String> {
-
-    if exists(symbol) {
-        return Err(format!("Label {} is defined at more than one location", symbol));
-    }
-    // TODO: in extref, put the address as 0. something like literal
-    let sym = Symbol::new(symbol.clone(), address, csect.to_owned());
-    // It's kep this way to avoid breaking the outer interface
-    SYMBOL_TABLE.write().insert(symbol.clone(), sym);
-    Ok(())
-}
-
-pub fn get_symbol(symbol: &str) -> Result<i32, String> {
-    if exists(symbol) {
+pub fn get_symbol_for_end(symbol: &str) -> Result<i32, String> {
+    // Used with the END instruction only
+    if SYMBOL_TABLE.read().contains_key(symbol) {
         Ok(SYMBOL_TABLE.read().get(symbol).unwrap().get_address())
     } else {
-        Err(format!("Couldn't find symbol {{ {} }}", symbol))
+        Err(format!("Couldn't find symbol {{ {} }} for END instruction", symbol))
     }
 }
 
 pub fn get_all_symbols() -> HashSet<Symbol> {
     let mut result: HashSet<Symbol> = HashSet::new();
-    for val in SYMBOL_TABLE.read().values() {
+    for val in symbol_tables::get_all_symbols() {
         result.insert(val.clone());
     }
 
     result
-}
-
-fn exists(symbol: &str) -> bool {
-    return SYMBOL_TABLE.read().contains_key(symbol);
 }
 
 #[cfg(test)]
@@ -302,5 +323,14 @@ mod tests {
         assert_eq!(instr.locctr, 1025);
         assert_eq!(instr.get_first_operand().val,
                    Value::Bytes(("C'BOX'".to_owned())));
+    }
+
+    fn test_csect() {
+        let instrs: Vec<Instruction> =
+            vec![Instruction::new("v1".to_owned(),
+                                  "RESB".to_owned(),
+                                  UnitOrPair::Unit(AsmOperand::new(basic_types::operands::OperandType::Immediate,
+                                  Value::SignedInt(5))))];
+        assert!(true);
     }
 }

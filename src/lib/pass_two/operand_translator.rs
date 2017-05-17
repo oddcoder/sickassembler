@@ -2,7 +2,7 @@ use instruction::Instruction;
 use basic_types::formats::Format;
 use basic_types::operands::Value;
 use basic_types::register::Register;
-use pass_one::pass_one::get_symbol;
+use symbol_tables::get_symbol;
 use base_table::get_base_at;
 use regex::Regex;
 use literal_table::get_literal;
@@ -33,7 +33,7 @@ fn parse_signed_int(x: i32) -> Result<String, String> {
 
 fn parse_label(instruction: &mut Instruction, lbl: &str) -> Result<String, String> {
     let sym_addr;
-    match get_symbol(&lbl.to_owned()) {
+    match get_symbol(&lbl.to_owned(), instruction.csect) {
         Ok(addr) => sym_addr = addr,
         Err(e) => return Err(e),
     }
