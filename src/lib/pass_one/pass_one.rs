@@ -8,8 +8,10 @@ use literal_table::{insert_literal, get_unresolved, get_literal};
 use std::u32;
 use symbol::Symbol;
 use super::super::*;
-use symbol_tables::{get_symbol, define_imported_symbol, define_exported_symbol,
-                    define_local_symbol};
+use basic_types::symbol_tables::define_local_symbol;
+// use symbol_tables::{get_symbol, define_imported_symbol, define_exported_symbol,
+//                     define_local_symbol};
+use symbol_tables::get_symbol;
 
 // FIXME: get instruction size shouldn't check for errors
 fn get_instruction_size(inst: &Instruction) -> i32 {
