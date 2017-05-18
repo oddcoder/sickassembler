@@ -33,8 +33,8 @@ fn parse_signed_int(x: i32) -> Result<String, String> {
 
 fn parse_label(instruction: &mut Instruction, lbl: &str) -> Result<String, String> {
     let sym_addr;
-    match get_symbol(&lbl.to_owned(), instruction.csect) {
-        Ok(addr) => sym_addr = addr,
+    match get_symbol(&lbl.to_owned(), &instruction.csect) {
+        Ok(sym) => sym_addr = sym.get_address(),
         Err(e) => return Err(e),
     }
 

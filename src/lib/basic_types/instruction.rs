@@ -59,7 +59,7 @@ impl Instruction {
             label: label,
             format: Format::None,
             mnemonic: mnemonic,
-            csect: symbol::DEFAULT_CSECT,
+            csect: String::new(),
             locctr: 0,
             // SIC/XE defaults ind. and imm. falgs to 1
             flags: HashSet::new(),
@@ -83,7 +83,7 @@ impl Instruction {
         Instruction {
             label: String::new(),
             format: Format::None,
-            csect: symbol::DEFAULT_CSECT,
+            csect: String::new(),
             mnemonic: mnemonic,
             flags: HashSet::new(),
             locctr: 0,

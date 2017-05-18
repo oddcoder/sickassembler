@@ -1,8 +1,6 @@
 use std::hash::{Hash, Hasher};
 use std::cmp::{PartialEq, Eq};
-
-pub const DEFAULT_CSECT: String = "#DEFUALT#".to_owned();
-
+use std::i32;
 #[derive(Debug)]
 pub struct Symbol {
     name: String,
@@ -11,27 +9,29 @@ pub struct Symbol {
 }
 
 impl Symbol {
-    pub fn new(name: String, addr: i32, csect: String) -> Symbol {
-        let mut csect = csect;
+    pub fn new(name: &str, addr: i32, csect: &str) -> Symbol {
+        let mut csect = csect.to_owned();
         if csect.is_empty() {
-            csect = DEFAULT_CSECT;
+            csect = String::new();
         }
         Symbol {
-            name: name,
+            name: name.to_owned(),
             address: addr,
             control_section: csect,
         }
     }
 
-    pub fn new_uninitialized(name: String) -> Symbol {
+    pub fn new_uninitialized(name: &str) -> Symbol {
         Symbol {
-            name: name,
-            address: -1,
-            control_section: DEFAULT_CSECT,
+            name: name.to_owned(),
+            address: i32::MIN,
+            control_section: String::new(),
         }
     }
 
-    pub fn set_address(&mut self) {}
+    pub fn set_address(&mut self, addr: i32) {
+        self.address = addr
+    }
 
     pub fn get_address(&self) -> i32 {
         self.address
@@ -44,13 +44,15 @@ impl Symbol {
     pub fn get_control_section(&self) -> String {
         self.control_section.clone()
     }
+
+    pub fn is_fully_defined(&self) -> bool {
+        self.address != i32::MIN
+    }
 }
 
 impl Clone for Symbol {
     fn clone(&self) -> Symbol {
-        Symbol::new(self.name.clone(),
-                    self.address,
-                    self.control_section.clone())
+        Symbol::new(&self.name, self.address, &self.control_section)
     }
 }
 

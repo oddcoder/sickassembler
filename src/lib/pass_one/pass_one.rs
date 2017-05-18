@@ -8,7 +8,7 @@ use literal_table::{insert_literal, get_unresolved, get_literal};
 use std::u32;
 use symbol::Symbol;
 use super::super::*;
-use symbol_tables::{resolve_symbol, define_imported_symbol, define_exported_symbol,
+use symbol_tables::{get_symbol, define_imported_symbol, define_exported_symbol,
                     define_local_symbol};
 
 // FIXME: get instruction size shouldn't check for errors
@@ -119,7 +119,7 @@ fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32, current_c
         instructions.push(lit_decl);
 
         // Add literals to symbol table
-        insert_symbol(&lit, lit_addr, current_csect).unwrap();
+        define_local_symbol(&lit, lit_addr, current_csect).unwrap();
     }
     loc as i32
 }
@@ -187,7 +187,7 @@ fn consume_instruction(instruction: &Instruction,
     // This function exists just to improve testability
 
     if !instruction.label.is_empty() && instruction.mnemonic != "CSECT" {
-        if let Err(e) = insert_symbol(&instruction.label, loc, &csect) {
+        if let Err(e) = define_local_symbol(&instruction.label, loc, &csect) {
             errs.push(format!("{}", e));
         }
     }
@@ -270,7 +270,7 @@ fn parse_start(instruction: &Instruction, prog: &mut RawProgram) -> Result<i32, 
     prog.first_instruction_address = start_addr;
 
     // Program name goes to sym_tab
-    if let Err(e) = insert_symbol(&instruction.label, start_addr as i32, &String::new()) {
+    if let Err(e) = define_local_symbol(&instruction.label, start_addr as i32, &String::new()) {
         // Add prog name to symtab
         return Err(format!("{}", e));
     }
@@ -296,11 +296,11 @@ fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
 
 pub fn get_symbol_for_end(symbol: &str) -> Result<i32, String> {
     // Used with the END instruction only
-    if SYMBOL_TABLE.read().contains_key(symbol) {
-        Ok(SYMBOL_TABLE.read().get(symbol).unwrap().get_address())
-    } else {
-        Err(format!("Couldn't find symbol {{ {} }} for END instruction", symbol))
+    match symbol_tables::get_symbol(symbol, &String::new()) {
+        Ok(sym) => Ok(sym.get_address()),
+        Err(e) => Err(format!("Couldn't find symbol {{ {} }} for END instruction", symbol)),
     }
+
 }
 
 pub fn get_all_symbols() -> HashSet<Symbol> {

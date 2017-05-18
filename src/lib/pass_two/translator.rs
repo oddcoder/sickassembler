@@ -125,8 +125,8 @@ fn resolve_base_directive(instr: &Instruction) -> Result<(), String> {
             /// Returns the location of the symbol from the
             /// symtab, the result is returned as i32 (it'll be envolved in subtraction)
             ///  as it'll be subtracted from the locctr
-            match get_symbol(&val, instr.csect) {
-                Ok(addr) => set_base(locctr, addr),
+            match get_symbol(&val, &instr.csect) {
+                Ok(sym) => set_base(locctr, sym.get_address()),
                 Err(e) => return Err(format!("Invalid base {} {}", val, e)),
             }
         }
