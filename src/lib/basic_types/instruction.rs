@@ -8,7 +8,6 @@ use unit_or_pair::{UnitOrPair, unwrap_to_vec};
 use register::Register;
 use std::clone::Clone;
 use std::fmt;
-use basic_types::symbol;
 
 const BYTE_SIZE_TO_BITS: u8 = 8; // In the SIC machine, a byte is 3 bits
 

@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use instruction::*;
 use formats::Format;
 use unit_or_pair::*;
@@ -9,9 +9,6 @@ use std::u32;
 use symbol::Symbol;
 use super::super::*;
 use basic_types::symbol_tables::define_local_symbol;
-// use symbol_tables::{get_symbol, define_imported_symbol, define_exported_symbol,
-//                     define_local_symbol};
-use symbol_tables::get_symbol;
 
 // FIXME: get instruction size shouldn't check for errors
 fn get_instruction_size(inst: &Instruction) -> i32 {
@@ -300,7 +297,7 @@ pub fn get_symbol_for_end(symbol: &str) -> Result<i32, String> {
     // Used with the END instruction only
     match symbol_tables::get_symbol(symbol, &String::new()) {
         Ok(sym) => Ok(sym.get_address()),
-        Err(e) => Err(format!("Couldn't find symbol {{ {} }} for END instruction", symbol)),
+        Err(_) => Err(format!("Couldn't find symbol {{ {} }} for END instruction", symbol)),
     }
 
 }
@@ -325,14 +322,5 @@ mod tests {
         assert_eq!(instr.locctr, 1025);
         assert_eq!(instr.get_first_operand().val,
                    Value::Bytes(("C'BOX'".to_owned())));
-    }
-
-    fn test_csect() {
-        let instrs: Vec<Instruction> =
-            vec![Instruction::new("v1".to_owned(),
-                                  "RESB".to_owned(),
-                                  UnitOrPair::Unit(AsmOperand::new(basic_types::operands::OperandType::Immediate,
-                                  Value::SignedInt(5))))];
-        assert!(true);
     }
 }

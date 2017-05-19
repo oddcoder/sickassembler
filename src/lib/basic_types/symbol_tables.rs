@@ -1,65 +1,84 @@
-use parking_lot::RwLock;
+use parking_lot::Mutex;
 use symbol::Symbol;
 use std::collections::{HashSet, HashMap};
-use std::time::Duration;
-use std::cell::RefCell;
-use std::rc::Rc;
-//use parking_lot::{RwLock, RwLockReadGuard};
 
 lazy_static!{    
     // The master table contains all the control sections' symbol tables, it's the main
     // data structure in this module
-    static ref MASTER_TABLE:RwLock<MasterTable> = RwLock::new(MasterTable::new());
-    static ref LOCK_WAIT_DURATION_MILLIS: Duration = {Duration::from_millis(50)}; // Whateva
+    static ref MASTER_TABLE:Mutex<MasterTable> = Mutex::new(MasterTable::new());
 }
 
 #[derive(Debug)]
-struct MasterTable {
+pub struct MasterTable {
     mapping: HashMap<String, Box<CsectSymTab>>,
 }
 
 impl MasterTable {
-    pub fn new() -> MasterTable {
-        MasterTable { mapping: HashMap::new() }
+    fn new() -> MasterTable {
+        let mut table = MasterTable { mapping: HashMap::new() };
+        table.define_csect(&String::new()).unwrap(); // Define the default section
+        table
     }
 
     /// Called when a CSECT is encountered
-    pub fn define_csect(&mut self, csect: &str) {
+    fn define_csect(&mut self, csect: &str) -> Result<(), String> {
+
+        if self.has_csect(csect) {
+            return Err(format!("Redifinition of control section {{ {} }} ", csect));
+        }
+
         let table = Box::new(CsectSymTab::new(csect));
         self.mapping.insert(csect.to_owned(), table);
+
+        Ok(())
     }
 
     /// Called when a label is declared in the current code section
-    pub fn define_local_symbol(&mut self, sym_name: &str, addr: i32, csect: &str) {
+    fn define_local_symbol(&mut self,
+                           sym_name: &str,
+                           addr: i32,
+                           csect: &str)
+                           -> Result<(), String> {
         let csect_tab: &mut CsectSymTab = self.get_csect_table_write(csect);
-        csect_tab.insert_local_symbol(sym_name, addr, csect);
+
+        if csect_tab.has_local(sym_name) {
+            return Err(format!("Redifinition of label {{ {} }}", sym_name));
+        }
+
+        let sym: Symbol = Symbol::new(sym_name, addr, csect);
+        csect_tab.insert_local_symbol(sym);
+
+        Ok(())
     }
 
     /// Called when an EXT REF symbol is encountered
-    pub fn define_import_symbol(&mut self, sym_name: &str, csect: &str) {
+    fn define_import_symbol(&mut self, sym_name: &str, csect: &str) -> Result<(), String> {
         let csect_tab: &mut CsectSymTab = self.get_csect_table_write(csect);
+
+        if csect_tab.imports(csect) {
+            return Err(format!("Multiple imports of {{ {} }} in {{ {} }}", sym_name, csect));
+        }
+
         csect_tab.insert_import_symbol(sym_name);
+
+        Ok(())
     }
 
     /// Called when an EXT DEF symbol is encountered
-    pub fn define_export_symbol(&mut self, sym_name: &str, csect: &str) {
+    fn define_export_symbol(&mut self, sym_name: &str, csect: &str) -> Result<(), String> {
         let csect_tab: &mut CsectSymTab = self.get_csect_table_write(csect);
-        csect_tab.insert_export_symbol(sym_name);
-    }
 
-    // Finds the parent section of the given symbol name
-    fn find_exporter(&self, sym_name: &str) -> Result<Symbol, String> {
-        for (csect, table) in &self.mapping {
-            if table.has_local(sym_name) {
-                return Ok(table.find_local(sym_name).unwrap());
-            }
+        if csect_tab.exports(sym_name) {
+            return Err(format!("Multiple exports of {{ {} }} in {{ {} }}", sym_name, csect));
         }
 
-        Err(format!("Symbol isn't exported anywhere"))
+        csect_tab.insert_export_symbol(sym_name);
+
+        Ok(())
     }
 
-    // This function will be called in pass2, so we can detect errors here
-    pub fn resolve_label(&mut self, sym_name: &str, csect: &str) -> Result<Symbol, String> {
+    /// This function will be called in pass2, so we can detect errors here
+    fn resolve_label(&mut self, sym_name: &str, csect: &str) -> Result<&Symbol, String> {
         // Try to find in the csect local
         let mut errs: Vec<String> = Vec::new();
         let csect_table = self.get_csect_table_read(csect);
@@ -77,24 +96,46 @@ impl MasterTable {
         Err(errs.join("\n"))
     }
 
-    // Resolves an externally defined symbol for a given control section
-    fn resolve_imported(&self, sym_name: &str, csect: &str) -> Result<Symbol, String> {
+    /// Finds the parent section of the given symbol name
+    fn resolve_exported(&self, sym_name: &str) -> Result<&Symbol, String> {
+        for (_, table) in &self.mapping {
+            let table: &CsectSymTab = table;
+            if table.has_local(sym_name) {
+                return Ok(table.find_local(sym_name).unwrap());
+            }
+        }
+
+        Err(format!("Symbol isn't exported anywhere"))
+    }
+
+    /// Resolves an externally defined symbol for a given control section
+    fn resolve_imported(&self, sym_name: &str, csect: &str) -> Result<&Symbol, String> {
         if !self.get_csect_table_read(csect).imports(sym_name) {
             return Err(format!("{{ {} }} isn't imported", sym_name));
         }
 
-        match self.find_exporter(sym_name) {
+        match self.resolve_exported(sym_name) {
             Ok(sym) => Ok(sym),
             Err(e) => Err(e),
         }
     }
 
-    // Returns the symbol table of the given control section
+    fn get_all_symbols(&self) -> HashSet<Symbol> {
+        unimplemented!()
+    }
+
+    /// Used before accesing a symbol table
+    fn has_csect(&self, csect: &str) -> bool {
+        self.mapping.contains_key(csect)
+    }
+
+    /// Returns the symbol table of the given control section for editing
     fn get_csect_table_write(&mut self, csect: &str) -> &mut CsectSymTab {
         let table = self.mapping.get_mut(csect).unwrap();
         return table;
     }
 
+    /// Returns a read-only view of the symbol table of the given control section
     fn get_csect_table_read(&self, csect: &str) -> &CsectSymTab {
         let table = self.mapping.get(csect).unwrap();
         return table;
@@ -120,31 +161,25 @@ impl CsectSymTab {
         }
     }
 
-    pub fn insert_local_symbol(&mut self, sym_name: &str, sym_addr: i32, current_csect: &str) {
-        let sym = Symbol::new(sym_name, sym_addr, current_csect);
+    fn insert_local_symbol(&mut self, sym: Symbol) {
         self.local_symbols.insert(sym.get_name(), sym);
     }
 
-    pub fn insert_import_symbol(&mut self, sym_name: &str) {
+    fn insert_import_symbol(&mut self, sym_name: &str) {
         self.imported_symbols.insert(sym_name.to_owned());
     }
 
-    // Undefined symbols will be caught when used
-    // FIXME: TODO: Undefined symbols will be reported on object record generation ONLY
-    // in D and R records
-    pub fn insert_export_symbol(&mut self, sym_name: &str) {
+    fn insert_export_symbol(&mut self, sym_name: &str) {
         self.exported_symbols.insert(sym_name.to_owned());
     }
 
-    fn find_local(&self, sym_name: &str) -> Result<Symbol, String> {
-        match self.local_symbols.get(sym_name) {
-            Some(e) => Ok(e.clone()),
-            None => {
-                Err(format!("Couldn't find local symbol {{ {} }} in control section {{ {} }}",
-                            sym_name,
-                            self.csect))
-            }
+    fn find_local(&self, sym_name: &str) -> Result<&Symbol, String> {
+        if !self.has_local(sym_name) {
+            return Err(format!("{{ {} }} Isn't a local symbol for {{ {} }}",
+                               sym_name,
+                               self.csect));
         }
+        Ok(self.local_symbols.get(sym_name).unwrap())
     }
 
     fn has_local(&self, sym_name: &str) -> bool {
@@ -160,102 +195,38 @@ impl CsectSymTab {
     }
 }
 
-// pub fn define_control_section(csect: &str) {
-//     let lock_result = MASTER_TABLE.try_write_for(*LOCK_WAIT_DURATION_MILLIS);
-//     if lock_result.is_none() {
-//         panic!("Lock acquisition timed out!");
-//     }
-
-//     let mut master_table = lock_result.unwrap();
-//     master_table.insert(csect.to_owned(), CsectSymTab::new(csect));
-// }
+pub fn define_control_section(csect: &str) -> Result<(), String> {
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock().unwrap();
+    master_table.define_csect(csect)
+}
 
 pub fn define_local_symbol(sym_name: &str, addr: i32, csect: &str) -> Result<(), String> {
-    // let mut master_table;
-    // match MASTER_TABLE.try_write_for(*LOCK_WAIT_DURATION_MILLIS) {
-    //     None => return Err(format!("Control section isn't defined {{ {} }}", csect)),
-    //     Some(x) => master_table = x,
-    // };
-
-    //     let csect_table = master_table.get_mut(csect).unwrap();
-    //     csect_table.insert_local_symbol(sym_name, addr, csect.to_owned());
-
-    //     Ok(())
-    unimplemented!()
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock().unwrap();
+    master_table.define_local_symbol(sym_name, addr, csect)
 }
 
-// // fn access_csect_table(csect: &str) -> Result<CsectSymTab, String> {
-// //     let mut guard = MASTER_TABLE.write();
-// //     let mut master_table: &mut HashMap<String, CsectSymTab> = &mut (*guard);
-// //     let csect_table = master_table.get_mut(csect).unwrap();
-// //     Ok(csect_table)
-// // }
-
-fn access_csect_table(csect: &str) -> Result<RefCell<CsectSymTab>, String> {
-    unimplemented!()
+pub fn define_exported_symbol(sym_name: &str, csect: &str) -> Result<(), String> {
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock().unwrap();
+    master_table.define_export_symbol(sym_name, csect)
 }
 
-// pub fn define_exported_symbol(sym_name: &str, csect: &str) -> Result<(), String> {
-//     match access_csect_table(csect) {
-//         Ok(mut csect_table) => csect_table.into_inner().insert_export_symbol(sym_name),
-//         Err(e) => return Err(e),
-//     };
-//     Ok(())
-// }
-
-// pub fn define_imported_symbol(sym_name: &str, csect: &str) -> Result<(), String> {
-//     match access_csect_table(csect) {
-//         Ok(csect_table) => {
-//             csect_table.into_inner().insert_import_symbol(sym_name);
-//             Ok(())
-//         }
-//         Err(e) => Err(e),
-//     }
-// }
-
-pub fn get_symbol(name: &str, csect: &str) -> Result<Symbol, String> {
-    unimplemented!()
+pub fn define_imported_symbol(sym_name: &str, csect: &str) -> Result<(), String> {
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock().unwrap();
+    master_table.define_import_symbol(sym_name, csect)
 }
 
-// pub fn exists(sym_name: &str, csect: &str) -> bool {
-//     match access_csect_table(csect) {
-//         Ok(csect_table) => csect_table.into_inner().has_local(sym_name),
-//         Err(_) => false,
-//     }
-// }
+pub fn get_symbol(sym_name: &str, csect: &str) -> Result<Symbol, String> {
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock().unwrap();
+    match master_table.resolve_label(sym_name, csect) {
+        Ok(sym_ref) => Ok(sym_ref.clone()),
+        Err(e) => Err(e),
+    }
+}
 
 pub fn get_all_symbols() -> HashSet<Symbol> {
-    // Called to print all the variables in the program
-    // TODO: get all keys in the local hashtables of the program
-    unimplemented!()
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock().unwrap();
+    master_table.get_all_symbols()
 }
-
-// fn resolve_local(csect: &str, sym_name: &str) -> Result<Symbol, String> {
-//     let lock_result = access_csect_table(csect);
-
-//     if lock_result.is_err() {
-//         return Err(lock_result.unwrap_err());
-//     }
-
-//     let csect_table: &mut CsectSymTab = &mut lock_result.unwrap().into_inner();
-//     match csect_table.find_local(sym_name) {
-//         Ok(sym) => Ok(sym),
-//         Err(e) => Err(e),
-//     }
-// }
-
-// fn resolve_from_imports(csect: &str, sym_name: &str) -> Result<Symbol, String> {
-//     let sym: Result<Symbol, String>;
-//     match access_csect_table(csect) {
-//         Err(e) => return Err(e),
-//         Ok(csect_table) => sym = csect_table.into_inner().find_imported(sym_name),
-//     }
-
-//     match sym {
-//         Err(e) => Err(e),
-//         Ok(s) => Ok(s),
-//     }
-// }
 
 // #[test]
 // fn local_symbol() {
