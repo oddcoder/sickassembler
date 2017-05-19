@@ -202,7 +202,7 @@ fn consume_instruction(instruction: &Instruction,
             // TODO: do
         }
         "CSECT" => {
-            // TODO: do
+            // TODO: add csect to master table
             *csect = instruction.label.clone();
             loc = 0;
         }

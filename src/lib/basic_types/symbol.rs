@@ -1,6 +1,6 @@
 use std::hash::{Hash, Hasher};
 use std::cmp::{PartialEq, Eq};
-use std::i32;
+
 #[derive(Debug)]
 pub struct Symbol {
     name: String,
@@ -21,14 +21,6 @@ impl Symbol {
         }
     }
 
-    pub fn new_uninitialized(name: &str) -> Symbol {
-        Symbol {
-            name: name.to_owned(),
-            address: i32::MIN,
-            control_section: String::new(),
-        }
-    }
-
     pub fn set_address(&mut self, addr: i32) {
         self.address = addr
     }
@@ -43,10 +35,6 @@ impl Symbol {
 
     pub fn get_control_section(&self) -> String {
         self.control_section.clone()
-    }
-
-    pub fn is_fully_defined(&self) -> bool {
-        self.address != i32::MIN
     }
 }
 
