@@ -193,10 +193,10 @@ fn consume_instruction(instruction: &Instruction,
 
     match instruction.mnemonic.to_uppercase().as_str() {
         "EXTREF" => {
-            // TODO: do
+            // TODO: do call the master table
         }
         "EXTDEF" => {
-            // TODO: do
+            // TODO: do call the master table
         }
         "CSECT" => {
             // TODO: add csect to master table

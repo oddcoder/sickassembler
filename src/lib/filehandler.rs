@@ -111,9 +111,10 @@ impl FileHandler {
         }
 
         if !words.is_empty() {
-            match parse_operands(words.remove(0), is_asm_directive, &instruction) {
+            let op = words.remove(0);
+            match parse_operands(&op, is_asm_directive, &instruction) {
                 Ok(e) => operands = e,
-                Err(e) => self.errs.push(e),
+                Err(e) => self.errs.push(format!("Failed to parse {{ {:#?} }} As {}", op, e)),
             };
         }
 
@@ -158,7 +159,7 @@ impl FileHandler {
     }
 }
 
-fn parse_operands(operand_string: String,
+fn parse_operands(operand_string: &str,
                   is_directive: bool,
                   instruction: &str)
                   -> Result<UnitOrPair<AsmOperand>, String> {

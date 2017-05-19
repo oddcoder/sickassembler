@@ -50,7 +50,7 @@ fn translate(instruction: &mut Instruction) -> Result<String, String> {
 
     if is_decodable_directive(&instruction.mnemonic) {
         return raw_operands;
-    } else if is_directive(instruction) && !is_decodable_directive(&instruction.mnemonic) {
+    } else if is_directive(instruction) && !is_decodable_directive(&instruction.mnemonic) {       
         return Ok(String::new());
     }
     // Assemble the instruciton

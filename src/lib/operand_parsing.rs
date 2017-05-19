@@ -19,10 +19,10 @@ pub fn parse_directive_operand(op: &str, instruction: &str) -> Result<AsmOperand
         .or_else(|e| {
             errs = format!("{}", e);
             // RESW/B
-            if inst == "RESB" || inst == "RESW" {
+            if inst == "RESB" || inst == "RESW" || inst == "WORD" {
                 parse_singed_int(op)
             } else {
-                Err("Not RESB/W".to_owned())
+                Err("Not RESB/W or WORD".to_owned())
             }
 
         })
