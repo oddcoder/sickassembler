@@ -172,7 +172,7 @@ impl MasterTable {
 
     /// Returns the symbol table of the given control section for editing
     fn get_csect_table_write(&mut self, csect: &str) -> &mut CsectSymTab {
-        println!("Sect: \"{}\" Table:\n {:#?}", csect, self.mapping);
+        // println!("Sect: \"{}\" Table:\n {:#?}", csect, self.mapping);
         let table = self.mapping.get_mut(csect).unwrap();
         return table;
     }
@@ -208,6 +208,9 @@ impl CsectSymTab {
     }
 
     fn insert_import_symbol(&mut self, sym_name: &str) {
+        // Note: if a symbol isn't defined as a local and it's imported, this
+        // should be discovered by object code generation phase, meaning; this
+        // function is annotative and not descriptive
         self.imported_symbols.insert(sym_name.to_owned());
     }
 
@@ -247,10 +250,41 @@ pub fn define_local_symbol(sym_name: &str, addr: i32, csect: &str) -> Result<(),
     master_table.define_local_symbol(sym_name, addr, csect)
 }
 
+
+pub fn define_exported_symbols(symbols: &Vec<&str>, csect: &str) -> Result<(), String> {
+    let mut errs: Vec<String> = Vec::new();
+
+    let result = symbols.iter()
+        .map(|item| {
+            define_exported_symbol(item, csect).or_else(|e| {
+                errs.push(e);
+                Err(())
+            })
+        })
+        .all(|r| r.is_ok());
+    if result { Ok(()) } else { Err(errs.join("\t")) }
+}
+
+
 pub fn define_exported_symbol(sym_name: &str, csect: &str) -> Result<(), String> {
     let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock_for(*LOCK_DURATION).unwrap();
     master_table.define_export_symbol(sym_name, csect)
 }
+
+pub fn define_imported_symbols(symbols: &Vec<&str>, csect: &str) -> Result<(), String> {
+    let mut errs: Vec<String> = Vec::new();
+
+    let result = symbols.iter()
+        .map(|item| {
+            define_imported_symbol(item, csect).or_else(|e| {
+                errs.push(e);
+                Err(())
+            })
+        })
+        .all(|r| r.is_ok());
+    if result { Ok(()) } else { Err(errs.join("\t")) }
+}
+
 
 pub fn define_imported_symbol(sym_name: &str, csect: &str) -> Result<(), String> {
     let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock_for(*LOCK_DURATION).unwrap();
