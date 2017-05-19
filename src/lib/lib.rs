@@ -86,8 +86,8 @@ fn remove_literal_container(byte_operand: &mut String) {
 
 lazy_static!{
     // Regex reference: http://kbknapp.github.io/doapi-rs/docs/regex/index.html
-    static ref CHAR_OPERAND_STREAM:Regex = Regex::new(r"^C'[[:alnum:]]+'$").unwrap();
-    static ref HEX_OPERAND_STREAM:Regex = Regex::new(r"^X'[[:xdigit:]]+'$").unwrap();
+    static ref CHAR_OPERAND_STREAM:Regex = Regex::new(r"^(C|c)'[[:alnum:]]+'$").unwrap();
+    static ref HEX_OPERAND_STREAM:Regex = Regex::new(r"^(X|x)'[[:xdigit:]]+'$").unwrap();
     static ref DECIMAL_STREAM:Regex = Regex::new(r"^-?[[:digit:]]+$").unwrap();
     static ref HEX_STREAM:Regex = Regex::new(r"^[[:xdigit:]]+$").unwrap();
     static ref LABEL_STREAM:Regex = Regex::new(r"^[a-zA-Z_][a-zA-Z_0-9]*$").unwrap();

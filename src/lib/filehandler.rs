@@ -111,7 +111,16 @@ impl FileHandler {
         }
 
         if !words.is_empty() {
-            let op = words.remove(0);
+            let mut op = words.remove(0);
+            // Operand of BYTE may contain spaces, and that would cause them to be split
+            // by the file reader, concat them, any erros will be handled by operand parser
+
+            if (op.starts_with("C'") || op.starts_with("c'")) && op.len() > 0 {
+                for x in &words {
+                    op = op + x.as_str();
+                }
+                words.clear();
+            }
             match parse_operands(&op, is_asm_directive, &instruction) {
                 Ok(e) => operands = e,
                 Err(e) => self.errs.push(format!("Failed to parse {{ {:#?} }} As {}", op, e)),

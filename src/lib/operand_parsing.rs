@@ -105,7 +105,7 @@ fn parse_bytes(op: &str) -> Result<AsmOperand, String> {
     if is_ascii_or_word_operand(op) {
         return Ok(create_operand(OperandType::Bytes, Value::Bytes(op.to_owned())));
     }
-    Err(format!("{} isn't on the form of C|X'...'", op))
+    Err(format!("isn't on the form of C|X'...'"))
 }
 
 /// Occurs when: Instruction -> F3 -> memory -> label , Directive -> label i.e BASE/NOBASE
