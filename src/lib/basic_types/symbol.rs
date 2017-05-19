@@ -1,11 +1,19 @@
 use std::hash::{Hash, Hasher};
 use std::cmp::{PartialEq, Eq};
 
+#[derive(Debug,PartialEq,Eq)]
+pub enum SymbolType {
+    Local,
+    Imported,
+    None,
+}
+
 #[derive(Debug)]
 pub struct Symbol {
     name: String,
     address: i32,
     control_section: String,
+    is_relative: bool,
 }
 
 impl Symbol {
@@ -18,7 +26,12 @@ impl Symbol {
             name: name.to_owned(),
             address: addr,
             control_section: csect,
+            is_relative: false,
         }
+    }
+
+    pub fn mark_relative(&mut self) {
+        self.is_relative = true
     }
 
     pub fn set_address(&mut self, addr: i32) {

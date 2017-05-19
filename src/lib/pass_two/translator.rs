@@ -5,6 +5,7 @@ use instruction_set::{self, AssemblyDef, is_base_mode_directive, is_decodable_di
 use semantics_validator;
 use base_table::{set_base, end_base};
 use symbol_tables::get_symbol;
+use symbol::SymbolType;
 use pass_two::operand_translator::parse_operand;
 use std::u32;
 
@@ -126,7 +127,12 @@ fn resolve_base_directive(instr: &Instruction) -> Result<(), String> {
             /// symtab, the result is returned as i32 (it'll be envolved in subtraction)
             ///  as it'll be subtracted from the locctr
             match get_symbol(&val, &instr.csect) {
-                Ok(sym) => set_base(locctr, sym.get_address()),
+                Ok(sym) => {
+                    if sym.symbol_type == SymbolType::Imported {
+                        return Err(format!("Base can't be an imported symbol {{ {:?} }}", instr));
+                    }
+                    set_base(locctr, sym.get_address())
+                }
                 Err(e) => return Err(format!("Invalid base {} {}", val, e)),
             }
         }

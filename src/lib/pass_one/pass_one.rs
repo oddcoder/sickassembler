@@ -6,7 +6,7 @@ use operands::*;
 use literal::Literal;
 use literal_table::{insert_literal, get_unresolved, get_literal};
 use std::u32;
-use symbol::Symbol;
+use symbol::{Symbol, SymbolType};
 use super::super::*;
 use basic_types::symbol_tables::define_local_symbol;
 
@@ -296,7 +296,12 @@ fn create_from_literal(lit: &String, locctr: i32) -> Box<Instruction> {
 pub fn get_symbol_for_end(symbol: &str) -> Result<i32, String> {
     // Used with the END instruction only
     match symbol_tables::get_symbol(symbol, &String::new()) {
-        Ok(sym) => Ok(sym.get_address()),
+        Ok(sym) => {
+            if sym.symbol_type == SymbolType::Imported {
+                return Err(format!("Can't use an Imported symbol with END"));
+            }
+            Ok(sym.symbol.get_address())
+        }
         Err(_) => Err(format!("Couldn't find symbol {{ {} }} for END instruction", symbol)),
     }
 

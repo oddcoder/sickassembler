@@ -4,6 +4,7 @@ use basic_types::operands::Value;
 use basic_types::register::Register;
 use symbol_tables::get_symbol;
 use base_table::get_base_at;
+use symbol::SymbolType;
 use regex::Regex;
 use literal_table::get_literal;
 use super::super::{to_hex_string, remove_literal_container};
@@ -34,7 +35,12 @@ fn parse_signed_int(x: i32) -> Result<String, String> {
 fn parse_label(instruction: &mut Instruction, lbl: &str) -> Result<String, String> {
     let sym_addr;
     match get_symbol(&lbl.to_owned(), &instruction.csect) {
-        Ok(sym) => sym_addr = sym.get_address(),
+        Ok(sym) => {
+            if sym.symbol_type == SymbolType::Imported && instruction.get_format() != Format::Four {
+                return Err(format!("Imported symbols must be in format 4 instructions"));
+            }
+            sym_addr = sym.get_address()
+        }
         Err(e) => return Err(e),
     }
 

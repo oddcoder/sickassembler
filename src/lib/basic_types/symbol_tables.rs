@@ -1,11 +1,42 @@
 use parking_lot::Mutex;
-use symbol::Symbol;
+use symbol::{Symbol, SymbolType};
 use std::collections::{HashSet, HashMap};
+use std::time::Duration;
+
+const LOCK_DURATION_MILLIS: u64 = 50;
 
 lazy_static!{    
     // The master table contains all the control sections' symbol tables, it's the main
     // data structure in this module
     static ref MASTER_TABLE:Mutex<MasterTable> = Mutex::new(MasterTable::new());
+    static ref LOCK_DURATION: Duration = {Duration::from_millis(LOCK_DURATION_MILLIS)};
+}
+
+#[derive(Debug)]
+pub struct TableResult {
+    pub symbol: Symbol,
+    pub symbol_type: SymbolType,
+}
+
+impl TableResult {
+    fn new(symbol: Symbol, sym_type: SymbolType) -> TableResult {
+        TableResult {
+            symbol: symbol,
+            symbol_type: sym_type,
+        }
+    }
+
+    pub fn get_address(&self) -> i32 {
+        self.symbol.get_address()
+    }
+
+    pub fn get_control_section(&self) -> String {
+        self.symbol.get_control_section()
+    }
+
+    pub fn get_name(&self) -> String {
+        self.symbol.get_name()
+    }
 }
 
 #[derive(Debug)]
@@ -80,18 +111,18 @@ impl MasterTable {
     }
 
     /// This function will be called in pass2, so we can detect errors here
-    fn resolve_label(&mut self, sym_name: &str, csect: &str) -> Result<&Symbol, String> {
+    fn resolve_label(&mut self, sym_name: &str, csect: &str) -> Result<TableResult, String> {
         // Try to find in the csect local
         let mut errs: Vec<String> = Vec::new();
         let csect_table = self.get_csect_table_read(csect);
 
         match csect_table.find_local(sym_name) {
-            Ok(sym) => return Ok(sym),
+            Ok(sym) => return Ok(TableResult::new(sym.clone(), SymbolType::Local)),
             Err(e) => errs.push(e),
         };
 
         match self.resolve_imported(sym_name, csect) {
-            Ok(sym) => return Ok(sym),
+            Ok(sym) => return Ok(TableResult::new(sym.clone(), SymbolType::Imported)),
             Err(e) => errs.push(e),
         }
 
@@ -123,7 +154,15 @@ impl MasterTable {
     }
 
     fn get_all_symbols(&self) -> HashSet<Symbol> {
-        unimplemented!()
+        let mut result: HashSet<Symbol> = HashSet::new();
+        for (_, table) in &self.mapping {
+            let table: &CsectSymTab = table;
+            table.local_symbols
+                .iter()
+                .map(|(_, sym)| result.insert(sym.clone()))
+                .collect::<Vec<bool>>();
+        }
+        result
     }
 
     /// Used before accesing a symbol table
@@ -133,7 +172,7 @@ impl MasterTable {
 
     /// Returns the symbol table of the given control section for editing
     fn get_csect_table_write(&mut self, csect: &str) -> &mut CsectSymTab {
-        println!("Sect: {} , Table: \n {:?}", csect, self.mapping);
+        println!("Sect: \"{}\" Table:\n {:#?}", csect, self.mapping);
         let table = self.mapping.get_mut(csect).unwrap();
         return table;
     }
@@ -199,41 +238,40 @@ impl CsectSymTab {
 }
 
 pub fn define_control_section(csect: &str) -> Result<(), String> {
-    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock().unwrap();
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock_for(*LOCK_DURATION).unwrap();
     master_table.define_csect(csect)
 }
 
 pub fn define_local_symbol(sym_name: &str, addr: i32, csect: &str) -> Result<(), String> {
-    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock().unwrap();
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock_for(*LOCK_DURATION).unwrap();
     master_table.define_local_symbol(sym_name, addr, csect)
 }
 
 pub fn define_exported_symbol(sym_name: &str, csect: &str) -> Result<(), String> {
-    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock().unwrap();
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock_for(*LOCK_DURATION).unwrap();
     master_table.define_export_symbol(sym_name, csect)
 }
 
 pub fn define_imported_symbol(sym_name: &str, csect: &str) -> Result<(), String> {
-    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock().unwrap();
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock_for(*LOCK_DURATION).unwrap();
     master_table.define_import_symbol(sym_name, csect)
 }
 
-pub fn get_symbol(sym_name: &str, csect: &str) -> Result<Symbol, String> {
-    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock().unwrap();
+pub fn get_symbol(sym_name: &str, csect: &str) -> Result<TableResult, String> {
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock_for(*LOCK_DURATION).unwrap();
     match master_table.resolve_label(sym_name, csect) {
-        Ok(sym_ref) => Ok(sym_ref.clone()),
+        Ok(table_res) => Ok(table_res),
         Err(e) => Err(e),
     }
 }
 
 pub fn get_all_symbols() -> HashSet<Symbol> {
-    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock().unwrap();
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock_for(*LOCK_DURATION).unwrap();
     master_table.get_all_symbols()
 }
 
 #[cfg(test)]
 mod tests {
-    use symbol::Symbol;
     use super::*;
     const DEFAULT_CONTROL_SECTION: &str = "";
     #[test]
@@ -245,12 +283,12 @@ mod tests {
 
     #[test]
     fn simple_export() {
-        let (name, csect) = create_local_variable("X2", DEFAULT_CONTROL_SECTION);
-        define_exported_symbol(name, csect);
+        let (name, csect) = create_local_variable("X2-0", DEFAULT_CONTROL_SECTION);
+        define_exported_symbol(name, csect).unwrap();
 
         let ext_csect = "csect2";
-        define_control_section(ext_csect);
-        define_imported_symbol(name, ext_csect);
+        define_control_section(ext_csect).unwrap();
+        define_imported_symbol(name, ext_csect).unwrap();
 
         let sym = get_symbol(name, ext_csect).unwrap();
         check_var(&name, &csect, sym);
@@ -259,28 +297,48 @@ mod tests {
     #[test]
     #[should_panic]
     fn simple_failing_export() {
-        let (name, csect) = ("X2", DEFAULT_CONTROL_SECTION);    // Undecalred variable
-        define_exported_symbol(name, csect);
+        let (name, csect) = ("X2", DEFAULT_CONTROL_SECTION); // Undecalred variable
+        define_exported_symbol(name, csect).unwrap();
 
         let ext_csect = "csect2";
-        define_control_section(ext_csect);
-        define_imported_symbol(name, ext_csect);
+        define_control_section(ext_csect).unwrap();
+        define_imported_symbol(name, ext_csect).unwrap();
 
         let sym = get_symbol(name, ext_csect).unwrap();
         check_var(&name, &csect, sym);
     }
 
-    fn check_var(expected_name: &str, expected_csect: &str, found: Symbol) {
+    #[test]
+    fn simple_export_again() {
+        let (name, csect) = create_local_variable("X2-1", "TROL_SECTION");
+
+        define_exported_symbol(name, csect).unwrap();
+
+        let ext_csect = "csect2-1";
+        define_control_section(ext_csect).unwrap();
+        define_imported_symbol(name, ext_csect).unwrap();
+
+        let sym = get_symbol(name, ext_csect).unwrap();
+        check_var(&name, &csect, sym);
+    }
+
+    fn check_var(expected_name: &str, expected_csect: &str, found: TableResult) {
         assert!(expected_csect == found.get_control_section());
         assert!(expected_name == found.get_name());
     }
 
     fn create_local_variable<'a>(name: &'a str, csect: &'a str) -> (&'a str, &'a str) {
+        if !csect.is_empty() {
+            define_control_section(csect).unwrap();
+        }
         define_local_symbol(name, 0, csect).unwrap();
         (name, csect)
     }
 
     fn create_local_variable_with_addr(name: &str, addr: i32, csect: &str) -> (String, String) {
+        if !csect.is_empty() {
+            define_control_section(csect).unwrap();
+        }
         define_local_symbol(name, addr, csect).unwrap();
         (name.to_owned(), csect.to_owned())
     }
