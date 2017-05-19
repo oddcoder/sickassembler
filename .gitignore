@@ -9,3 +9,5 @@ target
 tags
 .idea
 .vscode/
+.project
+.externalToolBuilders/

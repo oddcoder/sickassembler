@@ -17,6 +17,7 @@ impl MasterTable {
     fn new() -> MasterTable {
         let mut table = MasterTable { mapping: HashMap::new() };
         table.define_csect(&String::new()).unwrap(); // Define the default section
+        assert!(table.has_csect(&String::new()));
         table
     }
 
@@ -28,8 +29,9 @@ impl MasterTable {
         }
 
         let table = Box::new(CsectSymTab::new(csect));
-        self.mapping.insert(csect.to_owned(), table);
+        let mapping = self.mapping.insert(csect.to_owned(), table);
 
+        assert!(mapping.is_none());
         Ok(())
     }
 
@@ -131,6 +133,7 @@ impl MasterTable {
 
     /// Returns the symbol table of the given control section for editing
     fn get_csect_table_write(&mut self, csect: &str) -> &mut CsectSymTab {
+        println!("Sect: {} , Table: \n {:?}", csect, self.mapping);
         let table = self.mapping.get_mut(csect).unwrap();
         return table;
     }
@@ -228,9 +231,57 @@ pub fn get_all_symbols() -> HashSet<Symbol> {
     master_table.get_all_symbols()
 }
 
-// #[test]
-// fn local_symbol() {
-//     let result = define_local_symbol("x1", 32, String::new().as_str())
-//         .and_then(|_| resolve_local(String::new().as_str(), "x1"));
-//     assert!(result.is_ok());
-// }
+#[cfg(test)]
+mod tests {
+    use symbol::Symbol;
+    use super::*;
+    const DEFAULT_CONTROL_SECTION: &str = "";
+    #[test]
+    fn simple_local_symbol() {
+        let (name, csect) = create_local_variable("X1", DEFAULT_CONTROL_SECTION);
+        let sym = get_symbol(name, csect).unwrap();
+        check_var(name, csect, sym);
+    }
+
+    #[test]
+    fn simple_export() {
+        let (name, csect) = create_local_variable("X2", DEFAULT_CONTROL_SECTION);
+        define_exported_symbol(name, csect);
+
+        let ext_csect = "csect2";
+        define_control_section(ext_csect);
+        define_imported_symbol(name, ext_csect);
+
+        let sym = get_symbol(name, ext_csect).unwrap();
+        check_var(&name, &csect, sym);
+    }
+
+    #[test]
+    #[should_panic]
+    fn simple_failing_export() {
+        let (name, csect) = ("X2", DEFAULT_CONTROL_SECTION);    // Undecalred variable
+        define_exported_symbol(name, csect);
+
+        let ext_csect = "csect2";
+        define_control_section(ext_csect);
+        define_imported_symbol(name, ext_csect);
+
+        let sym = get_symbol(name, ext_csect).unwrap();
+        check_var(&name, &csect, sym);
+    }
+
+    fn check_var(expected_name: &str, expected_csect: &str, found: Symbol) {
+        assert!(expected_csect == found.get_control_section());
+        assert!(expected_name == found.get_name());
+    }
+
+    fn create_local_variable<'a>(name: &'a str, csect: &'a str) -> (&'a str, &'a str) {
+        define_local_symbol(name, 0, csect).unwrap();
+        (name, csect)
+    }
+
+    fn create_local_variable_with_addr(name: &str, addr: i32, csect: &str) -> (String, String) {
+        define_local_symbol(name, addr, csect).unwrap();
+        (name.to_owned(), csect.to_owned())
+    }
+}
