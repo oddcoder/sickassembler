@@ -43,9 +43,15 @@ pub fn parse_directive_operand(op: &str, instruction: &str) -> Result<AsmOperand
         .or_else(|e| {
             errs = format!("{}\n{}", errs, e);
             if inst == "EQU"{
-                parse_instruction_operand(op) /*.or_else(|e| {
+                parse_signed_int(op)
+                .or_else(|e| {
                     errs = format!("{}\n{}", errs, e);
-                })*/
+                    parse_instruction_operand(op)
+                })
+                .or_else(|e| {
+                    errs = format!("{}\n{}", errs, e);
+                    parse_expression(op)
+                })
             }
             else {
                 Err("not EQU".to_owned())
@@ -89,6 +95,7 @@ fn parse_memory_operand(op: &str) -> Result<AsmOperand, String> {
             parse_label(op, OperandType::Label)
         }
     }
+
 }
 
 /// Occurs when: Instruction -> F3 / F2 / F1
@@ -170,4 +177,29 @@ fn create_operand(t: OperandType, v: Value) -> AsmOperand {
 
 pub fn parse_ref_operands(ops: Vec<String>) -> AsmOperand {
     return AsmOperand::new(OperandType::VarArgs, Value::VarArgs(ops));
+}
+
+
+//parses expression operands
+fn parse_expression(op:&str)-> Result<AsmOperand, String> {
+    if is_expression(op) {
+        let labels = capture_expression(op);
+        println!("{:?}", labels);
+        //TODO: fix this
+        return Ok(create_operand(OperandType::Label, Value::Label(op.to_owned())));
+    }
+    else{
+        return Err(format!("{} is not an expression.", op));
+    }
+}
+
+//returns expression to be computed and labels therein
+fn capture_expression(op:&str)->Vec<&str>{
+    let matches = EXPRESSION.captures(op).unwrap();
+    let mut labels_vector = Vec::new();
+    for a_match in matches.iter() {
+        let label = a_match.map_or("", |m| m.as_str());
+        labels_vector.push(label)
+    }
+    return labels_vector
 }

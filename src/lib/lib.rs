@@ -75,6 +75,10 @@ pub fn is_hex(op: &str) -> bool {
     return HEX_STREAM.is_match(&op);
 }
 
+pub fn is_expression(op: &str) -> bool {
+    return EXPRESSION.is_match(&op);
+}
+
 /// Removes the container of a WORD/BYTE oeprand, the prefix, the '
 /// X'asdas' -> asdas ,and so on
 /// This doesn't take a reference just to save copying the string
@@ -94,4 +98,5 @@ lazy_static!{
     static ref COMMENT_REGEX:Regex = Regex::new(r"\.(\s|.)+").unwrap();
     static ref COMMA_WHITESPACE_REGEX:Regex = Regex::new(r",\s+").unwrap();
     static ref SPLIT_SOURCE_LINE_SPLIT_REGEX:Regex = Regex::new(r"(\s+|\n+|\t+)").unwrap();
+    pub static ref EXPRESSION:Regex = Regex::new(r"^-?([a-zA-Z_][a-zA-Z_0-9]*)(?:(?:\+|-)([a-zA-Z_][a-zA-Z_0-9]*))*$").unwrap();
 }

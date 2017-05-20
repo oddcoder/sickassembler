@@ -483,6 +483,7 @@ can_exec	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.
 cap_for_attr	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/mod.rs	/^fn cap_for_attr(attr: Attr) -> &'static str {$/;"	f
 capacity	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/sparse.rs	/^    pub fn capacity(&self) -> usize {$/;"	f
 caps	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/pikevm.rs	/^    fn caps(&mut self, pc: usize) -> &mut [Option<usize>] {$/;"	f
+capture_expression	/home/oddcoder/projects/sickassembler/src/lib/operand_parsing.rs	/^fn capture_expression(op:&str)->Vec<&str>{$/;"	f
 capture_name_idx	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^    pub fn capture_name_idx(&self) -> &Arc<HashMap<String, usize>> {$/;"	f
 capture_names	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^    pub fn capture_names(&self) -> &[Option<String>] {$/;"	f
 capture_names	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_bytes.rs	/^    pub fn capture_names(&self) -> CaptureNames {$/;"	f
@@ -657,7 +658,6 @@ eq	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src
 eq	/home/oddcoder/projects/sickassembler/src/lib/basic_types/literal.rs	/^    fn eq(&self, other: &Literal) -> bool {$/;"	f
 eq	/home/oddcoder/projects/sickassembler/src/lib/basic_types/symbol.rs	/^    fn eq(&self, other: &Symbol) -> bool {$/;"	f
 eq_ignore_ascii_case	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^fn eq_ignore_ascii_case(a: &str, b: &str) -> bool {$/;"	f
-equ_val	/home/oddcoder/projects/sickassembler/src/lib/pass_one/pass_one.rs	/^fn equ_val(instruction:&Instruction)->Result<i32, String>{$/;"	f
 error	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/macros.rs	/^macro_rules! error {$/;"	d
 escape	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_unicode.rs	/^pub fn escape(text: &str) -> String {$/;"	f
 escape_byte	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_bytes.rs	/^        fn escape_byte(byte: u8) -> String {$/;"	f
@@ -955,6 +955,7 @@ is_empty_match	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/re
 is_empty_match	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/input.rs	/^    fn is_empty_match(&self, at: InputAt, empty: &InstEmptyLook) -> bool;$/;"	f
 is_end	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/input.rs	/^    pub fn is_end(&self) -> bool {$/;"	f
 is_eof	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^    fn is_eof(&self) -> bool { self.0 == 256 }$/;"	f
+is_expression	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^pub fn is_expression(op: &str) -> bool {$/;"	f
 is_hex	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^pub fn is_hex(op: &str) -> bool {$/;"	f
 is_instruction	/home/oddcoder/projects/sickassembler/src/lib/basic_types/instruction_set.rs	/^pub fn is_instruction(mnemonic: &str) -> bool {$/;"	f
 is_label	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^pub fn is_label(suspect: &str) -> bool {$/;"	f
@@ -1242,6 +1243,8 @@ parse_bytes	/home/oddcoder/projects/sickassembler/src/lib/pass_two/operand_trans
 parse_default	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.4.2/src/lib.rs	/^    fn parse_default() {$/;"	f
 parse_directive_operand	/home/oddcoder/projects/sickassembler/src/lib/operand_parsing.rs	/^pub fn parse_directive_operand(op: &str, instruction: &str) -> Result<AsmOperand, String> {$/;"	f
 parse_end	/home/oddcoder/projects/sickassembler/src/lib/pass_one/pass_one.rs	/^fn parse_end(instruction: &Instruction,$/;"	f
+parse_equ	/home/oddcoder/projects/sickassembler/src/lib/pass_one/pass_one.rs	/^fn parse_equ(instruction:&Instruction)->Result<(), String>{$/;"	f
+parse_expression	/home/oddcoder/projects/sickassembler/src/lib/operand_parsing.rs	/^fn parse_expression(op:&str)-> Result<AsmOperand, String> {$/;"	f
 parse_file	/home/oddcoder/projects/sickassembler/src/lib/filehandler.rs	/^    pub fn parse_file(&mut self) -> Result<RawProgram, String> {$/;"	f
 parse_hex	/home/oddcoder/projects/sickassembler/src/lib/operand_parsing.rs	/^fn parse_hex(op: &str) -> Result<AsmOperand, String> {$/;"	f
 parse_instruction_operand	/home/oddcoder/projects/sickassembler/src/lib/operand_parsing.rs	/^pub fn parse_instruction_operand(op: &str) -> Result<AsmOperand, String> {$/;"	f
@@ -1379,6 +1382,7 @@ ref	/home/oddcoder/projects/sickassembler/src/lib/basic_types/literal_table.rs	/
 ref	/home/oddcoder/projects/sickassembler/src/lib/basic_types/literal_table.rs	/^    static ref TEMP_LITERALS: RwLock<HashSet<String>> = RwLock::new(HashSet::new());    $/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/basic_types/symbol_tables.rs	/^    static ref LOCK_DURATION: Duration = {Duration::from_millis(LOCK_DURATION_MILLIS)};$/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/basic_types/symbol_tables.rs	/^    static ref MASTER_TABLE:Mutex<MasterTable> = Mutex::new(MasterTable::new());$/;"	c
+ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    pub static ref EXPRESSION:Regex = Regex::new(r"^-?([a-zA-Z_][a-zA-Z_0-9]*)(?:(?:\\+|-)([a-zA-Z_][a-zA-Z_0-9]*))*$").unwrap();$/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    static ref CHAR_OPERAND_STREAM:Regex = Regex::new(r"^(C|c)'[[:alnum:]]+'$").unwrap();$/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    static ref COMMA_WHITESPACE_REGEX:Regex = Regex::new(r",\\s+").unwrap();$/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    static ref COMMENT_REGEX:Regex = Regex::new(r"\\.(\\s|.)+").unwrap();$/;"	c
