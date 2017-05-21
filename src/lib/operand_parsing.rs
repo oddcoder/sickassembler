@@ -179,14 +179,12 @@ pub fn parse_ref_operands(ops: Vec<String>) -> AsmOperand {
     return AsmOperand::new(OperandType::VarArgs, Value::VarArgs(ops));
 }
 
-
 //parses expression operands
 fn parse_expression(op:&str)-> Result<AsmOperand, String> {
     if is_expression(op) {
         let labels = capture_expression(op);
         println!("{:?}", labels);
-        //TODO: fix this
-        return Ok(create_operand(OperandType::Label, Value::Label(op.to_owned())));
+        return Ok(create_operand(OperandType::Expression, Value::Expression(labels)));
     }
     else{
         return Err(format!("{} is not an expression.", op));
@@ -194,12 +192,15 @@ fn parse_expression(op:&str)-> Result<AsmOperand, String> {
 }
 
 //returns expression to be computed and labels therein
-fn capture_expression(op:&str)->Vec<&str>{
+fn capture_expression(op:&str)->Vec<String>{
     let matches = EXPRESSION.captures(op).unwrap();
-    let mut labels_vector = Vec::new();
+    let mut terms_vector = Vec::new();
     for a_match in matches.iter() {
-        let label = a_match.map_or("", |m| m.as_str());
-        labels_vector.push(label)
+        let term = a_match.map_or("", |m| m.as_str());
+        //skipping empty captures from repeated groups
+        if term != ""{
+            terms_vector.push(String::from(term))
+        }
     }
-    return labels_vector
+    return terms_vector
 }

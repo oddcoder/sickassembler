@@ -2,8 +2,10 @@
 !_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
 ATOMIC_USIZE_INIT	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/stable.rs	/^pub const ATOMIC_USIZE_INIT: AtomicUsize = AtomicUsize(atomic::ATOMIC_USIZE_INIT);$/;"	c
 Alignment	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/format.rs	/^pub enum Alignment {$/;"	g
+ArgGuard	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^pub trait ArgGuard {$/;"	t
 AsmOperand	/home/oddcoder/projects/sickassembler/src/lib/basic_types/instruction.rs	/^pub struct AsmOperand {$/;"	s
 AssemblyDef	/home/oddcoder/projects/sickassembler/src/lib/basic_types/instruction_set.rs	/^pub struct AssemblyDef {$/;"	s
+Associativity	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/shunting_yard.rs	/^enum Associativity {$/;"	g
 AtomicElisionExt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/elision.rs	/^pub trait AtomicElisionExt {$/;"	t
 AtomicUsize	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/stable.rs	/^pub struct AtomicUsize(atomic::AtomicUsize);$/;"	s
 Attr	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/lib.rs	/^pub enum Attr {$/;"	g
@@ -54,6 +56,9 @@ ColumnPosition	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/pr
 CompileClass	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/compile.rs	/^struct CompileClass<'a, 'b> {$/;"	s
 Compiler	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/compile.rs	/^pub struct Compiler {$/;"	s
 Condvar	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/condvar.rs	/^pub struct Condvar {$/;"	s
+Context	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^pub struct Context<'a> {$/;"	s
+ContextHashMap	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^type ContextHashMap<K, V> = FnvHashMap<K, V>;$/;"	T
+ContextProvider	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^pub trait ContextProvider {$/;"	t
 CsectSymTab	/home/oddcoder/projects/sickassembler/src/lib/basic_types/symbol_tables.rs	/^struct CsectSymTab {$/;"	s
 DEFAULT_CONTROL_SECTION	/home/oddcoder/projects/sickassembler/src/lib/basic_types/symbol_tables.rs	/^    const DEFAULT_CONTROL_SECTION: &str = "";$/;"	c
 DONE_BIT	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/once.rs	/^const DONE_BIT: U8 = 1;$/;"	c
@@ -62,8 +67,10 @@ Elem	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/
 EmptyFlags	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^struct EmptyFlags {$/;"	s
 EmptyLook	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/prog.rs	/^pub enum EmptyLook {$/;"	g
 Err	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    type Err = ();$/;"	T
+Err	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    type Err = Error;$/;"	T
 Err	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_bytes.rs	/^    type Err = Error;$/;"	T
 Err	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_unicode.rs	/^    type Err = Error;$/;"	T
+Error	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/lib.rs	/^pub enum Error {$/;"	g
 Error	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/error.rs	/^pub enum Error {$/;"	g
 Error	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/lib.rs	/^pub enum Error {$/;"	g
 Error	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/mod.rs	/^pub enum Error {$/;"	g
@@ -73,6 +80,8 @@ ExecBuilder	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex
 ExecNoSync	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^pub struct ExecNoSync<'c> {$/;"	s
 ExecNoSyncStr	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^pub struct ExecNoSyncStr<'c>(ExecNoSync<'c>);$/;"	s
 ExecReadOnly	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^struct ExecReadOnly {$/;"	s
+Expr	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^pub struct Expr {$/;"	s
+ExprVisitor	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^            struct ExprVisitor;$/;"	s
 FNV_PRIME	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/compile.rs	/^        const FNV_PRIME: u64 = 1099511628211;$/;"	c
 Fail	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^pub enum Fail {$/;"	g
 FailType	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^pub enum FailType {$/;"	g
@@ -90,7 +99,9 @@ FormatOp	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4
 FormatState	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parm.rs	/^enum FormatState {$/;"	g
 Fsm	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^pub struct Fsm<'a> {$/;"	s
 Fsm	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/pikevm.rs	/^pub struct Fsm<'r, I> {$/;"	s
+FuncEvalError	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^pub enum FuncEvalError {$/;"	g
 GREEN	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/lib.rs	/^    pub const GREEN: Color = 2;$/;"	c
+GuardedFunc	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^type GuardedFunc<'a> = Rc<Fn(&[f64]) -> Result<f64, FuncEvalError> + 'a>;$/;"	T
 HasArg	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^pub enum HasArg {$/;"	g
 Hole	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/compile.rs	/^enum Hole {$/;"	g
 INITIALIZED	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^const INITIALIZED: usize = 2;$/;"	c
@@ -218,6 +229,7 @@ Occur	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2
 Once	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/once.rs	/^pub struct Once(AtomicU8);$/;"	s
 OnceState	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/once.rs	/^pub enum OnceState {$/;"	g
 OperandType	/home/oddcoder/projects/sickassembler/src/lib/basic_types/operands.rs	/^pub enum OperandType {$/;"	g
+Operation	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^pub enum Operation {$/;"	g
 Opt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^struct Opt {$/;"	s
 OptGroup	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^struct OptGroup {$/;"	s
 Options	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^pub struct Options {$/;"	s
@@ -239,6 +251,8 @@ Packet	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lo
 PanicGuard	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/condvar.rs	/^        struct PanicGuard<'a>(&'a Condvar);$/;"	s
 PanicGuard	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/once.rs	/^        struct PanicGuard<'a>(&'a Once);$/;"	s
 Param	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parm.rs	/^pub enum Param {$/;"	g
+ParenState	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^enum ParenState {$/;"	g
+ParseError	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^pub enum ParseError {$/;"	g
 Parsed	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^struct Parsed {$/;"	s
 ParsingStyle	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^pub enum ParsingStyle {$/;"	g
 Patch	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/compile.rs	/^struct Patch {$/;"	s
@@ -248,6 +262,7 @@ ProgramCache	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/rege
 ProgramCacheInner	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^pub struct ProgramCacheInner {$/;"	s
 RED	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/lib.rs	/^    pub const RED: Color = 1;$/;"	c
 REFCOUNT	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^static REFCOUNT: AtomicUsize = ATOMIC_USIZE_INIT;$/;"	c
+RPNError	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/shunting_yard.rs	/^pub enum RPNError {$/;"	g
 RawMutex	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/raw_mutex.rs	/^pub struct RawMutex {$/;"	s
 RawProgram	/home/oddcoder/projects/sickassembler/src/lib/htme/raw_program.rs	/^pub struct RawProgram {$/;"	s
 RawReentrantMutex	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/raw_remutex.rs	/^pub struct RawReentrantMutex {$/;"	s
@@ -332,6 +347,7 @@ TableResult	/home/oddcoder/projects/sickassembler/src/lib/basic_types/symbol_tab
 TableSlice	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/lib.rs	/^pub struct TableSlice<'a> {$/;"	s
 Target	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/lazy_static-0.2.4/src/lib.rs	/^            type Target = $T;$/;"	T
 Target	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    type Target = Log;$/;"	T
+Target	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    type Target = [Token];$/;"	T
 Target	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/mutex.rs	/^    type Target = T;$/;"	T
 Target	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/remutex.rs	/^    type Target = T;$/;"	T
 Target	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/rwlock.rs	/^    type Target = T;$/;"	T
@@ -348,6 +364,8 @@ Text	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/
 Text	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_plugin.rs	/^    type Text = str;$/;"	T
 Text	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_trait.rs	/^    type Text: ?Sized;$/;"	T
 Threads	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/pikevm.rs	/^struct Threads {$/;"	s
+Token	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^pub enum Token {$/;"	g
+TokenizerState	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^enum TokenizerState {$/;"	g
 Transitions	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^struct Transitions {$/;"	s
 TransitionsRow	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^struct TransitionsRow<'a>(&'a [StatePtr]);$/;"	s
 U8	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/once.rs	/^type U8 = u8;$/;"	T
@@ -360,6 +378,7 @@ UnitOrPair	/home/oddcoder/projects/sickassembler/src/lib/basic_types/unit_or_pai
 UnsafeLoad	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/simd_accel/teddy128.rs	/^trait UnsafeLoad {$/;"	t
 Unwinder	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/mutex.rs	/^                struct Unwinder {$/;"	s
 Unwinder	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/rwlock.rs	/^                struct Unwinder {$/;"	s
+Value	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^                type Value = Expr;$/;"	T
 Value	/home/oddcoder/projects/sickassembler/src/lib/basic_types/operands.rs	/^pub enum Value {$/;"	g
 Variables	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parm.rs	/^pub struct Variables {$/;"	s
 Void	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/util.rs	/^        enum Void {}$/;"	g
@@ -411,12 +430,14 @@ approximate_size	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/
 approximate_size	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/simd_accel/teddy128.rs	/^    pub fn approximate_size(&self) -> usize {$/;"	f
 approximate_size	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/simd_fallback/teddy128.rs	/^    pub fn approximate_size(&self) -> usize { 0 }$/;"	f
 args	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    pub fn args(&self) -> &fmt::Arguments<'a> {$/;"	f
+array_impls	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^macro_rules! array_impls {$/;"	d
 as_byte	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^    fn as_byte(&self) -> Option<u8> {$/;"	f
 as_bytes	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/input.rs	/^    fn as_bytes(&self) -> &[u8] { (**self).as_bytes() }$/;"	f
 as_bytes	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/input.rs	/^    fn as_bytes(&self) -> &[u8] {$/;"	f
 as_bytes	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/input.rs	/^    fn as_bytes(&self) -> &[u8];$/;"	f
 as_bytes	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_bytes.rs	/^    pub fn as_bytes(&self) -> &'t [u8] {$/;"	f
 as_char	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/input.rs	/^    pub fn as_char(self) -> Option<char> {$/;"	f
+as_f64	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/de.rs	/^pub fn as_f64<D: de::Deserializer>(deserializer: D) -> Result<f64, D::Error> {$/;"	f
 as_ref	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/lib.rs	/^	fn as_ref(&self) -> &TableSlice<'a> {$/;"	f
 as_slots	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_trait.rs	/^pub fn as_slots(locs: &mut Locations) -> &mut [Slot] {$/;"	f
 as_str	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_bytes.rs	/^    pub fn as_str(&self) -> &str {$/;"	f
@@ -434,6 +455,12 @@ backtrack	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0
 bg	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/lib.rs	/^    fn bg(&mut self, color: color::Color) -> Result<()>;$/;"	f
 bg	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/mod.rs	/^    fn bg(&mut self, color: color::Color) -> Result<()> {$/;"	f
 bg	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/win.rs	/^    fn bg(&mut self, color: color::Color) -> Result<()> {$/;"	f
+bind	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn bind<'a>(self, var: &str) -> Result<Box<Fn(f64) -> f64 + 'a>, Error> {$/;"	f
+bind2	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn bind2<'a>(self, var1: &str, var2: &str) -> Result<Box<Fn(f64, f64) -> f64 + 'a>, Error> {$/;"	f
+bind2_with_context	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn bind2_with_context<'a, C>(self,$/;"	f
+bind3	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn bind3<'a>(self,$/;"	f
+bind3_with_context	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn bind3_with_context<'a, C>(self,$/;"	f
+bind_with_context	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn bind_with_context<'a, C>(self,$/;"	f
 bits_to_color	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/win.rs	/^fn bits_to_color(bits: u16) -> color::Color {$/;"	f
 boolfnames	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parser/names.rs	/^pub static boolfnames: &'static [&'static str] = &["auto_left_margin",$/;"	c
 boolnames	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parser/names.rs	/^pub static boolnames: &'static [&'static str] =$/;"	c
@@ -445,6 +472,7 @@ build	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable
 build	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^    pub fn build(self) -> Result<Exec, Error> {$/;"	f
 build	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_builder.rs	/^    pub fn build(&self) -> Result<Regex, Error> {$/;"	f
 build	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_builder.rs	/^    pub fn build(&self) -> Result<RegexSet, Error> {$/;"	f
+builtin	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^pub fn builtin<'a>() -> Context<'a> {$/;"	f
 byte	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^    fn byte(b: u8) -> Self { Byte(b as u16) }$/;"	f
 byte	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/input.rs	/^    pub fn byte(&self) -> Option<u8> {$/;"	f
 byte_class	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^    fn byte_class(&self, b: Byte) -> usize {$/;"	f
@@ -483,7 +511,7 @@ can_exec	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.
 cap_for_attr	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/mod.rs	/^fn cap_for_attr(attr: Attr) -> &'static str {$/;"	f
 capacity	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/sparse.rs	/^    pub fn capacity(&self) -> usize {$/;"	f
 caps	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/pikevm.rs	/^    fn caps(&mut self, pc: usize) -> &mut [Option<usize>] {$/;"	f
-capture_expression	/home/oddcoder/projects/sickassembler/src/lib/operand_parsing.rs	/^fn capture_expression(op:&str)->Vec<&str>{$/;"	f
+capture_expression	/home/oddcoder/projects/sickassembler/src/lib/operand_parsing.rs	/^fn capture_expression(op:&str)->Vec<String>{$/;"	f
 capture_name_idx	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^    pub fn capture_name_idx(&self) -> &Arc<HashMap<String, usize>> {$/;"	f
 capture_names	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^    pub fn capture_names(&self) -> &[Option<String>] {$/;"	f
 capture_names	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_bytes.rs	/^    pub fn capture_names(&self) -> CaptureNames {$/;"	f
@@ -503,6 +531,7 @@ carriage_return	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/t
 carriage_return	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/win.rs	/^    fn carriage_return(&mut self) -> Result<()> {$/;"	f
 case_insensitive	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_builder.rs	/^    pub fn case_insensitive(&mut self, yes: bool) -> &mut RegexBuilder {$/;"	f
 case_insensitive	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_builder.rs	/^    pub fn case_insensitive(&mut self, yes: bool) -> &mut RegexSetBuilder {$/;"	f
+cause	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/lib.rs	/^    fn cause(&self) -> Option<&std::error::Error> {$/;"	f
 cause	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/error.rs	/^    fn cause(&self) -> Option<&::std::error::Error> {$/;"	f
 cause	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/lib.rs	/^    fn cause(&self) -> Option<&std::error::Error> {$/;"	f
 cause	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/mod.rs	/^    fn cause(&self) -> Option<&::std::error::Error> {$/;"	f
@@ -511,6 +540,7 @@ cell	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-
 char	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/input.rs	/^    pub fn char(&self) -> Char {$/;"	f
 char_len	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/literals.rs	/^    pub fn char_len(&self) -> usize {$/;"	f
 char_len_lossy	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/literals.rs	/^fn char_len_lossy(bytes: &[u8]) -> usize {$/;"	f
+check_context	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn check_context<C: ContextProvider>(&self, ctx: C) -> Result<(), Error> {$/;"	f
 check_format	/home/oddcoder/projects/sickassembler/src/lib/basic_types/tests/instruction_set_tests.rs	/^    fn check_format() {$/;"	f
 check_op_code	/home/oddcoder/projects/sickassembler/src/lib/basic_types/tests/instruction_set_tests.rs	/^    fn check_op_code() {$/;"	f
 check_size	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/compile.rs	/^    fn check_size(&self) -> result::Result<(), Error> {$/;"	f
@@ -560,6 +590,7 @@ csv	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-r
 cursor_up	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/lib.rs	/^    fn cursor_up(&mut self) -> Result<()>;$/;"	f
 cursor_up	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/mod.rs	/^    fn cursor_up(&mut self) -> Result<()> {$/;"	f
 cursor_up	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/win.rs	/^    fn cursor_up(&mut self) -> Result<()> {$/;"	f
+de	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^pub mod de {$/;"	m
 debug	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/macros.rs	/^macro_rules! debug {$/;"	d
 decode_last_utf8	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/utf8.rs	/^pub fn decode_last_utf8(src: &[u8]) -> Option<(char, usize)> {$/;"	f
 decode_utf8	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/utf8.rs	/^pub fn decode_utf8(src: &[u8]) -> Option<(char, usize)> {$/;"	f
@@ -591,6 +622,7 @@ delete_line	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-
 delete_line	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/win.rs	/^    fn delete_line(&mut self) -> Result<()> {$/;"	f
 deref	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/lazy_static-0.2.4/src/lib.rs	/^            fn deref<'a>(&'a self) -> &'a $T {$/;"	f
 deref	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    fn deref(&self) -> &(Log + 'static) {$/;"	f
+deref	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn deref(&self) -> &[Token] {$/;"	f
 deref	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/mutex.rs	/^    fn deref(&self) -> &T {$/;"	f
 deref	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/remutex.rs	/^    fn deref(&self) -> &T {$/;"	f
 deref	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/rwlock.rs	/^    fn deref(&self) -> &T {$/;"	f
@@ -602,13 +634,19 @@ deref_mut	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking
 description	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn description(&self) -> &str {$/;"	f
 description	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    fn description(&self) -> &str { "set_logger() called multiple times" }$/;"	f
 description	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    fn description(&self) -> &str { "shutdown_logger() called without an active logger" }$/;"	f
+description	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn description(&self) -> &str {$/;"	f
+description	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/lib.rs	/^    fn description(&self) -> &str {$/;"	f
+description	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/shunting_yard.rs	/^    fn description(&self) -> &str {$/;"	f
+description	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^    fn description(&self) -> &str {$/;"	f
 description	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/error.rs	/^    fn description(&self) -> &str {$/;"	f
 description	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/lib.rs	/^    fn description(&self) -> &str {$/;"	f
 description	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/mod.rs	/^    fn description(&self) -> &str {$/;"	f
 description	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parm.rs	/^    fn description(&self) -> &str {$/;"	f
+deserialize	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>$/;"	f
 dfa	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/compile.rs	/^    pub fn dfa(mut self, yes: bool) -> Self {$/;"	f
 dfa_size_limit	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_builder.rs	/^    pub fn dfa_size_limit(&mut self, limit: usize) -> &mut RegexBuilder {$/;"	f
 dfa_size_limit	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_builder.rs	/^    pub fn dfa_size_limit(&mut self, limit: usize) -> &mut RegexSetBuilder {$/;"	f
+digit_complete	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^fn digit_complete(input: &[u8]) -> IResult<&[u8], &[u8]> {$/;"	f
 dim_if_necessary	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/mod.rs	/^    fn dim_if_necessary(&self, color: color::Color) -> color::Color {$/;"	f
 directive_table_check_negative	/home/oddcoder/projects/sickassembler/src/lib/basic_types/instruction_set.rs	/^    fn directive_table_check_negative() {$/;"	f
 directive_table_check_positive	/home/oddcoder/projects/sickassembler/src/lib/basic_types/instruction_set.rs	/^    fn directive_table_check_positive() {$/;"	f
@@ -637,6 +675,7 @@ elision_acquire	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/p
 elision_release	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/elision.rs	/^    fn elision_release(&self, _: usize, _: usize) -> Result<usize, usize> {$/;"	f
 elision_release	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/elision.rs	/^    fn elision_release(&self, current: usize, new: usize) -> Result<usize, usize> {$/;"	f
 elision_release	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/elision.rs	/^    fn elision_release(&self,$/;"	f
+empty	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn empty() -> Context<'a> {$/;"	f
 empty	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/row.rs	/^	pub fn empty() -> Row {$/;"	f
 empty	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/literals.rs	/^    fn empty() -> SingleSearch {$/;"	f
 empty	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/literals.rs	/^    pub fn empty() -> Self {$/;"	f
@@ -662,6 +701,12 @@ error	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/s
 escape	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_unicode.rs	/^pub fn escape(text: &str) -> String {$/;"	f
 escape_byte	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_bytes.rs	/^        fn escape_byte(byte: u8) -> String {$/;"	f
 escape_bytes	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_bytes.rs	/^        fn escape_bytes(bytes: &[u8]) -> String {$/;"	f
+eval	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn eval(&self) -> Result<f64, Error> {$/;"	f
+eval_func	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn eval_func(&self, _: &str, _: &[f64]) -> Result<f64, FuncEvalError> {$/;"	f
+eval_func	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn eval_func(&self, name: &str, args: &[f64]) -> Result<f64, FuncEvalError> {$/;"	f
+eval_str	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^pub fn eval_str<S: AsRef<str>>(expr: S) -> Result<f64, Error> {$/;"	f
+eval_str_with_context	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^pub fn eval_str_with_context<S: AsRef<str>, C: ContextProvider>(expr: S,$/;"	f
+eval_with_context	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn eval_with_context<C: ContextProvider>(&self, ctx: C) -> Result<f64, Error> {$/;"	f
 exec	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/backtrack.rs	/^    pub fn exec($/;"	f
 exec	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/pikevm.rs	/^    pub fn exec($/;"	f
 exec_	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/backtrack.rs	/^    fn exec_(&mut self, mut at: InputAt) -> bool {$/;"	f
@@ -673,11 +718,13 @@ exec_byte	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0
 exec_dfa_reverse_suffix	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^    fn exec_dfa_reverse_suffix($/;"	f
 exec_nfa	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^    fn exec_nfa($/;"	f
 exec_pikevm	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/exec.rs	/^    fn exec_pikevm($/;"	f
+exp	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^fn exp(input: &[u8]) -> IResult<&[u8], Option<usize>> {$/;"	f
 expand	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_bytes.rs	/^    pub fn expand(&self, replacement: &[u8], dst: &mut Vec<u8>) {$/;"	f
 expand	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_unicode.rs	/^    pub fn expand(&self, replacement: &str, dst: &mut String) {$/;"	f
 expand	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parm.rs	/^pub fn expand(cap: &[u8], params: &[Param], vars: &mut Variables) -> Result<Vec<u8>, Error> {$/;"	f
 expand_bytes	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/expand.rs	/^pub fn expand_bytes($/;"	f
 expand_str	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/expand.rs	/^pub fn expand_str($/;"	f
+expecting	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^                fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {$/;"	f
 exports	/home/oddcoder/projects/sickassembler/src/lib/basic_types/symbol_tables.rs	/^    fn exports(&self, sym_name: &str) -> bool {$/;"	f
 f	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^        fn f(_x: usize) -> Vec<Optval> { return Vec::new(); }$/;"	f
 fetch_add	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/stable.rs	/^    pub fn fetch_add(&self, val: usize, order: Ordering) -> usize {$/;"	f
@@ -741,6 +788,10 @@ fmt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.
 fmt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.4.2/src/string.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
 fmt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
 fmt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {$/;"	f
+fmt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
+fmt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/lib.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
+fmt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/shunting_yard.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
+fmt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
 fmt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/mutex.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
 fmt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/remutex.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
 fmt	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/rwlock.rs	/^    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {$/;"	f
@@ -783,6 +834,8 @@ forward	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2
 forward_many	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^    pub fn forward_many($/;"	f
 freq_rank	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/literals.rs	/^        fn freq_rank(b: u8) -> usize { BYTE_FREQUENCIES[b as usize] as usize }$/;"	f
 frob	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/rwlock.rs	/^    fn frob() {$/;"	f
+from	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/lib.rs	/^    fn from(err: ParseError) -> Error {$/;"	f
+from	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/lib.rs	/^    fn from(err: RPNError) -> Error {$/;"	f
 from	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/cell.rs	/^	fn from(f: &T) -> Cell {$/;"	f
 from	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/lib.rs	/^		fn from() {$/;"	f
 from	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/lib.rs	/^	fn from(it: T) -> Table {$/;"	f
@@ -813,10 +866,15 @@ from_regex	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-
 from_str	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn from_str(nm: &str) -> Name {$/;"	f
 from_str	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    fn from_str(level: &str) -> Result<LogLevel, ()> {$/;"	f
 from_str	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    fn from_str(level: &str) -> Result<LogLevelFilter, ()> {$/;"	f
+from_str	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn from_str(s: &str) -> Result<Self, Self::Err> {$/;"	f
 from_str	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_bytes.rs	/^    fn from_str(s: &str) -> Result<Regex, Error> {$/;"	f
 from_str	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_unicode.rs	/^    fn from_str(s: &str) -> Result<Regex, Error> {$/;"	f
 from_usize	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    fn from_usize(u: usize) -> Option<LogLevel> {$/;"	f
 from_usize	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    fn from_usize(u: usize) -> Option<LogLevelFilter> {$/;"	f
+func	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn func<S, F>(&mut self, name: S, func: F) -> &mut Self$/;"	f
+func2	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn func2<S, F>(&mut self, name: S, func: F) -> &mut Self$/;"	f
+func3	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn func3<S, F>(&mut self, name: S, func: F) -> &mut Self$/;"	f
+funcn	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn funcn<S, F, N>(&mut self, name: S, func: F, n_args: N) -> &mut Self$/;"	f
 get	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/lazy_static-0.2.4/src/core_lazy.rs	/^    pub fn get<F>(&'static self, builder: F) -> &T$/;"	f
 get	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/lazy_static-0.2.4/src/lazy.rs	/^    pub fn get<F>(&'static mut self, f: F) -> &T$/;"	f
 get	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/lazy_static-0.2.4/src/nightly_lazy.rs	/^    pub fn get<F>(&'static self, f: F) -> &T$/;"	f
@@ -876,6 +934,9 @@ get_symbol	/home/oddcoder/projects/sickassembler/src/lib/basic_types/symbol_tabl
 get_symbol_for_end	/home/oddcoder/projects/sickassembler/src/lib/pass_one/pass_one.rs	/^pub fn get_symbol_for_end(symbol: &str) -> Result<i32, String> {$/;"	f
 get_thread_id	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/raw_remutex.rs	/^fn get_thread_id() -> usize {$/;"	f
 get_unresolved	/home/oddcoder/projects/sickassembler/src/lib/basic_types/literal_table.rs	/^pub fn get_unresolved() -> Vec<String> {$/;"	f
+get_var	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^                fn get_var(&self, name: &str) -> Option<f64> {$/;"	f
+get_var	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn get_var(&self, _: &str) -> Option<f64> {$/;"	f
+get_var	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn get_var(&self, name: &str) -> Option<f64> {$/;"	f
 get_width	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/cell.rs	/^	pub fn get_width(&self) -> usize {$/;"	f
 guard_lock	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/mutex.rs	/^pub fn guard_lock<'a, T: ?Sized>(guard: &MutexGuard<'a, T>) -> &'a RawMutex {$/;"	f
 half_fill_split_goto1	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/compile.rs	/^    fn half_fill_split_goto1(&mut self, goto1: InstPtr) {$/;"	f
@@ -889,9 +950,11 @@ has_visited	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex
 hash	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/compile.rs	/^    fn hash(&self, suffix: &SuffixCacheKey) -> usize {$/;"	f
 hash	/home/oddcoder/projects/sickassembler/src/lib/basic_types/literal.rs	/^    fn hash<H: Hasher>(&self, state: &mut H) {$/;"	f
 hash	/home/oddcoder/projects/sickassembler/src/lib/basic_types/symbol.rs	/^    fn hash<H: Hasher>(&self, state: &mut H) {$/;"	f
+hash_context	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn hash_context() {$/;"	f
 have_elision	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/elision.rs	/^pub fn have_elision() -> bool {$/;"	f
 haystack	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/pattern.rs	/^    fn haystack(&self) -> &'t str {$/;"	f
 header_record	/home/oddcoder/projects/sickassembler/src/lib/htme/raw_program.rs	/^    pub fn header_record(&self) -> String {$/;"	f
+ident	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^fn ident(input: &[u8]) -> IResult<&[u8], &[u8]> {$/;"	f
 ignore_whitespace	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_builder.rs	/^    pub fn ignore_whitespace(&mut self, yes: bool) -> &mut RegexBuilder {$/;"	f
 ignore_whitespace	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_builder.rs	/^    pub fn ignore_whitespace(&mut self, yes: bool) -> &mut RegexSetBuilder {$/;"	f
 imports	/home/oddcoder/projects/sickassembler/src/lib/basic_types/symbol_tables.rs	/^    fn imports(&self, sym_name: &str) -> bool {$/;"	f
@@ -987,6 +1050,7 @@ is_valid_cap_letter	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec8
 is_word	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^    fn is_word(&self) -> bool {$/;"	f
 is_word_byte	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/input.rs	/^    pub fn is_word_byte(self) -> bool {$/;"	f
 is_word_char	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/input.rs	/^    pub fn is_word_char(self) -> bool {$/;"	f
+it_works	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^    fn it_works() {$/;"	f
 iter	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/row.rs	/^    pub fn iter<'a>(&'a self) -> Iter<'a, Cell> {$/;"	f
 iter	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/literals.rs	/^    pub fn iter(&self) -> LiteralIter {$/;"	f
 iter	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_bytes.rs	/^    pub fn iter<'c>(&'c self) -> SubCaptureMatches<'c, 't> {$/;"	f
@@ -1069,11 +1133,13 @@ matches	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2
 matches	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_set.rs	/^    pub fn matches(&self, text: $text_ty) -> SetMatches {$/;"	f
 max	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    pub fn max() -> LogLevel {$/;"	f
 max	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    pub fn max() -> LogLevelFilter {$/;"	f
+max_array	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^pub fn max_array(xs: &[f64]) -> f64 {$/;"	f
 max_log_level	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^pub fn max_log_level() -> LogLevelFilter {$/;"	f
 members1	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/simd_accel/teddy128.rs	/^    fn members1(&self, haystack_block: u8x16) -> u8x16 {$/;"	f
 members2	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/simd_accel/teddy128.rs	/^    fn members2(&self, haystack_block: u8x16) -> (u8x16, u8x16) {$/;"	f
 members3	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/simd_accel/teddy128.rs	/^    fn members3(&self, haystack_block: u8x16) -> (u8x16, u8x16, u8x16) {$/;"	f
 metadata	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    pub fn metadata(&self) -> &LogMetadata {$/;"	f
+min_array	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^pub fn min_array(xs: &[f64]) -> f64 {$/;"	f
 min_hexa_digits_required	/home/oddcoder/projects/sickassembler/src/lib/htme/record_string.rs	/^pub fn min_hexa_digits_required(code: u32) -> u32 {$/;"	f
 modification_records	/home/oddcoder/projects/sickassembler/src/lib/htme/raw_program.rs	/^    pub fn modification_records(&self) -> String {$/;"	f
 module_path	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    pub fn module_path(&self) -> &str {$/;"	f
@@ -1091,6 +1157,7 @@ new	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.
 new	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.4.2/src/regex.rs	/^    pub fn new(spec: &str) -> Result<Filter, String> {$/;"	f
 new	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.4.2/src/string.rs	/^    pub fn new(spec: &str) -> Result<Filter, String> {$/;"	f
 new	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    pub fn new() -> Options {$/;"	f
+new	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn new() -> Context<'a> {$/;"	f
 new	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/condvar.rs	/^    pub fn new() -> Condvar {$/;"	f
 new	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/mutex.rs	/^    pub fn new(val: T) -> Mutex<T> {$/;"	f
 new	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/once.rs	/^    pub fn new() -> Once {$/;"	f
@@ -1203,6 +1270,7 @@ notify_one_slow	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/p
 num_byte_classes	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^    fn num_byte_classes(&self) -> usize {$/;"	f
 num_chars	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/prog.rs	/^    pub fn num_chars(&self) -> usize {$/;"	f
 num_states	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^    fn num_states(&self) -> usize {$/;"	f
+number	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^fn number(input: &[u8]) -> IResult<&[u8], Token> {$/;"	f
 numfnames	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parser/names.rs	/^pub static numfnames: &'static [&'static str] = &["columns",$/;"	c
 numnames	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parser/names.rs	/^pub static numnames: &'static [&'static str] =$/;"	c
 ok_or	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^fn ok_or<T, E>(t: Option<T>, e: E) -> Result<T, E> {$/;"	f
@@ -1287,6 +1355,7 @@ poisoned	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_
 pos	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/input.rs	/^    pub fn pos(&self) -> usize {$/;"	f
 pos	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_trait.rs	/^    pub fn pos(&self, i: usize) -> Option<(usize, usize)> {$/;"	f
 pos	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_unicode.rs	/^    fn pos(&self, name: &str) -> Option<usize> {$/;"	f
+prec_assoc	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/shunting_yard.rs	/^fn prec_assoc(token: &Token) -> (u32, Associativity) {$/;"	f
 prefix_at	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^    fn prefix_at(&self, text: &[u8], at: usize) -> Option<usize> {$/;"	f
 prefix_at	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/input.rs	/^    fn prefix_at($/;"	f
 prefixes	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/literals.rs	/^    fn prefixes(lits: &syntax::Literals) -> Self {$/;"	f
@@ -1382,7 +1451,7 @@ ref	/home/oddcoder/projects/sickassembler/src/lib/basic_types/literal_table.rs	/
 ref	/home/oddcoder/projects/sickassembler/src/lib/basic_types/literal_table.rs	/^    static ref TEMP_LITERALS: RwLock<HashSet<String>> = RwLock::new(HashSet::new());    $/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/basic_types/symbol_tables.rs	/^    static ref LOCK_DURATION: Duration = {Duration::from_millis(LOCK_DURATION_MILLIS)};$/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/basic_types/symbol_tables.rs	/^    static ref MASTER_TABLE:Mutex<MasterTable> = Mutex::new(MasterTable::new());$/;"	c
-ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    pub static ref EXPRESSION:Regex = Regex::new(r"^-?([a-zA-Z_][a-zA-Z_0-9]*)(?:(?:\\+|-)([a-zA-Z_][a-zA-Z_0-9]*))*$").unwrap();$/;"	c
+ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    pub static ref EXPRESSION:Regex = Regex::new(r"^-?([a-zA-Z_0-9]+)(?:(?:\\+|-)([a-zA-Z_0-9]+))(?:(?:\\+|-)([a-zA-Z_0-9]+))?(?:(?:\\+|-)([a-zA-Z_0-9]+))?$").unwrap();$/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    static ref CHAR_OPERAND_STREAM:Regex = Regex::new(r"^(C|c)'[[:alnum:]]+'$").unwrap();$/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    static ref COMMA_WHITESPACE_REGEX:Regex = Regex::new(r",\\s+").unwrap();$/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    static ref COMMENT_REGEX:Regex = Regex::new(r"\\.(\\s|.)+").unwrap();$/;"	c
@@ -1391,6 +1460,7 @@ ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    static ref HEX_OP
 ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    static ref HEX_STREAM:Regex = Regex::new(r"^[[:xdigit:]]+$").unwrap();$/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    static ref LABEL_STREAM:Regex = Regex::new(r"^[a-zA-Z_][a-zA-Z_0-9]*$").unwrap();$/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^    static ref SPLIT_SOURCE_LINE_SPLIT_REGEX:Regex = Regex::new(r"(\\s+|\\n+|\\t+)").unwrap();$/;"	c
+ref	/home/oddcoder/projects/sickassembler/src/lib/pass_one/pass_one.rs	/^    static ref SYMBOL_TABLE: RwLock<HashMap<String,i32>> = RwLock::new(HashMap::new());$/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/pass_two/operand_translator.rs	/^    static ref HEX_REGEX:Regex = Regex::new(r"^(x|X)'[0-9a-fA-F]+'").unwrap();$/;"	c
 ref	/home/oddcoder/projects/sickassembler/src/lib/pass_two/operand_translator.rs	/^    static ref STR_REGEX: Regex = Regex::new(r"^(c|C)'.+'").unwrap();$/;"	c
 regex	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/re_trait.rs	/^    pub fn regex(&self) -> &R {$/;"	f
@@ -1558,6 +1628,8 @@ test_aliases_long_and_short	/home/oddcoder/.cargo/registry/src/github.com-1ecc62
 test_args_with_equals	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn test_args_with_equals() {$/;"	f
 test_base	/home/oddcoder/projects/sickassembler/src/lib/basic_types/base_table.rs	/^fn test_base() {$/;"	f
 test_basic_setabf	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parm.rs	/^    fn test_basic_setabf() {$/;"	f
+test_bind	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn test_bind() {$/;"	f
+test_builtins	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn test_builtins() {$/;"	f
 test_byte_operand_parsing	/home/oddcoder/projects/sickassembler/src/lib/pass_two/operand_translator.rs	/^    fn test_byte_operand_parsing() {$/;"	f
 test_combined	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn test_combined() {$/;"	f
 test_comparison_ops	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parm.rs	/^    fn test_comparison_ops() {$/;"	f
@@ -1565,10 +1637,14 @@ test_conditionals	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823
 test_conout	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/win.rs	/^fn test_conout() {$/;"	f
 test_cross_cmp	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^     fn test_cross_cmp() {$/;"	f
 test_cross_eq	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^     fn test_cross_eq() {$/;"	f
+test_deserialization	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^        fn test_deserialization() {$/;"	f
 test_error_trait	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^     fn test_error_trait() {$/;"	f
+test_eval	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn test_eval() {$/;"	f
+test_eval_func_ctx	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn test_eval_func_ctx() {$/;"	f
 test_file_opening	/home/oddcoder/projects/sickassembler/src/lib/filehandler.rs	/^    fn test_file_opening() {$/;"	f
 test_format	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parm.rs	/^    fn test_format() {$/;"	f
 test_free_argument_is_hyphen	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn test_free_argument_is_hyphen() {$/;"	f
+test_func	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^    fn test_func() {$/;"	f
 test_get_mut	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/mutex.rs	/^    fn test_get_mut() {$/;"	f
 test_get_mut	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/rwlock.rs	/^    fn test_get_mut() {$/;"	f
 test_hex_digits_required	/home/oddcoder/projects/sickassembler/src/lib/htme/tests/formatting_tests.rs	/^    fn test_hex_digits_required() {$/;"	f
@@ -1594,6 +1670,7 @@ test_mutex_unsized	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec82
 test_mutexguard_send	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/mutex.rs	/^    fn test_mutexguard_send() {$/;"	f
 test_nospace	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn test_nospace() {$/;"	f
 test_nospace_conflict	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn test_nospace_conflict() {$/;"	f
+test_number	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^    fn test_number() {$/;"	f
 test_op_i	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parm.rs	/^    fn test_op_i() {$/;"	f
 test_optflag	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn test_optflag() {$/;"	f
 test_optflag_long_arg	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn test_optflag_long_arg() {$/;"	f
@@ -1642,6 +1719,8 @@ test_table	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/pretty
 test_text_record_from_program	/home/oddcoder/projects/sickassembler/src/lib/htme/tests/record_from_program_tests.rs	/^    fn test_text_record_from_program() {$/;"	f
 test_to_log_level	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^     fn test_to_log_level() {$/;"	f
 test_to_log_level_filter	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^     fn test_to_log_level_filter() {$/;"	f
+test_to_rpn	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/shunting_yard.rs	/^    fn test_to_rpn() {$/;"	f
+test_tokenize	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^    fn test_tokenize() {$/;"	f
 test_unicode_separators	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/lib.rs	/^	fn test_unicode_separators() {$/;"	f
 test_unrecognized_option	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn test_unrecognized_option() {$/;"	f
 test_usage	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn test_usage() {$/;"	f
@@ -1649,10 +1728,15 @@ test_usage_description_multibyte_handling	/home/oddcoder/.cargo/registry/src/git
 test_usage_description_wrapping	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn test_usage_description_wrapping() {$/;"	f
 test_usage_long_only	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn test_usage_long_only() {$/;"	f
 test_usage_short_only	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn test_usage_short_only() {$/;"	f
+test_var	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^    fn test_var() {$/;"	f
 test_veclens	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/term-0.4.5/src/terminfo/parser/compiled.rs	/^    fn test_veclens() {$/;"	f
 tests	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/env_logger-0.4.2/src/lib.rs	/^mod tests {$/;"	m
 tests	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^mod tests {$/;"	m
 tests	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^mod tests {$/;"	m
+tests	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    mod tests {$/;"	m
+tests	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^mod tests {$/;"	m
+tests	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/shunting_yard.rs	/^mod tests {$/;"	m
+tests	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^mod tests {$/;"	m
 tests	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/condvar.rs	/^mod tests {$/;"	m
 tests	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/mutex.rs	/^mod tests {$/;"	m
 tests	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/once.rs	/^mod tests {$/;"	m
@@ -1679,6 +1763,8 @@ text_records	/home/oddcoder/projects/sickassembler/src/lib/htme/raw_program.rs	/
 timed_out	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/condvar.rs	/^    pub fn timed_out(&self) -> bool {$/;"	f
 times_two	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/lazy_static-0.2.4/src/lib.rs	/^fn times_two(n: u32) -> u32 { n * 2 }$/;"	f
 to	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/lib.rs	/^		fn to() {$/;"	f
+to_arg_guard	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn to_arg_guard<'a, F: Fn(&[f64]) -> f64 + 'a>(self, func: F) -> GuardedFunc<'a> {$/;"	f
+to_arg_guard	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    fn to_arg_guard<'a, F: Fn(&[f64]) -> f64 + 'a>(self, func: F) -> GuardedFunc<'a>;$/;"	f
 to_ascii_uppercase	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    fn to_ascii_uppercase(c: u8) -> u8 {$/;"	f
 to_csv	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/lib.rs	/^	pub fn to_csv<W: Write>(&self, w: W) -> csv::Result<csv::Writer<W>> {$/;"	f
 to_csv_writer	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/lib.rs	/^	pub fn to_csv_writer<W: Write>(&self, mut writer: csv::Writer<W>) -> csv::Result<csv::Writer<W>> {$/;"	f
@@ -1686,8 +1772,10 @@ to_csv_writer	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/pre
 to_hex_string	/home/oddcoder/projects/sickassembler/src/lib/lib.rs	/^pub fn to_hex_string<T>(num: T) -> String$/;"	f
 to_log_level	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    pub fn to_log_level(&self) -> Option<LogLevel> {$/;"	f
 to_log_level_filter	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/lib.rs	/^    pub fn to_log_level_filter(&self) -> LogLevelFilter {$/;"	f
+to_rpn	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/shunting_yard.rs	/^pub fn to_rpn(input: &[Token]) -> Result<Vec<Token>, RPNError> {$/;"	f
 to_string	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/getopts-0.2.14/src/lib.rs	/^    fn to_string(&self) -> String {$/;"	f
 to_string	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/cell.rs	/^	fn to_string(&self) -> String {$/;"	f
+tokenize	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/tokenizer.rs	/^pub fn tokenize<S: AsRef<str>>(input: S) -> Result<Vec<Token>, ParseError> {$/;"	f
 trace	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/log-0.3.7/src/macros.rs	/^macro_rules! trace {$/;"	d
 trans	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/prettytable-rs-0.6.6/src/lib.rs	/^		fn trans() {$/;"	f
 translate	/home/oddcoder/projects/sickassembler/src/lib/pass_two/translator.rs	/^fn translate(instruction: &mut Instruction) -> Result<String, String> {$/;"	f
@@ -1753,10 +1841,15 @@ usize_to_u32	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/rege
 validate_directive_operands	/home/oddcoder/projects/sickassembler/src/lib/basic_types/instruction_set.rs	/^    fn validate_directive_operands(&self, opr: &OperandType) -> bool {$/;"	f
 validate_instruction_operands	/home/oddcoder/projects/sickassembler/src/lib/basic_types/instruction_set.rs	/^    fn validate_instruction_operands(&self,$/;"	f
 validate_semantics	/home/oddcoder/projects/sickassembler/src/lib/semantics_validator.rs	/^pub fn validate_semantics(instr: &mut Instruction) -> Result<(), String> {$/;"	f
+var	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^    pub fn var<S: Into<String>>(&mut self, var: S, value: f64) -> &mut Self {$/;"	f
 vb	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/dfa.rs	/^fn vb(b: usize) -> String {$/;"	f
 verify	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/simd_accel/teddy128.rs	/^    fn verify($/;"	f
 verify_bucket	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/simd_accel/teddy128.rs	/^    fn verify_bucket($/;"	f
 visible_byte	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-0.2.1/src/prog.rs	/^        fn visible_byte(b: u8) -> String {$/;"	f
+visit_f64	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^                fn visit_f64<E>(self, v: f64) -> Result<Self::Value, E>$/;"	f
+visit_i64	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^                fn visit_i64<E>(self, v: i64) -> Result<Self::Value, E>$/;"	f
+visit_str	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^                fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>$/;"	f
+visit_u64	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/meval-0.0.9/src/expr.rs	/^                fn visit_u64<E>(self, v: u64) -> Result<Self::Value, E>$/;"	f
 wait	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/condvar.rs	/^    pub fn wait<T: ?Sized>(&self, mutex_guard: &mut MutexGuard<T>) {$/;"	f
 wait_for	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/condvar.rs	/^    fn wait_for() {$/;"	f
 wait_for	/home/oddcoder/.cargo/registry/src/github.com-1ecc6299db9ec823/parking_lot-0.4.0/src/condvar.rs	/^    pub fn wait_for<T: ?Sized>(&self,$/;"	f

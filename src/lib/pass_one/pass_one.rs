@@ -10,6 +10,11 @@ use symbol::{Symbol, SymbolType};
 use symbol_tables::*;
 use super::super::*;
 use basic_types::symbol_tables::define_local_symbol;
+extern crate meval;
+
+lazy_static!{
+    static ref SYMBOL_TABLE: RwLock<HashMap<String,i32>> = RwLock::new(HashMap::new());
+}
 
 // FIXME: get instruction size shouldn't check for errors
 fn get_instruction_size(inst: &Instruction) -> i32 {
@@ -294,6 +299,25 @@ fn parse_equ(instruction:&Instruction)->Result<(), String>{
         return match get_symbol(&lbl) {
             Ok(addr) => insert_symbol(&instruction.label, addr),
             Err(e) => Err(e)
+        }
+    }
+
+    else if let Value::Expression(ref exp) = instruction.get_first_operand().val{
+        let expression: meval::Expr = exp[0].parse().unwrap();
+        let mut context = meval::Context::new();
+        for term in &exp[1..]{
+            match get_symbol(&term){
+                Ok(addr) => {
+                    context.var(term.as_str(), addr as f64);
+                },
+                Err(_) => continue
+            }
+        }
+        return match expression.eval_with_context(context){
+            Ok(val) => {
+                insert_symbol(&instruction.label, val as i32)
+            },
+            Err(e) => Err(e.to_string())
         }
     }
 
