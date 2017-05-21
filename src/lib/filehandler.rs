@@ -8,7 +8,7 @@ use instruction_set::{AssemblyDef, fetch_directive, fetch_instruction, is_direct
 use instruction::*;
 use unit_or_pair::*;
 use formats::*;
-use operand_parsing::{parse_directive_operand, parse_instruction_operand};
+use operand_parsing::{parse_directive_operand, parse_instruction_operand, parse_ref_operands};
 use super::*;
 
 pub struct FileHandler {
@@ -174,6 +174,12 @@ fn parse_operands(operand_string: &str,
                   -> Result<UnitOrPair<AsmOperand>, String> {
     let ops: Vec<&str> = operand_string.split(",").collect();
     let mut errs: Vec<String> = Vec::new();
+
+    if instruction == "EXTREF" || instruction == "EXTDEF" {
+        let op_vec: Vec<String> = ops.iter().map(|opx| String::from(*opx)).collect::<Vec<String>>();
+        let opr = UnitOrPair::Unit(parse_ref_operands(op_vec));
+        return Ok(opr);
+    }
 
     match ops.len() {
         0 => return Ok(UnitOrPair::None),

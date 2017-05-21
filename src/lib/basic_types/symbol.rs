@@ -39,6 +39,7 @@ impl Symbol {
     }
 
     pub fn get_address(&self) -> i32 {
+        // FIXME: add the start of the csect to addr
         self.address
     }
 

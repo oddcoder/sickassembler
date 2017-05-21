@@ -154,3 +154,7 @@ fn parse_literal(op: &str) -> Result<AsmOperand, String> {
 fn create_operand(t: OperandType, v: Value) -> AsmOperand {
     AsmOperand::new(t, v)
 }
+
+pub fn parse_ref_operands(ops: Vec<String>) -> AsmOperand {
+    return AsmOperand::new(OperandType::VarArgs, Value::VarArgs(ops));
+}

@@ -27,7 +27,11 @@ impl TableResult {
     }
 
     pub fn get_address(&self) -> i32 {
-        self.symbol.get_address()
+        if self.symbol_type == SymbolType::Imported {
+            0
+        } else {
+            self.symbol.get_address()
+        }
     }
 
     pub fn get_control_section(&self) -> String {
@@ -251,12 +255,12 @@ pub fn define_local_symbol(sym_name: &str, addr: i32, csect: &str) -> Result<(),
 }
 
 
-pub fn define_exported_symbols(symbols: &Vec<&str>, csect: &str) -> Result<(), String> {
+pub fn define_exported_symbols(symbols: &Vec<String>, csect: &str) -> Result<(), String> {
     let mut errs: Vec<String> = Vec::new();
 
     let result = symbols.iter()
         .map(|item| {
-            define_exported_symbol(item, csect).or_else(|e| {
+            define_exported_symbol(&item, csect).or_else(|e| {
                 errs.push(e);
                 Err(())
             })
@@ -271,12 +275,12 @@ pub fn define_exported_symbol(sym_name: &str, csect: &str) -> Result<(), String>
     master_table.define_export_symbol(sym_name, csect)
 }
 
-pub fn define_imported_symbols(symbols: &Vec<&str>, csect: &str) -> Result<(), String> {
+pub fn define_imported_symbols(symbols: &Vec<String>, csect: &str) -> Result<(), String> {
     let mut errs: Vec<String> = Vec::new();
 
     let result = symbols.iter()
         .map(|item| {
-            define_imported_symbol(item, csect).or_else(|e| {
+            define_imported_symbol(&item, csect).or_else(|e| {
                 errs.push(e);
                 Err(())
             })

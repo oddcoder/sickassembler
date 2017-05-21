@@ -11,7 +11,8 @@ use super::super::{to_hex_string, remove_literal_container};
 
 pub fn parse_operand(instruction: &mut Instruction, val: &Value) -> Result<String, String> {
     match *val {
-        Value::None => Ok(String::new()),
+        Value::None |
+        Value::VarArgs(_) => Ok(String::new()),
         Value::Raw(x) => Ok(to_hex_string(x)),
         Value::SignedInt(x) => parse_signed_int(x),
         Value::Register(ref x) => parse_register(*x),
@@ -36,9 +37,13 @@ fn parse_label(instruction: &mut Instruction, lbl: &str) -> Result<String, Strin
     let sym_addr;
     match get_symbol(&lbl.to_owned(), &instruction.csect) {
         Ok(sym) => {
-            if sym.symbol_type == SymbolType::Imported && instruction.get_format() != Format::Four {
-                return Err(format!("Imported symbols must be in format 4 instructions"));
+            if sym.symbol_type == SymbolType::Imported &&
+               instruction.get_format() == Format::Three {
+                return Err(format!("{{ {:?} }} : Imported symbols must be in format 4 \
+                                    instructions",
+                                   instruction));
             }
+
             sym_addr = sym.get_address()
         }
         Err(e) => return Err(e),

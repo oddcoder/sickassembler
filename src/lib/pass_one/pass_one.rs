@@ -7,6 +7,7 @@ use literal::Literal;
 use literal_table::{insert_literal, get_unresolved, get_literal};
 use std::u32;
 use symbol::{Symbol, SymbolType};
+use symbol_tables::*;
 use super::super::*;
 use basic_types::symbol_tables::define_local_symbol;
 
@@ -144,6 +145,7 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
         let instruction_size: i32 = get_instruction_size(&instruction);
 
         instruction.locctr = loc;
+        instruction.csect = current_csect.clone();
 
         match instruction.mnemonic.to_uppercase().as_str() {
             "START" => errs.push("Duplicate START instruction".to_owned()),
@@ -190,23 +192,38 @@ fn consume_instruction(instruction: &Instruction,
             errs.push(format!("{}", e));
         }
     }
-
+    let mut result = Ok(());
     match instruction.mnemonic.to_uppercase().as_str() {
         "EXTREF" => {
-            // TODO: do call the master table
+            // Call the master table
+            result = match instruction.get_first_operand().val {
+                Value::VarArgs(ops) => define_imported_symbols(&ops, csect),
+                _ => panic!("Invalid operands"),
+            }
         }
         "EXTDEF" => {
-            // TODO: do call the master table
+            // Call the master table
+            result = match instruction.get_first_operand().val {
+                Value::VarArgs(ops) => define_exported_symbols(&ops, csect),
+                _ => panic!("Invalid operands"),
+            };
         }
         "CSECT" => {
             // TODO: add csect to master table
             *csect = instruction.label.clone();
+            println!("CSECT!! {}", csect);
+            result = define_control_section(csect);
             loc = 0;
         }
         _ => {
             loc += instruction_size;
             instructions.push(instruction.clone());
         }
+    }
+
+
+    if let Err(e) = result {
+        errs.push(e);
     }
 
     loc
