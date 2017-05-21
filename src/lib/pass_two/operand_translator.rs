@@ -16,6 +16,7 @@ pub fn parse_operand(instruction: &mut Instruction, val: &Value) -> Result<Strin
         Value::Register(ref x) => parse_register(*x),
         Value::Label(ref lbl) => parse_label(instruction, lbl),
         Value::Bytes(ref text) => parse_bytes(instruction, text),
+        Value::Expression(_) => Err(String::from("Expression should be resolved by now"))
     }
 }
 
