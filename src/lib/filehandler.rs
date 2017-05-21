@@ -8,7 +8,7 @@ use instruction_set::{AssemblyDef, fetch_directive, fetch_instruction, is_direct
 use instruction::*;
 use unit_or_pair::*;
 use formats::*;
-use operand_parsing::{parse_directive_operand, parse_instruction_operand};
+use operand_parsing::{parse_directive_operand, parse_instruction_operand, parse_ref_operands};
 use super::*;
 
 pub struct FileHandler {
@@ -111,9 +111,19 @@ impl FileHandler {
         }
 
         if !words.is_empty() {
-            match parse_operands(words.remove(0), is_asm_directive, &instruction) {
+            let mut op = words.remove(0);
+            // Operand of BYTE may contain spaces, and that would cause them to be split
+            // by the file reader, concat them, any erros will be handled by operand parser
+
+            if (op.starts_with("C'") || op.starts_with("c'")) && op.len() > 0 {
+                for x in &words {
+                    op = op + x.as_str();
+                }
+                words.clear();
+            }
+            match parse_operands(&op, is_asm_directive, &instruction) {
                 Ok(e) => operands = e,
-                Err(e) => self.errs.push(e),
+                Err(e) => self.errs.push(format!("Failed to parse {{ {:#?} }} As {}", op, e)),
             };
         }
 
@@ -158,12 +168,18 @@ impl FileHandler {
     }
 }
 
-fn parse_operands(operand_string: String,
+fn parse_operands(operand_string: &str,
                   is_directive: bool,
                   instruction: &str)
                   -> Result<UnitOrPair<AsmOperand>, String> {
     let ops: Vec<&str> = operand_string.split(",").collect();
     let mut errs: Vec<String> = Vec::new();
+
+    if instruction == "EXTREF" || instruction == "EXTDEF" {
+        let op_vec: Vec<String> = ops.iter().map(|opx| String::from(*opx)).collect::<Vec<String>>();
+        let opr = UnitOrPair::Unit(parse_ref_operands(op_vec));
+        return Ok(opr);
+    }
 
     match ops.len() {
         0 => return Ok(UnitOrPair::None),

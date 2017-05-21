@@ -2,15 +2,17 @@ use instruction::Instruction;
 use basic_types::formats::Format;
 use basic_types::operands::Value;
 use basic_types::register::Register;
-use pass_one::pass_one::get_symbol;
+use symbol_tables::get_symbol;
 use base_table::get_base_at;
+use symbol::SymbolType;
 use regex::Regex;
 use literal_table::get_literal;
 use super::super::{to_hex_string, remove_literal_container};
 
 pub fn parse_operand(instruction: &mut Instruction, val: &Value) -> Result<String, String> {
     match *val {
-        Value::None => Ok(String::new()),
+        Value::None |
+        Value::VarArgs(_) => Ok(String::new()),
         Value::Raw(x) => Ok(to_hex_string(x)),
         Value::SignedInt(x) => parse_signed_int(x),
         Value::Register(ref x) => parse_register(*x),
@@ -33,8 +35,17 @@ fn parse_signed_int(x: i32) -> Result<String, String> {
 
 fn parse_label(instruction: &mut Instruction, lbl: &str) -> Result<String, String> {
     let sym_addr;
-    match get_symbol(&lbl.to_owned()) {
-        Ok(addr) => sym_addr = addr,
+    match get_symbol(&lbl.to_owned(), &instruction.csect) {
+        Ok(sym) => {
+            if sym.symbol_type == SymbolType::Imported &&
+               instruction.get_format() == Format::Three {
+                return Err(format!("{{ {:?} }} : Imported symbols must be in format 4 \
+                                    instructions",
+                                   instruction));
+            }
+
+            sym_addr = sym.get_address()
+        }
         Err(e) => return Err(e),
     }
 

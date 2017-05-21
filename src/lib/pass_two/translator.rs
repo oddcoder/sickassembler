@@ -4,7 +4,8 @@ use operands::Value;
 use instruction_set::{self, AssemblyDef, is_base_mode_directive, is_decodable_directive};
 use semantics_validator;
 use base_table::{set_base, end_base};
-use pass_one::pass_one::get_symbol;
+use symbol_tables::get_symbol;
+use symbol::SymbolType;
 use pass_two::operand_translator::parse_operand;
 use std::u32;
 
@@ -49,7 +50,7 @@ fn translate(instruction: &mut Instruction) -> Result<String, String> {
 
     if is_decodable_directive(&instruction.mnemonic) {
         return raw_operands;
-    } else if is_directive(instruction) && !is_decodable_directive(&instruction.mnemonic) {
+    } else if is_directive(instruction) && !is_decodable_directive(&instruction.mnemonic) {       
         return Ok(String::new());
     }
     // Assemble the instruciton
@@ -125,8 +126,13 @@ fn resolve_base_directive(instr: &Instruction) -> Result<(), String> {
             /// Returns the location of the symbol from the
             /// symtab, the result is returned as i32 (it'll be envolved in subtraction)
             ///  as it'll be subtracted from the locctr
-            match get_symbol(&val) {
-                Ok(addr) => set_base(locctr, addr),
+            match get_symbol(&val, &instr.csect) {
+                Ok(sym) => {
+                    if sym.symbol_type == SymbolType::Imported {
+                        return Err(format!("Base can't be an imported symbol {{ {:?} }}", instr));
+                    }
+                    set_base(locctr, sym.get_address())
+                }
                 Err(e) => return Err(format!("Invalid base {} {}", val, e)),
             }
         }

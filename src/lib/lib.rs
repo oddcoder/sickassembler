@@ -36,6 +36,8 @@ pub use basic_types::literal;
 pub use basic_types::base_table;
 
 pub use pass_two::translator;
+pub use basic_types::symbol;
+pub use basic_types::symbol_tables;
 
 pub fn to_hex_string<T>(num: T) -> String
     where T: UpperHex + Sized
@@ -50,7 +52,7 @@ pub fn to_hex_string<T>(num: T) -> String
 ///     - true : label
 ///     - false : instruction
 pub fn is_label(suspect: &str) -> bool {
-    return LABEL_STREAM.is_match(suspect) && suspect.len() < 7;
+    return LABEL_STREAM.is_match(suspect); // TODO: && suspect.len() < 7; ?
 }
 
 /// A literal is a byte/chars preceeded by an '=' sign
@@ -84,8 +86,8 @@ fn remove_literal_container(byte_operand: &mut String) {
 
 lazy_static!{
     // Regex reference: http://kbknapp.github.io/doapi-rs/docs/regex/index.html
-    static ref CHAR_OPERAND_STREAM:Regex = Regex::new(r"^C'[[:alnum:]]+'$").unwrap();
-    static ref HEX_OPERAND_STREAM:Regex = Regex::new(r"^X'[[:xdigit:]]+'$").unwrap();
+    static ref CHAR_OPERAND_STREAM:Regex = Regex::new(r"^(C|c)'[[:alnum:]]+'$").unwrap();
+    static ref HEX_OPERAND_STREAM:Regex = Regex::new(r"^(X|x)'[[:xdigit:]]+'$").unwrap();
     static ref DECIMAL_STREAM:Regex = Regex::new(r"^-?[[:digit:]]+$").unwrap();
     static ref HEX_STREAM:Regex = Regex::new(r"^[[:xdigit:]]+$").unwrap();
     static ref LABEL_STREAM:Regex = Regex::new(r"^[a-zA-Z_][a-zA-Z_0-9]*$").unwrap();

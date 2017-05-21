@@ -40,10 +40,10 @@ impl fmt::Debug for AsmOperand {
 #[derive(Clone)]
 pub struct Instruction {
     flags: HashSet<Flags>, // Set and Get through functoins
-
+    format: Format,
     pub label: String,
     pub mnemonic: String,
-    format: Format,
+    pub csect: String,
     pub operands: UnitOrPair<AsmOperand>, // Group oerands in one field
     pub locctr: i32, // Signed because it'll be subtracted from signed quantities
 }
@@ -58,6 +58,7 @@ impl Instruction {
             label: label,
             format: Format::None,
             mnemonic: mnemonic,
+            csect: String::new(),
             locctr: 0,
             // SIC/XE defaults ind. and imm. falgs to 1
             flags: HashSet::new(),
@@ -81,6 +82,7 @@ impl Instruction {
         Instruction {
             label: String::new(),
             format: Format::None,
+            csect: String::new(),
             mnemonic: mnemonic,
             flags: HashSet::new(),
             locctr: 0,
@@ -88,7 +90,7 @@ impl Instruction {
         }
     }
 
-    ///
+
     /// set_format set the formats of the instruction
     /// this is typically called after setting the operands
     ///

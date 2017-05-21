@@ -19,10 +19,10 @@ pub fn parse_directive_operand(op: &str, instruction: &str) -> Result<AsmOperand
         .or_else(|e| {
             errs = format!("{}", e);
             // RESW/B
-            if inst == "RESB" || inst == "RESW" {
+            if inst == "RESB" || inst == "RESW" || inst == "WORD" {
                 parse_singed_int(op)
             } else {
-                Err("Not RESB/W".to_owned())
+                Err("Not RESB/W or WORD".to_owned())
             }
 
         })
@@ -105,7 +105,7 @@ fn parse_bytes(op: &str) -> Result<AsmOperand, String> {
     if is_ascii_or_word_operand(op) {
         return Ok(create_operand(OperandType::Bytes, Value::Bytes(op.to_owned())));
     }
-    Err(format!("{} isn't on the form of C|X'...'", op))
+    Err(format!("isn't on the form of C|X'...'"))
 }
 
 /// Occurs when: Instruction -> F3 -> memory -> label , Directive -> label i.e BASE/NOBASE
@@ -153,4 +153,8 @@ fn parse_literal(op: &str) -> Result<AsmOperand, String> {
 
 fn create_operand(t: OperandType, v: Value) -> AsmOperand {
     AsmOperand::new(t, v)
+}
+
+pub fn parse_ref_operands(ops: Vec<String>) -> AsmOperand {
+    return AsmOperand::new(OperandType::VarArgs, Value::VarArgs(ops));
 }

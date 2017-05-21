@@ -12,4 +12,6 @@ pub mod unit_or_pair;
 pub mod literal_table;
 pub mod literal;
 pub mod base_table;
+pub mod symbol;
+pub mod symbol_tables;
 mod tests;
