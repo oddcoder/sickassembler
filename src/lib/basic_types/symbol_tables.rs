@@ -2,6 +2,8 @@ use parking_lot::Mutex;
 use symbol::{Symbol, SymbolType};
 use std::collections::{HashSet, HashMap};
 use std::time::Duration;
+use std::borrow::Borrow;
+use std::string::ToString;
 
 const LOCK_DURATION_MILLIS: u64 = 50;
 
@@ -188,6 +190,18 @@ impl MasterTable {
         let table = self.mapping.get(csect).unwrap();
         return table;
     }
+
+    fn get_csect_tables(&self) -> Vec<String> {
+        let mut result: Vec<String> = Vec::new();
+
+        for b in self.mapping.values() {
+            let b: &Box<CsectSymTab> = b;
+            let table: &CsectSymTab = b.borrow();
+            result.push(table.to_string())
+        }
+
+        result
+    }
 }
 
 /// Contains the relations of EXTDEF and EXTREFS
@@ -197,6 +211,12 @@ struct CsectSymTab {
     local_symbols: HashMap<String, Symbol>,
     exported_symbols: HashSet<String>,
     imported_symbols: HashSet<String>,
+}
+
+impl ToString for CsectSymTab {
+    fn to_string(&self) -> String {
+        format!("{:#?}", self)
+    }
 }
 
 impl CsectSymTab {
@@ -308,6 +328,11 @@ pub fn get_symbol(sym_name: &str, csect: &str) -> Result<TableResult, String> {
 pub fn get_all_symbols() -> HashSet<Symbol> {
     let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock_for(*LOCK_DURATION).unwrap();
     master_table.get_all_symbols()
+}
+
+pub fn get_all_section_tables() -> Vec<String> {
+    let ref mut master_table: MasterTable = *MASTER_TABLE.try_lock_for(*LOCK_DURATION).unwrap();
+    master_table.get_csect_tables()
 }
 
 #[cfg(test)]

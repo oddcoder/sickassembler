@@ -413,6 +413,10 @@ pub fn get_all_symbols() -> HashSet<Symbol> {
     result
 }
 
+pub fn get_csects_info() -> Vec<String> {
+    symbol_tables::get_all_section_tables()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
