@@ -82,6 +82,12 @@ fn main() {
 
     print_errs(&errs, exit_on_error);
 
+    // Print control sections info
+    let csects_info = sick_lib::pass_one::pass_one::get_csects_info();
+    for sect_info in csects_info {
+        println!("{}", sect_info);
+    }
+
     // Sort by address
     sym_tab.sort_by(|a, b| a.1.cmp(&b.1));
     // Create the table
