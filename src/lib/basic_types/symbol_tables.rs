@@ -5,6 +5,8 @@ use std::time::Duration;
 
 const LOCK_DURATION_MILLIS: u64 = 50;
 
+// TODO: print all symtab import and export tables
+
 lazy_static!{    
     // The master table contains all the control sections' symbol tables, it's the main
     // data structure in this module

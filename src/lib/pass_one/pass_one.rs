@@ -12,10 +12,6 @@ use super::super::*;
 use basic_types::symbol_tables::define_local_symbol;
 extern crate meval;
 
-lazy_static!{
-    static ref SYMBOL_TABLE: RwLock<HashMap<String,i32>> = RwLock::new(HashMap::new());
-}
-
 // FIXME: get instruction size shouldn't check for errors
 fn get_instruction_size(inst: &Instruction) -> i32 {
     match inst.get_format() {
@@ -110,7 +106,7 @@ pub fn pass_one(prog_info: RawProgram) -> Result<(HashSet<Symbol>, RawProgram), 
     Ok((get_all_symbols(), prog))
 }
 
-fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32, current_csect: &str) -> i32 {
+fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32, csect: &str) -> i32 {
 
     let mut loc = start_loc;
     for lit in get_unresolved() {
@@ -124,7 +120,7 @@ fn flush_literals(instructions: &mut Vec<Instruction>, start_loc: u32, current_c
         instructions.push(lit_decl);
 
         // Add literals to symbol table
-        define_local_symbol(&lit, lit_addr, current_csect).unwrap();
+        define_local_symbol(&lit, lit_addr, csect).unwrap();
     }
     loc as i32
 }
@@ -135,7 +131,7 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
     let mut loc = 0;
     let mut errs: Vec<String> = Vec::new();
     let mut instructions: Vec<Instruction> = Vec::new();
-    let mut current_csect: String = String::new();
+    let mut csect: String = String::new();
 
 
     match parse_start(&temp_instructions[0], &mut prog) {
@@ -149,19 +145,19 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
         let mut instruction: Instruction = instruction;
         let instruction_size: i32 = get_instruction_size(&instruction);
 
-        let mnemonic =  instruction.mnemonic.to_uppercase();
+        let mnemonic = instruction.mnemonic.to_uppercase();
 
-        if mnemonic != "EQU"{
+        if mnemonic != "EQU" {
             instruction.locctr = loc;
-            instruction.csect = current_csect.clone();
+            instruction.csect = csect.clone();
         }
         if !instruction.label.is_empty() && &mnemonic != "EQU" {
-            if let Err(e) = insert_symbol(&instruction.label, loc) {
+            if let Err(e) = define_local_symbol(&instruction.label, loc, &csect) {
                 errs.push(format!("{}", e));
             }
         }
 
-        match mnemonic.as_ref(){
+        match mnemonic.as_ref() {
             //XXX I am not sure
             //"START" => {
             //    match parse_start(&instruction, &mut prog) {
@@ -170,11 +166,11 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
             //    }
             "START" => errs.push("Duplicate START instruction".to_owned()),
             "LTORG" => {
-                loc = flush_literals(&mut instructions, loc as u32, &current_csect);
+                loc = flush_literals(&mut instructions, loc as u32, &csect);
             }
 
             "EQU" => {
-                if let Err(e) = parse_equ(&instruction){
+                if let Err(e) = parse_equ(&instruction, &csect) {
                     errs.push(format!("{}", e));
                 }
             }
@@ -188,7 +184,7 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
             _ => {
                 loc = consume_instruction(&instruction,
                                           loc,
-                                          &mut current_csect,
+                                          &mut csect,
                                           instruction_size,
                                           &mut errs,
                                           &mut instructions)
@@ -197,7 +193,7 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
     }
 
     // Flush remaining literals
-    flush_literals(&mut instructions, loc as u32, &current_csect);
+    flush_literals(&mut instructions, loc as u32, &csect);
 
     if prog.program_length == u32::MAX {
         errs.push(format!("Couldn't find the END instruction"));
@@ -238,7 +234,6 @@ fn consume_instruction(instruction: &Instruction,
         "CSECT" => {
             // TODO: add csect to master table
             *csect = instruction.label.clone();
-            println!("CSECT!! {}", csect);
             result = define_control_section(csect);
             loc = 0;
         }
@@ -289,57 +284,47 @@ fn parse_end(instruction: &Instruction,
 }
 
 
-fn parse_equ(instruction:&Instruction)->Result<(), String>{
+fn parse_equ(instruction: &Instruction, csect: &str) -> Result<(), String> {
     //get symbol value from Raw val inside operand
-    if let Value::Raw(val) = instruction.get_first_operand().val{
-        return insert_symbol(&instruction.label, val as i32)
-    }
-
-    else if let Value::Label(ref lbl) = instruction.get_first_operand().val{
-        return match get_symbol(&lbl) {
-            Ok(addr) => insert_symbol(&instruction.label, addr),
-            Err(e) => Err(e)
-        }
-    }
-
-    else if let Value::Expression(ref exp) = instruction.get_first_operand().val{
+    if let Value::Raw(val) = instruction.get_first_operand().val {
+        return define_local_symbol(&instruction.label, val as i32, csect);
+    } else if let Value::Label(ref lbl) = instruction.get_first_operand().val {
+        return match get_symbol(&lbl, csect) {
+            Ok(sym) => define_local_symbol(&instruction.label, sym.get_address(), csect),
+            Err(e) => Err(e),
+        };
+    } else if let Value::Expression(ref exp) = instruction.get_first_operand().val {
         let expression: meval::Expr = exp[0].parse().unwrap();
         let mut context = meval::Context::new();
-        for term in &exp[1..]{
-            match get_symbol(&term){
-                Ok(addr) => {
-                    context.var(term.as_str(), addr as f64);
-                },
-                Err(_) => continue
+        for term in &exp[1..] {
+            match get_symbol(&term, csect) {
+                Ok(sym) => {
+                    context.var(term.as_str(), sym.get_address() as f64);
+                }
+                Err(_) => continue,
             }
         }
-        return match expression.eval_with_context(context){
-            Ok(val) => {
-                insert_symbol(&instruction.label, val as i32)
-            },
-            Err(e) => Err(e.to_string())
-        }
-    }
-
-    else if let Value::Bytes(val) = instruction.get_first_operand().val{
-        if val.starts_with("X'") && val.ends_with("'"){
+        return match expression.eval_with_context(context) {
+            Ok(val) => define_local_symbol(&instruction.label, val as i32, csect),
+            Err(e) => Err(e.to_string()),
+        };
+    } else if let Value::Bytes(val) = instruction.get_first_operand().val {
+        if val.starts_with("X'") && val.ends_with("'") {
             let val = &mut val.to_owned();
             remove_literal_container(val);
             match i32::from_str_radix(&val, 16) {
-                Ok(decimal) => {
-                    return insert_symbol(&instruction.label, decimal)
-                },
+                Ok(decimal) => return define_local_symbol(&instruction.label, decimal, csect),
                 Err(e) => Err(e.to_string()),
             }
-        }
-        else{
-            return Err(format!("Invalid EQU operands, found {:?}", unwrap_to_vec(&instruction.operands)));
+        } else {
+            return Err(format!("Invalid EQU operands, found {:?}",
+                               unwrap_to_vec(&instruction.operands)));
         }
     }
     //TODO: is there other cases?
-
-    else{
-        return Err(format!("Invalid EQU operands, found {:?}", unwrap_to_vec(&instruction.operands)));
+    else {
+        return Err(format!("Invalid EQU operands, found {:?}",
+                           unwrap_to_vec(&instruction.operands)));
     }
 }
 

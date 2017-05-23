@@ -20,7 +20,7 @@ pub fn parse_directive_operand(op: &str, instruction: &str) -> Result<AsmOperand
             errs = format!("{}", e);
             // RESW/B
             if inst == "RESB" || inst == "RESW" || inst == "WORD" {
-                parse_singed_int(op)
+                parse_signed_int(op)
             } else {
                 Err("Not RESB/W or WORD".to_owned())
             }
