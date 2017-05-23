@@ -46,6 +46,7 @@ pub struct Instruction {
     pub csect: String,
     pub operands: UnitOrPair<AsmOperand>, // Group oerands in one field
     pub locctr: i32, // Signed because it'll be subtracted from signed quantities
+    pub src_line_num: i32,
 }
 
 impl Instruction {
@@ -60,6 +61,7 @@ impl Instruction {
             mnemonic: mnemonic,
             csect: String::new(),
             locctr: 0,
+            src_line_num: 0,
             // SIC/XE defaults ind. and imm. falgs to 1
             flags: HashSet::new(),
 
@@ -86,6 +88,7 @@ impl Instruction {
             mnemonic: mnemonic,
             flags: HashSet::new(),
             locctr: 0,
+            src_line_num: 0,
             operands: UnitOrPair::None,
         }
     }
@@ -254,6 +257,10 @@ impl Instruction {
         unwrap_to_vec(&self.operands)[1].clone()
     }
 
+    pub fn set_line_number(&mut self, line_num: i32) {
+        self.src_line_num = line_num;
+    }
+
     /// The register X isn't converted to an object code
     /// if the instruction is in indexed mode,
     /// so it must be removed from the operand list
@@ -273,7 +280,8 @@ impl Instruction {
 impl fmt::Debug for Instruction {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f,
-               "{:#X} {} {} {} {:?}",
+               "{}: {:#X} {} {} {} {:?}",
+               self.src_line_num,
                self.locctr,
                self.format,
                self.label,

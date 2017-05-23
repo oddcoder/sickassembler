@@ -62,7 +62,7 @@ impl MasterTable {
     fn define_csect(&mut self, csect: &str) -> Result<(), String> {
 
         if self.has_csect(csect) {
-            return Err(format!("Redifinition of control section {{ {} }} ", csect));
+            return Err(format!("Redefinition of control section {{ {} }} ", csect));
         }
 
         let table = Box::new(CsectSymTab::new(csect));
@@ -78,10 +78,10 @@ impl MasterTable {
                            addr: i32,
                            csect: &str)
                            -> Result<(), String> {
-        let csect_tab: &mut CsectSymTab = self.get_csect_table_write(csect);
 
+        let csect_tab: &mut CsectSymTab = self.get_csect_table_write(csect);
         if csect_tab.has_local(sym_name) {
-            return Err(format!("Redifinition of label {{ {} }}", sym_name));
+            return Err(format!("Redefinition of label {{ {} }}", sym_name));
         }
 
         let sym: Symbol = Symbol::new(sym_name, addr, csect);
