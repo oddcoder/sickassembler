@@ -20,7 +20,7 @@ pub fn parse_directive_operand(op: &str, instruction: &str) -> Result<AsmOperand
             errs = format!("{}", e);
             // RESW/B
             if inst == "RESB" || inst == "RESW" || inst == "WORD" {
-                parse_singed_int(op)
+                parse_signed_int(op)
             } else {
                 Err("Not RESB/W or WORD".to_owned())
             }
@@ -39,7 +39,26 @@ pub fn parse_directive_operand(op: &str, instruction: &str) -> Result<AsmOperand
             // BASE / NOBASE
             errs = format!("{}\n{}", errs, e);
             parse_label(op, OperandType::None)
+        })
+        .or_else(|e| {
+            errs = format!("{}\n{}", errs, e);
+            if inst == "EQU"{
+                parse_signed_int(op)
+                .or_else(|e| {
+                    errs = format!("{}\n{}", errs, e);
+                    parse_instruction_operand(op)
+                })
+                .or_else(|e| {
+                    errs = format!("{}\n{}", errs, e);
+                    parse_expression(op)
+                })
+            }
+            else {
+                Err("not EQU".to_owned())
+            }
+
         });
+
     match result {
         Ok(r) => return Ok(r),
         Err(_) => return Err(errs),
@@ -68,7 +87,7 @@ fn parse_memory_operand(op: &str) -> Result<AsmOperand, String> {
     let prefix = &op[0..1];
     let content = &op[1..];
     match prefix {
-        "#" => parse_label(content, OperandType::Immediate).or_else(|_| parse_singed_int(content)),
+        "#" => parse_label(content, OperandType::Immediate).or_else(|_| parse_signed_int(content)),
         "@" => parse_label(content, OperandType::Indirect),
         "=" => parse_literal(op),
         _ => {
@@ -76,6 +95,7 @@ fn parse_memory_operand(op: &str) -> Result<AsmOperand, String> {
             parse_label(op, OperandType::Label)
         }
     }
+
 }
 
 /// Occurs when: Instruction -> F3 / F2 / F1
@@ -93,7 +113,7 @@ fn parse_register(op: &str) -> Result<AsmOperand, String> {
 }
 
 /// Occurs when: Inst-> F3 Immediate
-fn parse_singed_int(op: &str) -> Result<AsmOperand, String> {
+fn parse_signed_int(op: &str) -> Result<AsmOperand, String> {
     match i32::from_str_radix(&op, 10) {
         Ok(hex) => Ok(AsmOperand::new(OperandType::Immediate, Value::SignedInt(hex))),
         Err(e) => Err(e.to_string()),
@@ -157,4 +177,30 @@ fn create_operand(t: OperandType, v: Value) -> AsmOperand {
 
 pub fn parse_ref_operands(ops: Vec<String>) -> AsmOperand {
     return AsmOperand::new(OperandType::VarArgs, Value::VarArgs(ops));
+}
+
+//parses expression operands
+fn parse_expression(op:&str)-> Result<AsmOperand, String> {
+    if is_expression(op) {
+        let labels = capture_expression(op);
+        println!("{:?}", labels);
+        return Ok(create_operand(OperandType::Expression, Value::Expression(labels)));
+    }
+    else{
+        return Err(format!("{} is not an expression.", op));
+    }
+}
+
+//returns expression to be computed and labels therein
+fn capture_expression(op:&str)->Vec<String>{
+    let matches = EXPRESSION.captures(op).unwrap();
+    let mut terms_vector = Vec::new();
+    for a_match in matches.iter() {
+        let term = a_match.map_or("", |m| m.as_str());
+        //skipping empty captures from repeated groups
+        if term != ""{
+            terms_vector.push(String::from(term))
+        }
+    }
+    return terms_vector
 }

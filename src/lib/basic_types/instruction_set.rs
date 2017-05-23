@@ -314,6 +314,10 @@ lazy_static!{
                   AssemblyDef::new("LTORG".to_owned(),
                   UnitOrPair::Unit(Format::None),
                   UnitOrPair::Unit(OperandType::None),0xFF)),
+            ("EQU".to_owned(),
+                  AssemblyDef::new("EQU".to_owned(),
+                  UnitOrPair::Unit(Format::None),
+                  UnitOrPair::Unit(OperandType::Immediate), 0xFF))
                     ].iter().cloned().collect();
             return assembler_directives;
         };
