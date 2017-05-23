@@ -105,7 +105,7 @@ impl FileHandler {
                 is_asm_directive = is_dir;
             }
             Err(e) => {
-                self.errs.push(format!("{}", e));
+                self.errs.push(format!("{} at line {}", e, self.line_number));
                 return None;
             }
         }
@@ -128,6 +128,8 @@ impl FileHandler {
         }
 
         let mut inst = Instruction::new(label, instruction, operands);
+        inst.set_line_number(self.line_number);
+
         if is_format_4 {
             inst.set_format(Format::Four);
         }
@@ -307,7 +309,7 @@ mod tests {
         let comment_regex = Regex::new(r"(?m)\..+").unwrap();
         let mut file_content: String = String::new();
         match asm_file.buf.read_to_string(&mut file_content) {
-            Err(e) => println!("{}", e),
+            Err(e) => println!("error: {}", e),
             _ => (),
         };
 

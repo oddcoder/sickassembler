@@ -13,6 +13,7 @@ pub enum OperandType {
     Label, // Load the memory address for the lable
     Bytes,
     VarArgs, // Variable length operands, for EXTREF,EXTDEF
+    Expression,
     None,
 
     // Pass2 will convert any of the provided operands above to a raw nueric value
@@ -43,6 +44,7 @@ pub enum Value {
     Label(String),
     Bytes(String),
     VarArgs(Vec<String>),
+    Expression(Vec<String>),
     None,
 }
 

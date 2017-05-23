@@ -5,6 +5,8 @@ use std::time::Duration;
 
 const LOCK_DURATION_MILLIS: u64 = 50;
 
+// TODO: print all symtab import and export tables
+
 lazy_static!{    
     // The master table contains all the control sections' symbol tables, it's the main
     // data structure in this module
@@ -60,7 +62,7 @@ impl MasterTable {
     fn define_csect(&mut self, csect: &str) -> Result<(), String> {
 
         if self.has_csect(csect) {
-            return Err(format!("Redifinition of control section {{ {} }} ", csect));
+            return Err(format!("Redefinition of control section {{ {} }} ", csect));
         }
 
         let table = Box::new(CsectSymTab::new(csect));
@@ -76,10 +78,10 @@ impl MasterTable {
                            addr: i32,
                            csect: &str)
                            -> Result<(), String> {
-        let csect_tab: &mut CsectSymTab = self.get_csect_table_write(csect);
 
+        let csect_tab: &mut CsectSymTab = self.get_csect_table_write(csect);
         if csect_tab.has_local(sym_name) {
-            return Err(format!("Redifinition of label {{ {} }}", sym_name));
+            return Err(format!("Redefinition of label {{ {} }}", sym_name));
         }
 
         let sym: Symbol = Symbol::new(sym_name, addr, csect);
@@ -324,7 +326,7 @@ mod tests {
         let (name, csect) = create_local_variable("X2-0", DEFAULT_CONTROL_SECTION);
         define_exported_symbol(name, csect).unwrap();
 
-        let ext_csect = "csect2";
+        let ext_csect = "csect2-0"; // csect2 is defined below, the sym tab is static
         define_control_section(ext_csect).unwrap();
         define_imported_symbol(name, ext_csect).unwrap();
 
