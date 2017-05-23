@@ -326,7 +326,7 @@ mod tests {
         let (name, csect) = create_local_variable("X2-0", DEFAULT_CONTROL_SECTION);
         define_exported_symbol(name, csect).unwrap();
 
-        let ext_csect = "csect2";
+        let ext_csect = "csect2-0"; // csect2 is defined below, the sym tab is static
         define_control_section(ext_csect).unwrap();
         define_imported_symbol(name, ext_csect).unwrap();
 
