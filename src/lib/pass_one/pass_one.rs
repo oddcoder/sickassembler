@@ -133,7 +133,7 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
     let mut instructions: Vec<Instruction> = Vec::new();
     let mut csect: String = String::new();
 
-
+    // Start must be the first instruction
     match parse_start(&temp_instructions[0], &mut prog) {
         Err(e) => errs.push(e),
         Ok(start) => loc = start as i32,
@@ -151,19 +151,8 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
             instruction.locctr = loc;
             instruction.csect = csect.clone();
         }
-        if !instruction.label.is_empty() && &mnemonic != "EQU" {
-            if let Err(e) = define_local_symbol(&instruction.label, loc, &csect) {
-                errs.push(format!("{}", e));
-            }
-        }
 
         match mnemonic.as_ref() {
-            //XXX I am not sure
-            //"START" => {
-            //    match parse_start(&instruction, &mut prog) {
-            //        Err(e) => errs.push(e),
-            //        Ok(start) => loc = start as i32,
-            //    }
             "START" => errs.push("Duplicate START instruction".to_owned()),
             "LTORG" => {
                 loc = flush_literals(&mut instructions, loc as u32, &csect);
@@ -171,7 +160,7 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
 
             "EQU" => {
                 if let Err(e) = parse_equ(&instruction, &csect) {
-                    errs.push(format!("{}", e));
+                    errs.push(format!("{} at line {}", e, instruction.src_line_num));
                 }
             }
 
@@ -210,9 +199,9 @@ fn consume_instruction(instruction: &Instruction,
                        -> i32 {
     // This function exists just to improve testability
 
-    if !instruction.label.is_empty() && instruction.mnemonic != "CSECT" {
+    if !instruction.label.is_empty() {
         if let Err(e) = define_local_symbol(&instruction.label, loc, &csect) {
-            errs.push(format!("{}", e));
+            errs.push(format!("{} at line {}", e, instruction.src_line_num));
         }
     }
     let mut result = Ok(());
@@ -236,6 +225,9 @@ fn consume_instruction(instruction: &Instruction,
             *csect = instruction.label.clone();
             result = define_control_section(csect);
             loc = 0;
+            // Control section name is the same as a program name
+            // and can be used normally
+            define_local_symbol(csect, loc, csect);
         }
         _ => {
             loc += instruction_size;
