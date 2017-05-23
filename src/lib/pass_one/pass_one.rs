@@ -290,7 +290,14 @@ fn parse_equ(instruction: &Instruction, csect: &str) -> Result<(), String> {
         return define_local_symbol(&instruction.label, val as i32, csect);
     } else if let Value::Label(ref lbl) = instruction.get_first_operand().val {
         return match get_symbol(&lbl, csect) {
-            Ok(sym) => define_local_symbol(&instruction.label, sym.get_address(), csect),
+            Ok(sym) => {
+                if sym.symbol_type == SymbolType::Imported {
+                    return Err(format!("{{ {} }} is not a local variable in {{ {} }}",
+                                       sym.get_name(),
+                                       csect));
+                }
+                define_local_symbol(&instruction.label, sym.get_address(), csect)
+            }
             Err(e) => Err(e),
         };
     } else if let Value::Expression(ref exp) = instruction.get_first_operand().val {
@@ -299,6 +306,11 @@ fn parse_equ(instruction: &Instruction, csect: &str) -> Result<(), String> {
         for term in &exp[1..] {
             match get_symbol(&term, csect) {
                 Ok(sym) => {
+                    if sym.symbol_type == SymbolType::Imported {
+                        return Err(format!("{{ {} }} is not a local variable in {{ {} }}",
+                                           sym.get_name(),
+                                           csect));
+                    }
                     context.var(term.as_str(), sym.get_address() as f64);
                 }
                 Err(_) => continue,
