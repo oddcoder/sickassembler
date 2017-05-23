@@ -227,7 +227,7 @@ fn consume_instruction(instruction: &Instruction,
             loc = 0;
             // Control section name is the same as a program name
             // and can be used normally
-            define_local_symbol(csect, loc, csect);
+            result = result.and(define_local_symbol(csect, loc, csect));
         }
         _ => {
             loc += instruction_size;
