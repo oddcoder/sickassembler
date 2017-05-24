@@ -52,6 +52,10 @@ pub fn parse_directive_operand(op: &str, instruction: &str) -> Result<AsmOperand
                     errs = format!("{}\n{}", errs, e);
                     parse_expression(op)
                 })
+                .or_else(|e|{
+                    errs = format!("{}\n{}", errs, e);
+                    parse_locctr_ref(op)
+                })
             }
             else {
                 Err("not EQU".to_owned())
@@ -203,4 +207,14 @@ fn capture_expression(op:&str)->Vec<String>{
         }
     }
     return terms_vector
+}
+
+
+fn parse_locctr_ref(op:&str)->Result<AsmOperand, String>{
+    if op == "*"{
+        return Ok(create_operand(OperandType::Bytes, Value::Bytes(op.to_owned())));
+    }
+    else{
+        return Err(format!("{} is not the const '*'", op));
+    }
 }

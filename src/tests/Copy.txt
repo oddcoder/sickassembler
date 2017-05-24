@@ -5,8 +5,8 @@ FIRST    STL     RETADR
 CLOOP    +JSUB   RDREC
          LDA     LENGTH
 FONE     EQU     X'F1'
-LCTR     EQU     FONE+23
-         COMP    #ZERO
+LCTR     EQU     *
+         COMP    #0
          JEQ     ENDFIL
          +JSUB   WRREC
          J       CLOOP
