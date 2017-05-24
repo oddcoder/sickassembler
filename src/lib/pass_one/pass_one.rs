@@ -159,7 +159,7 @@ fn process_instructions(temp_instructions: Vec<Instruction>,
             }
 
             "EQU" => {
-                if let Err(e) = parse_equ(&instruction, &csect) {
+                if let Err(e) = parse_equ(&instruction, &csect, loc) {
                     errs.push(format!("{} at line {}", e, instruction.src_line_num));
                 }
             }
@@ -276,7 +276,7 @@ fn parse_end(instruction: &Instruction,
 }
 
 
-fn parse_equ(instruction: &Instruction, csect: &str) -> Result<(), String> {
+fn parse_equ(instruction: &Instruction, csect: &str, loc: i32) -> Result<(), String> {
     //get symbol value from Raw val inside operand
     if let Value::Raw(val) = instruction.get_first_operand().val {
         return define_local_symbol(&instruction.label, val as i32, csect);
@@ -320,7 +320,11 @@ fn parse_equ(instruction: &Instruction, csect: &str) -> Result<(), String> {
                 Ok(decimal) => return define_local_symbol(&instruction.label, decimal, csect),
                 Err(e) => Err(e.to_string()),
             }
-        } else {
+        }
+        else if val == String::from("*"){
+                return define_local_symbol(&instruction.label, loc, csect)
+        }
+        else {
             return Err(format!("Invalid EQU operands, found {:?}",
                                unwrap_to_vec(&instruction.operands)));
         }
