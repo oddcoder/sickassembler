@@ -9,3 +9,5 @@
 -   To mark a function as a test function, mark the including module with `#[cfg(test)]` and each function with `#[test]`
 
 -   For more information about tests visit [this](https://doc.rust-lang.org/book/testing.html) link
+
+-   You can find more input codes in the `more_tests` folder
