@@ -29,6 +29,7 @@ fn main() {
     let program = args[0].clone();
     let mut opts = Options::new();
     opts.optopt("o", "output", "set output file name", "name");
+    opts.optflag("c", "csect", "print control section details");
     opts.optflag("h", "help", "print this help menu");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
@@ -82,9 +83,8 @@ fn main() {
     print_errs(&errs, exit_on_error);
 
     // Print control sections info
-    let csects_info = sick_lib::pass_one::pass_one::get_csects_info();
-    for sect_info in csects_info {
-        println!("{}", sect_info);
+    if matches.opt_present("c") {
+        print_csect_info();
     }
 
     // Sort by address
@@ -96,8 +96,8 @@ fn main() {
         table.add_row(row![
             Cell::new(&format!("{:04X}", address))
                 .with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),
-            Cell::new(&name),
-            Cell::new(&csect),
+            &name,
+            &csect,
         ]);
     }
     table.printstd();
@@ -118,6 +118,13 @@ fn main() {
     }
     table.printstd();
     raw_program.output_to_file();
+}
+
+fn print_csect_info() {
+    let csects_info = sick_lib::pass_one::pass_one::get_csects_info();
+    for sect_info in csects_info {
+        println!("{}", sect_info);
+    }
 }
 
 fn print_error(err: &String, exit_on_error: bool) {
