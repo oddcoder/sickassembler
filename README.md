@@ -2,7 +2,20 @@
 
 [![Build Status](https://travis-ci.org/oddcoder/sickassembler.svg?branch=master)](https://travis-ci.org/oddcoder/sickassembler)
 
-SIC/XE machine assembler
+[![asciicast](https://asciinema.org/a/ixqOAryrJIV9meksHwpR7T30F.svg)](https://asciinema.org/a/ixqOAryrJIV9meksHwpR7T30F)
+
+## Usage
+The object file is generated in the same directory
+
+```shell
+Usage: target/debug/sick_assembler FILE [options] file
+
+Options:
+    -o, --output name   set output file name
+    -c, --csect         print control section details
+    -h, --help          print this help menu
+```
+## SIC/XE machine assembler
 
 Extensive amount of error checking is done
 - Undefined Mnemonics
@@ -22,18 +35,5 @@ Extensive amount of error checking is done
 - Illegal format addressing for imported symbol
 - Out of bit range parameters
 
-## Usage
-The object file is generated in the same directory
-
-```shell
-Usage: target/debug/sick_assembler FILE [options] file
-
-Options:
-    -o, --output name   set output file name
-    -c, --csect         print control section details
-    -h, --help          print this help menu
-```
 ## Tests
-you can find test codes (.asm) files in `./src/tests/` directory
-
-[![asciicast](https://asciinema.org/a/ixqOAryrJIV9meksHwpR7T30F.svg)](https://asciinema.org/a/ixqOAryrJIV9meksHwpR7T30F)
+you can find test codes (.asm) files in `./src/tests/` directory. In addition to module & unit tests.
