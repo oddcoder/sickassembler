@@ -1,14 +1,14 @@
+#[macro_use]
 extern crate prettytable;
-extern crate sick_lib;
-extern crate getopts;
 extern crate env_logger;
+extern crate getopts;
+extern crate sick_lib;
 extern crate term;
 
-use term::color;
 use getopts::Options;
-use prettytable::Table;
-use prettytable::row::Row;
-use prettytable::cell::Cell;
+
+use prettytable::{Cell, Row, Table};
+use term::color;
 
 //use instruction::Instruction;
 //use operands::OperandType;
@@ -21,7 +21,7 @@ fn print_usage(program: &str, opts: Options) {
 
 fn main() {
     let exit_on_error: bool = false;
-    env_logger::init().unwrap();
+    env_logger::init();
     // credits goes to here:-
     // https://doc.rust-lang.org/getopts/getopts/index.html
     // Time will come where I will fully understant this!
@@ -56,7 +56,6 @@ fn main() {
     let mut t = term::stdout().unwrap();
     print_errs(&asm_file.errs, exit_on_error);
 
-
     let result = sick_lib::pass_one::pass_one::pass_one(result.unwrap());
     let result = result.map_err(|e| print_error(&e, exit_on_error));
     if result.is_err() {
@@ -66,17 +65,17 @@ fn main() {
     let (sym_tab, mut raw_program): (_, _) = result.unwrap();
 
     t.fg(term::color::YELLOW).unwrap();
-    write!(t,
-           "Prog name:{}, prog length:{:#X}, prog start addr:{:#X}\n",
-           raw_program.program_name,
-           raw_program.program_length,
-           raw_program.first_instruction_address)
-        .unwrap();
+    write!(
+        t,
+        "Prog name:{}, prog length:{:#X}, prog start addr:{:#X}\n",
+        raw_program.program_name, raw_program.program_length, raw_program.first_instruction_address
+    ).unwrap();
     t.reset().unwrap();
 
     let errs = sick_lib::pass_two::translator::pass_two(&mut raw_program);
 
-    let mut sym_tab = sym_tab.into_iter()
+    let mut sym_tab = sym_tab
+        .into_iter()
         .map(|e| (e.get_name(), e.get_address(), e.get_control_section()))
         .collect::<Vec<(String, i32, String)>>();
 
@@ -92,32 +91,30 @@ fn main() {
     sym_tab.sort_by(|a, b| a.1.cmp(&b.1));
     // Create the table
     let mut table = Table::new();
-    table.add_row(Row::new(vec![Cell::new("Address"),
-                                Cell::new("Name"),
-                                Cell::new("Control Section")]));
+    table.add_row(row!["Address", "Name", "Control Section"]);
     for (name, address, csect) in sym_tab {
-        table.add_row(Row::new(vec![
-        Cell::new(&format!("{:04X}", address)).with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),
-        Cell::new(&name), Cell::new(&csect)]));
+        table.add_row(row![
+            Cell::new(&format!("{:04X}", address))
+                .with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),
+            Cell::new(&name),
+            Cell::new(&csect),
+        ]);
     }
     table.printstd();
 
     print!("\n\n\n");
 
     let mut table = Table::new();
-    table.add_row(Row::new(vec![Cell::new("Loc"),
-                                Cell::new("Label"),
-                                Cell::new("Mnemonic"),
-                                Cell::new("Format"),
-                                Cell::new("Obj")]));
+    table.add_row(row!["Loc", "Label", "Mnemonic", "Format", "Obj",]);
     for &(ref objcode, ref instr) in &raw_program.program {
-        table.add_row(Row::new(vec![Cell::new(&format!("{:04X}", instr.locctr))
-                                        .with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),
-                                    Cell::new(&instr.label),
-                                    Cell::new(&instr.mnemonic),
-                                    Cell::new(format!("{:?}",&instr.get_format()).as_str()),
-                                    Cell::new(&objcode)
-                                        .with_style(term::Attr::ForegroundColor(color::BRIGHT_YELLOW))]));
+        table.add_row(Row::new(vec![
+            Cell::new(&format!("{:04X}", instr.locctr))
+                .with_style(term::Attr::ForegroundColor(color::BRIGHT_BLUE)),
+            Cell::new(&instr.label),
+            Cell::new(&instr.mnemonic),
+            Cell::new(format!("{:?}", &instr.get_format()).as_str()),
+            Cell::new(&objcode).with_style(term::Attr::ForegroundColor(color::BRIGHT_YELLOW)),
+        ]));
     }
     table.printstd();
     raw_program.output_to_file();
